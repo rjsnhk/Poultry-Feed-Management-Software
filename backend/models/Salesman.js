@@ -4,7 +4,7 @@ const SalesmanSchema = new mongoose.Schema({
   email: String,
   password: String,
   phone: String,
-  assignedParties: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Party' }],
+  role: { type: String, default: 'Salesman' },
   collectedPayments: [{
     order: { type: mongoose.Schema.Types.ObjectId, ref: 'Order' },
     amount: Number,

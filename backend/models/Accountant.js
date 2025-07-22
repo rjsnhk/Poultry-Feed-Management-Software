@@ -4,7 +4,7 @@ const accountantSchema = new mongoose.Schema({
   email: String,
   password: String,
   phone: String,
-
+  role: { type: String, default: 'Accountant' },
   warehouse: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Warehouse',

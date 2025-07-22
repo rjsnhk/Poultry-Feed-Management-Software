@@ -97,7 +97,7 @@ const loginAdmin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Check if all fields are provided
+    // Input validation
     if (!email || !password) {
       return res.status(422).json({
         success: false,
@@ -105,7 +105,7 @@ const loginAdmin = async (req, res) => {
       });
     }
 
-    // Check if admin exists
+    // Find admin
     const isAdmin = await adminModel.findOne({ email });
     if (!isAdmin) {
       return res.status(404).json({
@@ -114,7 +114,7 @@ const loginAdmin = async (req, res) => {
       });
     }
 
-    // Compare password
+    // Check password
     const isMatched = await bcrypt.compare(password, isAdmin.password);
     if (!isMatched) {
       return res.status(401).json({
@@ -125,27 +125,24 @@ const loginAdmin = async (req, res) => {
 
     // Generate token
     const token = jwt.sign(
-      { adminId: isAdmin._id, role: isAdmin.role },
+      { id: isAdmin._id, role: 'Admin' }, // Use uniform structure
       SECRET_TOKEN,
-      { expiresIn: "1d" }
+      { expiresIn: '1d' }
     );
 
-    // Save token to DB (optional, useful for logout/invalidate)
+    // Optional: Store token in DB
     isAdmin.token = token;
     await isAdmin.save();
 
-    // Set cookie
-    const expiresIn = new Date(Date.now() + 1000 * 60 * 60 * 24); // 24 hrs
-
+    // Set cookie (optional for frontend auth handling)
     res.cookie("adminToken", token, {
-      expires: expiresIn,
-      httpOnly: false,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
-      path: "/",
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
     });
 
-    // Final response
+    // Send response
     res.status(200).json({
       success: true,
       message: "Login successful",
@@ -153,9 +150,9 @@ const loginAdmin = async (req, res) => {
         _id: isAdmin._id,
         name: isAdmin.name,
         email: isAdmin.email,
-        role: isAdmin.role,
+        role: 'Admin',
         token
-      },
+      }
     });
 
   } catch (error) {
