@@ -6,24 +6,79 @@ const Warehouse = require('../models/Warehouse');
 const SECRET_TOKEN = process.env.JWT_SECRET;
 
 // PlantHead Login
-const loginPlantHead = async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    const user = await PlantHead.findOne({ email });
-    if (!user) return res.status(404).json({ success: false, message: 'Not Found' });
 
-    const valid = await bcrypt.compare(password, user.password);
-    if (!valid) return res.status(400).json({ success: false, message: 'Invalid Password' });
- 
-    const token = jwt.sign({ plantHeadId: user._id }, SECRET_TOKEN, { expiresIn: '1d' });
-    res.status(200).json({ success: true, token, user });
+const loginPlantHead = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Validate input
+    if (!email || !password) {
+      return res.status(422).json({
+        success: false,
+        message: "Email and password are required",
+      });
+    }
+
+    // Find plant head
+    const plantHead = await PlantHead.findOne({ email });
+    if (!plantHead) {
+      return res.status(404).json({
+        success: false,
+        message: "Plant Head not found",
+      });
+    }
+
+    // Check password
+    const isMatch = await bcrypt.compare(password, plantHead.password);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Incorrect password",
+      });
+    }
+
+    // Generate JWT
+    const token = jwt.sign(
+      { id: plantHead._id, role: 'PlantHead' },
+      SECRET_TOKEN,
+      { expiresIn: '1d' }
+    );
+
+    // Optional: set cookie
+    res.cookie("plantHeadToken", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+
+    // Final response
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      data: {
+        _id: plantHead._id,
+        name: plantHead.name,
+        email: plantHead.email,
+        role: 'PlantHead',
+        token
+      }
+    });
+
   } catch (err) {
-    res.status(500).json({ success: false, message: err.message });
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong during login",
+      error: err.message
+    });
   }
 };
 
+
 // Daily Production Entry (Update stock)
-const updateStock = async (req, res) => {};
+const updateStock = async (req, res) => {
+  
+};
 
 // View Production Chart (stock overview)
 const getProductionChart = async (req, res) => {};

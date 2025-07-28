@@ -2,22 +2,23 @@ const Salesman = require('../models/Salesman');
 const Order = require('../models/Order');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
-const SECRET = process.env.JWT_SECRET;
+const SECRET_TOKEN = process.env.JWT_SECRET;
 
-// Salesman Login
+
 const loginSalesman = async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    return res.status(400).json({
-      success: false,
-      message: "Email and password are required",
-    });
-  }
-
   try {
-    const salesman = await Salesman.findOne({ email });
+    const { email, password } = req.body;
 
+    // Input validation
+    if (!email || !password) {
+      return res.status(422).json({
+        success: false,
+        message: "Email and password are required",
+      });
+    }
+
+    // Find salesman by email
+    const salesman = await Salesman.findOne({ email });
     if (!salesman) {
       return res.status(404).json({
         success: false,
@@ -25,22 +26,43 @@ const loginSalesman = async (req, res) => {
       });
     }
 
+    // Compare passwords
     const isMatch = await bcrypt.compare(password, salesman.password);
-
     if (!isMatch) {
       return res.status(401).json({
         success: false,
-        message: "Invalid password",
+        message: "Incorrect password",
       });
     }
 
-    const token = jwt.sign({ salesmanId: salesman._id }, SECRET, { expiresIn: '1d' });
+    // Generate JWT token with uniform structure
+    const token = jwt.sign(
+      { id: salesman._id, role: 'Salesman' },
+      SECRET_TOKEN,
+      { expiresIn: '1d' }
+    );
 
+    // Optional: Set cookie
+    res.cookie("salesmanToken", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+
+    // Send response
     res.status(200).json({
       success: true,
-      token,
-      data: salesman,
+      message: "Login successful",
+      data: {
+        _id: salesman._id,
+        name: salesman.name,
+        email: salesman.email,
+        role: 'Salesman',
+        token
+      }
     });
+
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -49,6 +71,8 @@ const loginSalesman = async (req, res) => {
     });
   }
 };
+
+
 
 const deleteOrder = async (req, res) => {
   const { orderId } = req.params;

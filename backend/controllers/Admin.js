@@ -130,10 +130,7 @@ const loginAdmin = async (req, res) => {
       { expiresIn: '1d' }
     );
 
-    // Optional: Store token in DB
-    isAdmin.token = token;
-    await isAdmin.save();
-
+    
     // Set cookie (optional for frontend auth handling)
     res.cookie("adminToken", token, {
       httpOnly: true,

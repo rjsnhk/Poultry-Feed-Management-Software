@@ -11,23 +11,72 @@ const SalesAuthorizer = require('../models/SalesAuthorizer');
 
 const SECRET_TOKEN = process.env.JWT_SECRET || "yourSecretKey";
 
-// 1. Login (Already implemented)
 const loginSalesAuthorizer = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await SalesAuthorizer.findOne({ email });
 
-    if (!user) return res.status(404).json({ success: false, message: 'Not found' });
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) return res.status(400).json({ success: false, message: 'Invalid password' });
+    // Input validation
+    if (!email || !password) {
+      return res.status(422).json({
+        success: false,
+        message: "Email and password are required",
+      });
+    }
 
-    const token = jwt.sign({ authorizerId: user._id }, SECRET_TOKEN, { expiresIn: '1d' });
-    res.status(200).json({ success: true, token, user });
+    // Find sales authorizer
+    const authorizer = await SalesAuthorizer.findOne({ email });
+    if (!authorizer) {
+      return res.status(404).json({
+        success: false,
+        message: "Sales Authorizer not found",
+      });
+    }
+
+    // Validate password
+    const isMatch = await bcrypt.compare(password, authorizer.password);
+    if (!isMatch) {
+      return res.status(401).json({
+        success: false,
+        message: "Incorrect password",
+      });
+    }
+
+    // Generate JWT
+    const token = jwt.sign(
+      { id: authorizer._id, role: 'SalesAuthorizer' },
+      SECRET_TOKEN,
+      { expiresIn: '1d' }
+    );
+
+    // Set cookie (optional)
+    res.cookie("salesAuthorizerToken", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
+
+    // Response
+    res.status(200).json({
+      success: true,
+      message: "Login successful",
+      data: {
+        _id: authorizer._id,
+        name: authorizer.name,
+        email: authorizer.email,
+        role: 'SalesAuthorizer',
+        token
+      }
+    });
+
   } catch (error) {
-    res.status(500).json({ success: false, message: error.message });
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong during login",
+      error: error.message,
+    });
   }
 };
-
 
 const getForwardedOrders = async (req, res) => {
   try {
