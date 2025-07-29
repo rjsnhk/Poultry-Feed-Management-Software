@@ -170,52 +170,30 @@ const forwardOrderToAuthorizer = async (req, res) => {
 
 
 
-// Forward order to Sales Authorizer
-const forwardOrderToSalesAuthorizer = async (req, res) => {
-  const { orderId } = req.params;
-  const salesManagerId = req.user.salesManagerId; // from verifySalesmanager middleware
 
+
+
+
+// Get all forwarded orders by Sales this particular Manager
+const getForwardedOrders = async (req, res) => {
   try {
-    const order = await Order.findById(orderId);
-
-    if (!order) {
-      return res.status(404).json({
-        success: false,
-        message: "Order not found"
-      });
-    }
-
-    if (order.orderStatus !== 'ForwardedToAuthorizer') {
-      return res.status(400).json({
-        success: false,
-        message: "Order is not in 'ForwardedToAuthorizer' status"
-      });
-    }
-
-    // ✅ Update to correct status and assign manager
-    order.orderStatus = 'ForwardedToSalesAuthorizer';
-    order.forwardedBySalesAuthorizer = salesManagerId;
-
-    await order.save();
+    const orders = await Order.find({ forwardedByManager: req.user.salesManagerId })
+      .populate('party', 'name contact')
+      .populate('placedBy', 'name email phone');
 
     res.status(200).json({
       success: true,
-      message: "Order forwarded to Sales Authorizer successfully",
-      data: order
+      message: "Fetched all forwarded orders",
+      data: orders
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Error forwarding order to Sales Authorizer",
+      message: "Error while fetching forwarded orders",
       error: error.message
     });
   }
 }
-
-
-
-// Get all forwarded orders
-const getForwardedOrders = async (req, res) => {}
 
 
 module.exports = {
