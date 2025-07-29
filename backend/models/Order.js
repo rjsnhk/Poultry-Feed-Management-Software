@@ -18,7 +18,7 @@ const OrderSchema = new mongoose.Schema({
     enum: [
       'Placed', 'ForwardedToAuthorizer',
       'WarehouseAssigned', 'Approved', 'Dispatched',
-      'Delivered', 'Paid'
+      'Delivered'
     ],
     default: 'Placed'
   },

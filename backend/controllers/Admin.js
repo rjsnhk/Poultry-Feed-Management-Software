@@ -695,6 +695,160 @@ const deleteSalesAuthorizer = async (req, res) => {
 }
 
 
+
+const addPlantHead = async (req, res) => {
+  const { name, email, password, phone } = req.body;
+
+  if (!name || !email || !password || !phone) {
+    return res.status(422).json({ success: false, message: "Missing input fields" });
+  }
+
+  if (!isCorrectEmail(email)) {
+    return res.status(422).json({ success: false, message: "Incorrect email format!" });
+  }
+
+  const existing = await plantHeadModel.findOne({ email });
+  if (existing) {
+    return res.status(409).json({ success: false, message: "Email already in use" });
+  }
+
+  const hashedPassword = await bcrypt.hash(password, saltRounds);
+  const newPlantHead = await plantHeadModel.create({ name, email, password: hashedPassword, phone });
+
+  res.status(201).json({
+    success: true,
+    message: "Plant Head created successfully",
+    data: { _id: newPlantHead._id, name, email, phone }
+  });
+};
+
+const getAllPlantHeads = async (req, res) => {
+  try {
+    const heads = await plantHeadModel.find().select("-password");
+    res.status(200).json({ success: true, message: "All Plant Heads", data: heads });
+  } catch (err) {
+    res.status(500).json({ success: false, message: "Error fetching data", error: err.message });
+  }
+};
+
+const getPlantHead = async (req, res) => {
+  const { id } = req.params;
+  const head = await plantHeadModel.findById(id).select("-password");
+  if (!head) return res.status(404).json({ success: false, message: "Plant Head not found" });
+  res.status(200).json({ success: true, data: head });
+};
+
+const updatePlantHead = async (req, res) => {
+  const { id } = req.params;
+  const { name, email, password, phone } = req.body;
+
+  if (!id) {
+    return res.status(422).json({ success: false, message: "Plant Head ID is required" });
+  }
+
+  try {
+    const head = await plantHeadModel.findById(id);
+    if (!head) {
+      return res.status(404).json({ success: false, message: "Plant Head not found" });
+    }
+
+    if (name) head.name = name;
+    if (email) head.email = email;
+    if (password) head.password = await bcrypt.hash(password, saltRounds);
+    if (phone) head.phone = phone;
+
+    await head.save();
+    res.status(200).json({ success: true, message: "Plant Head updated successfully", data: head });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Error updating Plant Head", error: error.message });
+  }
+
+};
+const deletePlantHead = async (req, res) => {
+  const { id } = req.params;
+  const deleted = await plantHeadModel.findByIdAndDelete(id);
+  if (!deleted) return res.status(404).json({ success: false, message: "Plant Head not found" });
+  res.status(200).json({ success: true, message: "Deleted successfully" });
+};
+
+
+
+
+const addAccountant = async (req, res) => {
+  const { name, email, password, phone } = req.body;
+
+  if (!name || !email || !password || !phone) {
+    return res.status(422).json({ success: false, message: "Missing input fields" });
+  }
+
+  if (!isCorrectEmail(email)) {
+    return res.status(422).json({ success: false, message: "Incorrect email format!" });
+  }
+
+  const existing = await accountantModel.findOne({ email });
+  if (existing) {
+    return res.status(409).json({ success: false, message: "Email already in use" });
+  }
+
+  const hashedPassword = await bcrypt.hash(password, saltRounds);
+  const newAccountant = await accountantModel.create({ name, email, password: hashedPassword, phone });
+
+  res.status(201).json({
+    success: true,
+    message: "Accountant created successfully",
+    data: { _id: newAccountant._id, name, email, phone }
+  });
+};
+
+const getAllAccountants = async (req, res) => {
+  try {
+    const data = await accountantModel.find().select("-password");
+    res.status(200).json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+const getAccountant = async (req, res) => {
+  const { id } = req.params;
+  const acc = await accountantModel.findById(id).select("-password");
+  if (!acc) return res.status(404).json({ success: false, message: "Accountant not found" });
+  res.status(200).json({ success: true, data: acc });
+};
+
+const updateAccountant = async (req, res) => {
+  const { id } = req.params;
+  const { name, email, password, phone } = req.body;
+
+  if (!id) {
+    return res.status(422).json({ success: false, message: "Accountant ID is required" });
+  }
+
+  try {
+    const accountant = await accountantModel.findById(id);
+    if (!accountant) {
+      return res.status(404).json({ success: false, message: "Accountant not found" });
+    }
+
+    if (name) accountant.name = name;
+    if (email) accountant.email = email;
+    if (password) accountant.password = await bcrypt.hash(password, saltRounds);
+    if (phone) accountant.phone = phone;
+
+    await accountant.save();
+    res.status(200).json({ success: true, message: "Accountant updated successfully", data: accountant });
+  } catch (error) {
+    res.status(500).json({ success: false, message: "Error updating accountant", error: error.message });
+  }
+};
+const deleteAccountant = async (req, res) => {
+  const { id } = req.params;
+  const deleted = await accountantModel.findByIdAndDelete(id);
+  if (!deleted) return res.status(404).json({ success: false, message: "Accountant not found" });
+  res.status(200).json({ success: true, message: "Accountant deleted" });
+};
+
+
 const addWarehouse = async (req, res) => {
   try {
     const { name, location, plantHead, accountant } = req.body;
@@ -1017,159 +1171,6 @@ const approveWarehouse = async (req, res) => {
 };
 
 
-
-
-const addPlantHead = async (req, res) => {
-  const { name, email, password, phone } = req.body;
-
-  if (!name || !email || !password || !phone) {
-    return res.status(422).json({ success: false, message: "Missing input fields" });
-  }
-
-  if (!isCorrectEmail(email)) {
-    return res.status(422).json({ success: false, message: "Incorrect email format!" });
-  }
-
-  const existing = await plantHeadModel.findOne({ email });
-  if (existing) {
-    return res.status(409).json({ success: false, message: "Email already in use" });
-  }
-
-  const hashedPassword = await bcrypt.hash(password, saltRounds);
-  const newPlantHead = await plantHeadModel.create({ name, email, password: hashedPassword, phone });
-
-  res.status(201).json({
-    success: true,
-    message: "Plant Head created successfully",
-    data: { _id: newPlantHead._id, name, email, phone }
-  });
-};
-
-const getAllPlantHeads = async (req, res) => {
-  try {
-    const heads = await plantHeadModel.find().select("-password");
-    res.status(200).json({ success: true, message: "All Plant Heads", data: heads });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Error fetching data", error: err.message });
-  }
-};
-
-const getPlantHead = async (req, res) => {
-  const { id } = req.params;
-  const head = await plantHeadModel.findById(id).select("-password");
-  if (!head) return res.status(404).json({ success: false, message: "Plant Head not found" });
-  res.status(200).json({ success: true, data: head });
-};
-
-const updatePlantHead = async (req, res) => {
-  const { id } = req.params;
-  const { name, email, password, phone } = req.body;
-
-  if (!id) {
-    return res.status(422).json({ success: false, message: "Plant Head ID is required" });
-  }
-
-  try {
-    const head = await plantHeadModel.findById(id);
-    if (!head) {
-      return res.status(404).json({ success: false, message: "Plant Head not found" });
-    }
-
-    if (name) head.name = name;
-    if (email) head.email = email;
-    if (password) head.password = await bcrypt.hash(password, saltRounds);
-    if (phone) head.phone = phone;
-
-    await head.save();
-    res.status(200).json({ success: true, message: "Plant Head updated successfully", data: head });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Error updating Plant Head", error: error.message });
-  }
-
-};
-const deletePlantHead = async (req, res) => {
-  const { id } = req.params;
-  const deleted = await plantHeadModel.findByIdAndDelete(id);
-  if (!deleted) return res.status(404).json({ success: false, message: "Plant Head not found" });
-  res.status(200).json({ success: true, message: "Deleted successfully" });
-};
-
-
-
-
-const addAccountant = async (req, res) => {
-  const { name, email, password, phone } = req.body;
-
-  if (!name || !email || !password || !phone) {
-    return res.status(422).json({ success: false, message: "Missing input fields" });
-  }
-
-  if (!isCorrectEmail(email)) {
-    return res.status(422).json({ success: false, message: "Incorrect email format!" });
-  }
-
-  const existing = await accountantModel.findOne({ email });
-  if (existing) {
-    return res.status(409).json({ success: false, message: "Email already in use" });
-  }
-
-  const hashedPassword = await bcrypt.hash(password, saltRounds);
-  const newAccountant = await accountantModel.create({ name, email, password: hashedPassword, phone });
-
-  res.status(201).json({
-    success: true,
-    message: "Accountant created successfully",
-    data: { _id: newAccountant._id, name, email, phone }
-  });
-};
-
-const getAllAccountants = async (req, res) => {
-  try {
-    const data = await accountantModel.find().select("-password");
-    res.status(200).json({ success: true, data });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-};
-
-const getAccountant = async (req, res) => {
-  const { id } = req.params;
-  const acc = await accountantModel.findById(id).select("-password");
-  if (!acc) return res.status(404).json({ success: false, message: "Accountant not found" });
-  res.status(200).json({ success: true, data: acc });
-};
-
-const updateAccountant = async (req, res) => {
-  const { id } = req.params;
-  const { name, email, password, phone } = req.body;
-
-  if (!id) {
-    return res.status(422).json({ success: false, message: "Accountant ID is required" });
-  }
-
-  try {
-    const accountant = await accountantModel.findById(id);
-    if (!accountant) {
-      return res.status(404).json({ success: false, message: "Accountant not found" });
-    }
-
-    if (name) accountant.name = name;
-    if (email) accountant.email = email;
-    if (password) accountant.password = await bcrypt.hash(password, saltRounds);
-    if (phone) accountant.phone = phone;
-
-    await accountant.save();
-    res.status(200).json({ success: true, message: "Accountant updated successfully", data: accountant });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Error updating accountant", error: error.message });
-  }
-};
-const deleteAccountant = async (req, res) => {
-  const { id } = req.params;
-  const deleted = await accountantModel.findByIdAndDelete(id);
-  if (!deleted) return res.status(404).json({ success: false, message: "Accountant not found" });
-  res.status(200).json({ success: true, message: "Accountant deleted" });
-};
 
 
 

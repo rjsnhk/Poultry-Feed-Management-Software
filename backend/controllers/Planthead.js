@@ -6,7 +6,6 @@ const Warehouse = require('../models/Warehouse');
 const SECRET_TOKEN = process.env.JWT_SECRET;
 
 // PlantHead Login
-
 const loginPlantHead = async (req, res) => {
   try {
     const { email, password } = req.body;
