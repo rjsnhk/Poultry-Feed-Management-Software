@@ -44,7 +44,8 @@ const OrderSchema = new mongoose.Schema({
   dispatchDate: Date,
   vehicleNumber: String,
   driverName: String,
-  vehiclePhoto: String
+  driverContact: String,
+  transportCompany: String,
 },
 
 // OrderSchema.js (add inside OrderSchema)

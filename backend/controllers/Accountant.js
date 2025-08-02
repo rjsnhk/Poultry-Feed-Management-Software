@@ -1,4 +1,5 @@
 const Order = require('../models/Order');
+const Warehouse = require('../models/Warehouse');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const SECRET = process.env.JWT_SECRET;
@@ -74,13 +75,126 @@ const loginAccountant = async (req, res) => {
 
 
 // Get dispatched orders
-const getDispatchedOrders = async (req, res) => {};
+const getDispatchedOrders = async (req, res) => {
+  try {
+    const warehouse = await Warehouse.findOne({ accountant: req.user.id });
+    if (!warehouse) {
+      return res.status(404).json({ success: false, message: "Warehouse not assigned to this accountant" });
+    }
+
+    const orders = await Order.find({
+      assignedWarehouse: warehouse._id,
+      orderStatus: 'Dispatched',
+      invoiceGenerated: false,
+      dueAmount: { $gt: 0 }
+    })
+      .populate('party', 'name contact')
+      .populate('placedBy', 'name email');
+
+    res.status(200).json({ success: true, data: orders });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch dispatched orders",
+      error: err.message
+    });
+  }
+};
+
 
 // Generate Invoice
-const generateInvoice = async (req, res) => {};
+const generateInvoice = async (req, res) => {
+  try {
+    const accountantId = req.user.id;
+    const { orderId } = req.params;
+    const { dueDate } = req.body;
+
+    const warehouse = await Warehouse.findOne({ accountant: accountantId });
+    if (!warehouse) {
+      return res.status(404).json({ success: false, message: "Warehouse not found for this accountant" });
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order || String(order.assignedWarehouse) !== String(warehouse._id)) {
+      return res.status(403).json({ success: false, message: "Not authorized to invoice this order" });
+    }
+
+    if (order.invoiceGenerated) {
+      return res.status(400).json({ success: false, message: "Invoice already generated" });
+    }
+
+    order.invoiceGenerated = true;
+    order.invoicedBy = accountantId;
+    order.dueDate = dueDate || new Date();
+
+    await order.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Invoice generated successfully",
+      data: order
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Invoice generation failed",
+      error: err.message
+    });
+  }
+};
+
 
 // Get Invoice by Order ID
-const getInvoiceDetails = async (req, res) => {};
+const getInvoiceDetails = async (req, res) => {
+  try {
+    const accountantId = req.user.id;
+    const { orderId } = req.params;
+
+    const warehouse = await Warehouse.findOne({ accountant: accountantId });
+    if (!warehouse) {
+      return res.status(404).json({ success: false, message: "Warehouse not assigned" });
+    }
+
+    const order = await Order.findById(orderId)
+      .populate('invoicedBy', 'name email')
+      .populate('party', 'name contact')
+      .populate('placedBy', 'name')
+      .populate('assignedWarehouse', 'name')
+      .populate('dispatchInfo.dispatchedBy', 'name');
+
+    if (!order || String(order.assignedWarehouse) !== String(warehouse._id)) {
+      return res.status(403).json({ success: false, message: "Access denied to this order" });
+    }
+
+    if (!order.invoiceGenerated) {
+      return res.status(404).json({ success: false, message: "Invoice not generated yet" });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        orderId: order._id,
+        totalAmount: order.totalAmount,
+        advanceAmount: order.advanceAmount,
+        dueAmount: order.dueAmount,
+        dueDate: order.dueDate,
+        party: order.party,
+        invoicedBy: order.invoicedBy,
+        generatedAt: order.updatedAt
+      }
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to retrieve invoice",
+      error: err.message
+    });
+  }
+};
+
 
 module.exports = {
   loginAccountant,

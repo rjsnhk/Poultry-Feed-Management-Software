@@ -998,25 +998,24 @@ const getWarehouse = async (req, res) => {
 };
 
 
-const updateProducts = async (req, res) => {
-  const { id } = req.params;
-  const { stock } = req.body;
+const addProducts = async (req, res) => {}
 
-  if (!id) {
-    return res.status(422).json({
-      success: false,
-      message: "Warehouse ID is required",
-    });
-  }
+const updateProductsPrice = async (req, res) => {}
 
-  if (!stock || !Array.isArray(stock)) {
-    return res.status(422).json({
-      success: false,
-      message: "Stock must be an array",
-    });
-  }
+const deleteProducts = async (req, res) => {}
 
+const updateWarehouse = async (req, res) => {
   try {
+    const { id } = req.params;
+    const { name, location } = req.body;  // Extract name and location from the request body
+
+    if (!id) {
+      return res.status(422).json({
+        success: false,
+        message: "Warehouse ID is required",
+      });
+    }
+
     // Check if the warehouse exists
     const existingWarehouse = await Warehouse.findById(id);
     if (!existingWarehouse) {
@@ -1026,63 +1025,15 @@ const updateProducts = async (req, res) => {
       });
     }
 
-    // Update the products in stock
-    existingWarehouse.stock = stock;
+    // Update the warehouse details
+    existingWarehouse.name = name;
+    existingWarehouse.location = location;
     await existingWarehouse.save();
 
     res.status(200).json({
       success: true,
-      message: "Products updated successfully",
-      data: existingWarehouse,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Something went wrong while updating products.",
-      error: error.message,
-    });
-  }
-};
-
-const updateWarehouse = async (req, res) => {
-  const { id } = req.params;
-  const { name, location, plantHead, accountant } = req.body;
-
-  if (!id) {
-    return res.status(422).json({
-      success: false,
-      message: "Warehouse ID is required",
-    });
-  }
-
-  if (!name || !location || !plantHead || !accountant) {
-    return res.status(422).json({
-      success: false,
-      message: "All fields (name, location, plantHead, accountant) are required.",
-    });
-  }
-
-  try {
-    // Check if the warehouse exists
-    const existingWarehouse = await Warehouse.findById(id);
-    if (!existingWarehouse) {
-      return res.status(404).json({
-        success: false,
-        message: "Warehouse not found",
-      });
-    }
-
-    // Update the warehouse
-    const updatedWarehouse = await Warehouse.findByIdAndUpdate(
-      id,
-      { name, location, plantHead, accountant },
-      { new: true }
-    );
-
-    res.status(200).json({
-      success: true,
       message: "Warehouse updated successfully",
-      data: updatedWarehouse,
+      data: existingWarehouse,
     });
   } catch (error) {
     res.status(500).json({
@@ -1090,7 +1041,7 @@ const updateWarehouse = async (req, res) => {
       message: "Something went wrong while updating the warehouse.",
       error: error.message,
     });
-  }
+    }
 };
 
 
@@ -1182,5 +1133,6 @@ module.exports = {
   addSalesAuthorizer, getAllSalesAuthorizer, getSalesAuthorizer, updateSalesAuthorizer, deleteSalesAuthorizer,
   addPlantHead, getAllPlantHeads, getPlantHead, updatePlantHead, deletePlantHead,
   addAccountant, getAllAccountants, getAccountant, updateAccountant, deleteAccountant,
-  addWarehouse, getAllWarehouse, getWarehouse, updateWarehouse, deleteWarehouse, approveWarehouse,updateProducts
+  addWarehouse, getAllWarehouse, getWarehouse, updateWarehouse, deleteWarehouse, approveWarehouse,
+  addProducts, updateProductsPrice, deleteProducts
 };

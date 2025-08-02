@@ -2,10 +2,12 @@ const express = require('express');
 const plantHeadRouter = express.Router();
 const {
   loginPlantHead,
-  getProductionChart,
-  updateStock,
+  getAllOrders,
+  getOrderDetails,
+  getAllProductsInWarehouse,
+  updateProductStock,
   dispatchOrder,
-  uploadTransportInfo,
+  getDispatchedOrders
 } = require('../controllers/Planthead');
 
 const { verifyPlanthead } = require('../middleware/verifyPlanthead');
@@ -14,23 +16,24 @@ const { verifyPlanthead } = require('../middleware/verifyPlanthead');
 plantHeadRouter.post('/login', loginPlantHead);
 
 // //get the orders which is assigned to this warehouse
-// plantHeadRouter.get('/orders/getAll', verifyPlanthead, getAllOrders);
+plantHeadRouter.get('/orders/getAll', verifyPlanthead, getAllOrders);
+
+//get order details
+plantHeadRouter.get('/orders/:orderId', verifyPlanthead, getOrderDetails);
 
 
-// // Daily production entry
-// plantHeadRouter.post('/production/add',verifyPlanthead, addStock);
+// Get all products in the warehouse
+plantHeadRouter.get('/warehouse/products', verifyPlanthead, getAllProductsInWarehouse);
+// Update stock for a product
+plantHeadRouter.put('/warehouse/products/:productId', verifyPlanthead, updateProductStock);
 
 
-// //add new product
-// plantHeadRouter.post('/product/add', verifyPlanthead, addProduct);
 
-// View production chart
-plantHeadRouter.get('/production/chart',verifyPlanthead, getProductionChart);
-
-// Dispatch order
+// Dispatch order he add all transport info also 
 plantHeadRouter.put('/dispatch/:orderId',verifyPlanthead, dispatchOrder);
 
-// Upload transport info (vehicle number, driver name, image URL)
-plantHeadRouter.put('/transport/:orderId',verifyPlanthead, uploadTransportInfo);
+//get all dispatched orders
+plantHeadRouter.get('/dispatched-orders', verifyPlanthead, getDispatchedOrders);
+
 
 module.exports = plantHeadRouter;
