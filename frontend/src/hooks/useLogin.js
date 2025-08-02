@@ -16,6 +16,7 @@ const useLogin = () => {
         data
       );
       console.log(response.data);
+      localStorage.setItem("token", response.data.data.token);
       return response.data;
     },
     onSuccess: (data) => {
