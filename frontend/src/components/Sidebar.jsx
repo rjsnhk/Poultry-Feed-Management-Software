@@ -12,7 +12,7 @@ import { TbLayoutSidebarLeftCollapse } from "react-icons/tb";
 import { TbLayoutSidebarLeftExpand } from "react-icons/tb";
 import { IoSettingsOutline } from "react-icons/io5";
 import { IoCartOutline, IoCart } from "react-icons/io5";
-import { PiWarehouse, PiWarehouseFill } from "react-icons/pi";
+import { MdOutlineWarehouse, MdWarehouse } from "react-icons/md";
 
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -27,16 +27,18 @@ const Sidebar = () => {
     >
       <div className="text-xl flex items-center justify-around font-semibold text-center mt-5">
         {!isCollapsed && (
-          <p className="hidden lg:block line-clamp-1 truncate">Feed manager</p>
+          <p className="bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent line-clamp-1 truncate font-bold">
+            Feed manager
+          </p>
         )}
         {isCollapsed ? (
           <TbLayoutSidebarLeftExpand
-            className="hover:bg-blue-100 transition-all p-2 text-4xl rounded-lg"
+            className="hover:bg-blue-100 transition-all p-2 text-4xl rounded-lg cursor-pointer text-blue-600"
             onClick={() => setIsCollapsed(false)}
           />
         ) : (
           <TbLayoutSidebarLeftCollapse
-            className="hover:bg-blue-100 transition-all p-2 text-4xl rounded-lg"
+            className="hover:bg-blue-100 transition-all p-2 text-4xl rounded-lg cursor-pointer text-blue-600"
             onClick={() => setIsCollapsed(true)}
           />
         )}
@@ -61,7 +63,9 @@ const Sidebar = () => {
               </div>
               <span
                 className={`${
-                  isCollapsed ? "hidden" : "block line-clamp-1 truncate w-full"
+                  isCollapsed
+                    ? "hidden"
+                    : "block line-clamp-1 truncate w-full text-gray-800"
                 }`}
               >
                 Dashboard
@@ -89,7 +93,9 @@ const Sidebar = () => {
               </div>
               <span
                 className={`${
-                  isCollapsed ? "hidden" : "block line-clamp-1 truncate w-full"
+                  isCollapsed
+                    ? "hidden"
+                    : "block line-clamp-1 truncate w-full text-gray-800"
                 }`}
               >
                 Product Management
@@ -117,7 +123,9 @@ const Sidebar = () => {
               </div>
               <span
                 className={`${
-                  isCollapsed ? "hidden" : "block line-clamp-1 truncate w-full"
+                  isCollapsed
+                    ? "hidden"
+                    : "block line-clamp-1 truncate w-full text-gray-800"
                 }`}
               >
                 Employee Management
@@ -144,7 +152,9 @@ const Sidebar = () => {
               </div>
               <span
                 className={`${
-                  isCollapsed ? "hidden" : "block line-clamp-1 truncate w-full"
+                  isCollapsed
+                    ? "hidden"
+                    : "block line-clamp-1 truncate w-full text-gray-800"
                 }`}
               >
                 Order Management
@@ -164,14 +174,16 @@ const Sidebar = () => {
             <div className="flex items-center gap-2 font-semibold w-56 h-6">
               <div className="w-6 flex items-center justify-center">
                 {isActive ? (
-                  <PiWarehouseFill className="text-blue-600 text-md" />
+                  <MdWarehouse className="text-blue-600 text-lg" />
                 ) : (
-                  <PiWarehouse className="text-blue-600 text-md" />
+                  <MdOutlineWarehouse className="text-blue-600 text-lg" />
                 )}
               </div>
               <span
                 className={`${
-                  isCollapsed ? "hidden" : "block line-clamp-1 truncate w-full"
+                  isCollapsed
+                    ? "hidden"
+                    : "block line-clamp-1 truncate w-full text-gray-800"
                 }`}
               >
                 Warehouse Management
@@ -199,7 +211,9 @@ const Sidebar = () => {
               </div>
               <span
                 className={`${
-                  isCollapsed ? "hidden" : "block line-clamp-1 truncate w-full"
+                  isCollapsed
+                    ? "hidden"
+                    : "block line-clamp-1 truncate w-full text-gray-800"
                 }`}
               >
                 Party Master
@@ -227,7 +241,9 @@ const Sidebar = () => {
               </div>
               <span
                 className={`${
-                  isCollapsed ? "hidden" : "block line-clamp-1 truncate w-full"
+                  isCollapsed
+                    ? "hidden"
+                    : "block line-clamp-1 truncate w-full text-gray-800"
                 }`}
               >
                 Reports Module
@@ -254,7 +270,9 @@ const Sidebar = () => {
               </div>
               <span
                 className={`${
-                  isCollapsed ? "hidden" : "block line-clamp-1 truncate w-full"
+                  isCollapsed
+                    ? "hidden"
+                    : "block line-clamp-1 truncate w-full text-gray-800"
                 }`}
               >
                 Settings & Security
