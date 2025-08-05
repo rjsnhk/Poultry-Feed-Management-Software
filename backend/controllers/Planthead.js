@@ -2,7 +2,7 @@ const orderModel = require("../models/Order");
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const PlantHead = require('../models/PlantHead');
-const Warehouse = require('../models/Warehouse');
+const Warehouse = require('../models/WareHouse');
 const SECRET_TOKEN = process.env.JWT_SECRET;
 
 

@@ -1,5 +1,12 @@
 const mongoose = require('mongoose');
 
+//party Schema
+const partySchema = new mongoose.Schema({
+  companyName: { type: String, required: true },
+  contactPersonNumber: { type: String, required: true },
+  address: { type: String, required: true },
+});
+
 const OrderSchema = new mongoose.Schema({
   // Order details
   productType: { type: String, required: true },
@@ -58,7 +65,12 @@ canceledBy: {
 
   
   // Party Info
-  party: { type: mongoose.Schema.Types.ObjectId, ref: 'Party', required: true },
+  party: {
+    type: partySchema,
+    required: true
+  },
+
+
 
   createdAt: { type: Date, default: Date.now }
 });

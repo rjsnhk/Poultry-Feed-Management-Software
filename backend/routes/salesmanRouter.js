@@ -17,7 +17,7 @@ const { createOrder } = require('../controllers/Orders');
 salesmanRouter.post('/login', loginSalesman);
 
 // Protected routes
-salesmanRouter.post('/create_order', verifySalesmanToken, createOrder);
+salesmanRouter.post('/create_order', verifySalesmanToken, createOrde);
 salesmanRouter.delete('/delete_order/:orderId', verifySalesmanToken, deleteOrder);
 salesmanRouter.get('/get_allorder', verifySalesmanToken, getAllOrder);
 salesmanRouter.get('/orders/:orderId', verifySalesmanToken, getOrderDetails);
