@@ -1,5 +1,5 @@
 const Order = require('../models/Order');
-const Warehouse = require('../models/Warehouse');
+const Warehouse = require('../models/WareHouse');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const SECRET = process.env.JWT_SECRET;

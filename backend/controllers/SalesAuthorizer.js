@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 
 const Order = require("../models/Order");
 
-const Warehouse = require('../models/Warehouse');
+const Warehouse = require('../models/WareHouse');
 
 const SalesAuthorizer = require('../models/SalesAuthorizer');
 

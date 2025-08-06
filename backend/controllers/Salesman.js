@@ -74,9 +74,11 @@ const loginSalesman = async (req, res) => {
 
 
 
+
+
 const deleteOrder = async (req, res) => {
   const { orderId } = req.params;
-  const salesmanId = req.user._id; // set by verifySalesmanToken middleware
+  const salesmanId = req.user.id; // set by verifySalesmanToken middleware
 
   if (!orderId) {
     return res.status(400).json({
@@ -131,7 +133,7 @@ const deleteOrder = async (req, res) => {
 const updatePayment = async (req, res) => {
   const { orderId } = req.params;
   const { amount, paymentMode } = req.body;
-  const salesmanId = req.user.salesmanId; // set by verifySalesmanToken middleware
+  const salesmanId = req.user.id; // set by verifySalesmanToken middleware
 
   if (!amount || !paymentMode) {
     return res.status(422).json({
@@ -220,7 +222,7 @@ const updatePayment = async (req, res) => {
 
 // Get due orders
 const getDueOrders = async (req, res) => {
-  const salesmanId = req.user.salesmanId; // set by verifySalesmanToken middleware
+  const salesmanId = req.user.id; // set by verifySalesmanToken middleware
 
   try {
     const dueOrders = await Order.find({
@@ -245,7 +247,7 @@ const getDueOrders = async (req, res) => {
 
 // Dashboard (sales, due, dispatch)
 const getAllOrder = async (req, res) => {
-  const salesmanId = req.user.salesmanId; // set by verifySalesmanToken middleware
+  const salesmanId = req.user.id; // set by verifySalesmanToken middleware
 
   try {
     const orders = await Order.find({ placedBy: salesmanId })
@@ -268,7 +270,7 @@ const getAllOrder = async (req, res) => {
 
 const getOrderDetails = async (req, res) => {
   const orderId = req.params.id;
-  const salesmanId = req.user.salesmanId; // set by verifySalesmanToken middleware
+  const salesmanId = req.user.id; // set by verifySalesmanToken middleware
 
   try {
     const order = await Order.findById(orderId)

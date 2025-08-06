@@ -129,7 +129,7 @@ const getOrderDetails = async (req, res) => {
 // Forward order to Authorizer
 const forwardOrderToAuthorizer = async (req, res) => {
   const { orderId } = req.params;
-  const salesManagerId = req.user.salesManagerId; // from verifySalesmanager middleware
+  const salesManagerId = req.user.id; // from verifySalesmanager middleware
 
   try {
     const order = await Order.findById(orderId);
@@ -177,7 +177,7 @@ const forwardOrderToAuthorizer = async (req, res) => {
 // Get all forwarded orders by Sales this particular Manager
 const getForwardedOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ forwardedByManager: req.user.salesManagerId })
+    const orders = await Order.find({ forwardedByManager: req.user.id })
       .populate('party', 'name contact')
       .populate('placedBy', 'name email phone');
 

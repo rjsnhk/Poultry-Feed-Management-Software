@@ -1,40 +1,61 @@
 const orderModel = require("../models/Order");
+const Product = require("../models/Product");
 
 // Create Order
 const createOrder = async (req, res) => {
   try {
     const {
-      productType, item, quantity,
-      totalAmount, advanceAmount,
-      dueDate, paymentMode, notes, party
+      productType,
+      item, // product ID
+      quantity,
+      advanceAmount,
+      dueDate,
+      paymentMode,
+      notes,
+      party, // { companyName, contactPersonNumber, address }
     } = req.body;
 
-    const placedBy = req.userId; // assumed from middleware (Salesman login)
-    const dueAmount = totalAmount - (advanceAmount || 0);
+    const placedBy = req.user.id;
 
-    const newOrder = await orderModel.create({
+    // Validate party fields
+    if (!party?.companyName || !party?.contactPersonNumber || !party?.address) {
+      return res.status(400).json({ success: false, message: "Party information is incomplete" });
+    }
+
+    // Fetch product price
+    const product = await Product.findById(item);
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
+    const totalAmount = quantity * product.price;
+    const advance = advanceAmount || 0;
+    const dueAmount = totalAmount - advance;
+
+    // Create order
+    const newOrder = await Order.create({
       productType,
-      item,
+      item: product.name, // Store product name instead of ID
       quantity,
       totalAmount,
-      advanceAmount,
+      advanceAmount: advance,
       dueAmount,
       dueDate,
       paymentMode,
       notes,
-      party,
-      placedBy
+      placedBy,
+      party, // embedded party object
     });
 
     res.status(201).json({
       success: true,
-      message: "Order placed successfully",
+      message: 'Order placed successfully',
       data: newOrder
     });
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: "Failed to create order",
+      message: 'Failed to create order',
       error: err.message
     });
   }
