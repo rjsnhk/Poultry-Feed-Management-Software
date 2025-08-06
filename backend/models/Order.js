@@ -25,7 +25,7 @@ const OrderSchema = new mongoose.Schema({
     enum: [
       'Placed', 'ForwardedToAuthorizer',
       'WarehouseAssigned', 'Approved', 'Dispatched',
-      'Delivered'
+      'Delivered', 'Cancelled'
     ],
     default: 'Placed'
   },
@@ -57,7 +57,7 @@ const OrderSchema = new mongoose.Schema({
 
 // OrderSchema.js (add inside OrderSchema)
 canceledBy: {
-  role: { type: String, enum: ['Admin', 'Salesman', 'SalesManager', 'SalesAuthorizer'], default: null },
+  role: { type: String, enum: ['Admin', 'SalesManager', 'SalesAuthorizer', 'PlantHead'], default: null },
   user: { type: mongoose.Schema.Types.ObjectId, refPath: 'canceledBy.role' },
   reason: String,
   date: Date

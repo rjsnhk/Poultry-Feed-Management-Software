@@ -10,6 +10,7 @@ const {
 } = require('../controllers/Salesmanager');
 
 const { verifySalesmanager } = require('../middleware/verifySalesmanager');
+const { cancelOrder } = require('../controllers/Orders');
 
 // Sales Manager Login
 managerRouter.post('/login', loginSalesManager);
@@ -22,6 +23,8 @@ managerRouter.get('/orders/:orderId',verifySalesmanager, getOrderDetails);
 // Forward order to Authorizer
 managerRouter.put('/forward/:orderId',verifySalesmanager, forwardOrderToAuthorizer);
 
+
+managerRouter.post('/cancel_order/:orderId',verifySalesmanager, cancelOrder);
 
 // Get all forwarded orders
 managerRouter.get('/orders/forwarded', verifySalesmanager, getForwardedOrders);

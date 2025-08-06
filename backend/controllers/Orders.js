@@ -122,7 +122,7 @@ const getOrderDetails = async (req, res) => {
 //cancel order
 const cancelOrder = async (req, res) => {
   const { id } = req.params;
-  const { role, userId } = req.user; // assumed from middleware
+  const { role, id: userId } = req.user; // from middleware
   const { reason } = req.body;
 
   if (!reason) {
@@ -134,7 +134,6 @@ const cancelOrder = async (req, res) => {
 
   try {
     const order = await orderModel.findById(id);
-
     if (!order) {
       return res.status(404).json({
         success: false,
@@ -142,14 +141,15 @@ const cancelOrder = async (req, res) => {
       });
     }
 
-    // Prevent duplicate cancellation
+    // Prevent duplicate cancellations
     if (order.orderStatus === 'Cancelled') {
       return res.status(400).json({
         success: false,
-        message: "Order already cancelled"
+        message: "Order is already cancelled"
       });
     }
 
+    // Set cancellation data
     order.orderStatus = 'Cancelled';
     order.canceledBy = {
       role,
@@ -162,9 +162,10 @@ const cancelOrder = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: `Order cancelled by ${role}`,
+      message: `Order cancelled successfully by ${role}`,
       data: order
     });
+
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -173,6 +174,7 @@ const cancelOrder = async (req, res) => {
     });
   }
 };
+
 
 const getOrdersToApprove = async (req, res) => {
   try {

@@ -73,7 +73,7 @@ if (cluster.isPrimary) {
 
   // Root route (API health check)
   app.get("/", (req, res) => {
-    res.send("🐣 Poultry Feed Management API Running...");
+    res.send("<h1>🐣 Poultry Feed Management API Running...</h1>");
   });
 
   // Start Express server

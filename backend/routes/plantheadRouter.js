@@ -11,6 +11,7 @@ const {
 } = require('../controllers/Planthead');
 
 const { verifyPlanthead } = require('../middleware/verifyPlanthead');
+const { cancelOrder } = require('../controllers/Orders');
 
 // Login
 plantHeadRouter.post('/login', loginPlantHead);
@@ -34,6 +35,9 @@ plantHeadRouter.put('/dispatch/:orderId',verifyPlanthead, dispatchOrder);
 
 //get all dispatched orders
 plantHeadRouter.get('/dispatched-orders', verifyPlanthead, getDispatchedOrders);
+
+
+plantHeadRouter.post('/cancel_order/:orderId', verifyPlanthead, cancelOrder); // Cancel order
 
 
 module.exports = plantHeadRouter;
