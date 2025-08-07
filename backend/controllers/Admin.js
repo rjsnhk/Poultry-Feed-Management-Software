@@ -8,7 +8,7 @@ const Product = require("../models/Product");
 const orderModel = require("../models/Order");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const Warehouse = require('../models/WareHouse');
+const Warehouse = require("../models/WareHouse");
 
 const SECRET_TOKEN = process.env.JWT_SECRET;
 
@@ -1137,11 +1137,19 @@ const addProductToWarehouse = async (req, res) => {
     const { name, category, description, price } = req.body;
 
     if (!name || !category || price == null) {
-      return res.status(422).json({ success: false, message: 'Product name, category and price are required' });
+      return res.status(422).json({
+        success: false,
+        message: "Product name, category and price are required",
+      });
     }
 
     // 1. Create the product in Product collection
-    const newProduct = await Product.create({ name, category, description, price });
+    const newProduct = await Product.create({
+      name,
+      category,
+      description,
+      price,
+    });
 
     // 2. Add product reference to warehouse stock
     const warehouse = await Warehouse.findById(warehouseId);
@@ -1151,7 +1159,9 @@ const addProductToWarehouse = async (req, res) => {
         .json({ success: false, message: "Warehouse not found" });
     }
 
-    const alreadyExists = warehouse.stock.find(item => item.product.toString() === newProduct._id.toString());
+    const alreadyExists = warehouse.stock.find(
+      (item) => item.product.toString() === newProduct._id.toString()
+    );
     if (alreadyExists) {
       return res.status(409).json({
         success: false,
@@ -1176,34 +1186,33 @@ const addProductToWarehouse = async (req, res) => {
   }
 };
 
-
-
-
 //get all products that are in that particular warehouse when he click on the warehouse it will show all the products that are in that warehouse
 const getAllProducts = async (req, res) => {
   try {
     const { warehouseId } = req.params;
 
-    const warehouse = await Warehouse.findById(warehouseId).populate('stock.product');
+    const warehouse = await Warehouse.findById(warehouseId).populate(
+      "stock.product"
+    );
     if (!warehouse) {
       return res
         .status(404)
         .json({ success: false, message: "Warehouse not found" });
     }
 
-    const productList = warehouse.stock.map(stockItem => ({
+    const productList = warehouse.stock.map((stockItem) => ({
       productId: stockItem.product._id,
       name: stockItem.product.name,
       category: stockItem.product.category,
       description: stockItem.product.description,
       price: stockItem.product.price,
-      quantity: stockItem.quantity
+      quantity: stockItem.quantity,
     }));
 
     res.status(200).json({
       success: true,
-      message: 'Products in warehouse fetched',
-      data: productList
+      message: "Products in warehouse fetched",
+      data: productList,
     });
   } catch (err) {
     res.status(500).json({
@@ -1214,11 +1223,6 @@ const getAllProducts = async (req, res) => {
   }
 };
 
-
-
-
-
-
 const updateProductsPrice = async (req, res) => {
   try {
     const { productId } = req.params;
@@ -1226,14 +1230,19 @@ const updateProductsPrice = async (req, res) => {
 
     const product = await Product.findById(productId);
     if (!product) {
-      return res.status(404).json({ success: false, message: 'Product not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
     }
 
     product.price = price;
     await product.save();
 
-    res.status(200).json({ success: true, message: 'Product price updated successfully', data: product });
-
+    res.status(200).json({
+      success: true,
+      message: "Product price updated successfully",
+      data: product,
+    });
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -1242,7 +1251,6 @@ const updateProductsPrice = async (req, res) => {
     });
   }
 };
-
 
 const deleteProducts = async (req, res) => {
   try {

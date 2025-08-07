@@ -8,7 +8,7 @@ const ProductManagementPage = () => {
     <div>
       <div className="lg:flex lg:justify-between lg:items-center mb-5">
         <h1 className="lg:text-3xl lg:font-bold">Product Management</h1>
-        <Button
+        {/* <Button
           size="small"
           variant="contained"
           disableElevation
@@ -18,7 +18,7 @@ const ProductManagementPage = () => {
           startIcon={<AddIcon />}
         >
           Add Product
-        </Button>
+        </Button> */}
       </div>
 
       <div className="grid lg:grid-cols-3 gap-5">

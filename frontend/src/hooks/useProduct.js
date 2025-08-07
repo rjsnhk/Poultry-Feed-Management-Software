@@ -10,7 +10,7 @@ export const useProduct = (warehouseId) => {
 
   // GET Products
   const { data: products, isPending: productsLoading } = useQuery({
-    queryKey: ["products", warehouseId],
+    queryKey: ["product", warehouseId],
     queryFn: async () => {
       const response = await axios.get(
         BASE_URL + API_PATHS.ADMIN.WAREHOUSE.GET_PRODUCTS(warehouseId),
@@ -20,7 +20,7 @@ export const useProduct = (warehouseId) => {
           },
         }
       );
-      console.log("products", response.data.data);
+      // console.log("products", response.data.data);
       return response.data.data;
     },
   });
@@ -43,12 +43,14 @@ export const useProduct = (warehouseId) => {
             },
           }
         );
-        console.log("updateProductPrice", response.data);
         return response.data;
       },
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: ["products"],
+          queryKey: ["singleWarehouse", warehouseId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["product", warehouseId],
         });
         toast.success("Product price updated successfully");
       },
@@ -58,10 +60,78 @@ export const useProduct = (warehouseId) => {
       },
     });
 
-  const isLoading = productsLoading || isUpdatingProductPrice;
+  // ADD Product
+  const { mutate: addProduct, isPending: isAddingProduct } = useMutation({
+    mutationFn: async (data) => {
+      console.log("data in add product", data);
+      const response = await axios.post(
+        BASE_URL + API_PATHS.ADMIN.WAREHOUSE.ADD_PRODUCT(data.warehouseId),
+        data,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["singleWarehouse", warehouseId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["product", warehouseId],
+      });
+      toast.success("Product added successfully");
+    },
+    onError: (error) => {
+      console.log(error);
+      toast.error(error.response.data.message);
+    },
+  });
+
+  // DELETE Product
+  const { mutate: deleteProduct, isPending: isDeletingProduct } = useMutation({
+    mutationFn: async (data) => {
+      const response = await axios.delete(
+        BASE_URL +
+          API_PATHS.ADMIN.WAREHOUSE.DELETE_PRODUCT(
+            data.warehouseId,
+            data.productId
+          ),
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["singleWarehouse", warehouseId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["product", warehouseId],
+      });
+      toast.success("Product deleted successfully");
+    },
+    onError: (error) => {
+      console.log(error);
+      toast.error(error.response.data.message);
+    },
+  });
+
+  const isLoading =
+    productsLoading ||
+    isUpdatingProductPrice ||
+    isAddingProduct ||
+    isDeletingProduct;
 
   return {
     updateProductPrice,
+    addProduct,
+    deleteProduct,
     products,
     isLoading,
   };

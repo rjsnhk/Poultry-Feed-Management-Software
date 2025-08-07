@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { SiDecentraland } from "react-icons/si";
 import { IoLocationOutline } from "react-icons/io5";
 import { BadgeCheck, Phone } from "lucide-react";
@@ -33,26 +33,6 @@ import { useSingleWarehouse } from "../../../hooks/useSingleWarehouse";
 import { CgDollar } from "react-icons/cg";
 import { useProduct } from "../../../hooks/useProduct";
 
-/**
- * Warehouse component manages the display and operations related to a specific warehouse.
- * It shows warehouse details such as name, location, and status (approved or pending).
- * It allows for editing warehouse details, managing products, and viewing warehouse data.
- *
- * Props:
- * - warehouse: Object containing the warehouse details.
- *
- * Hooks:
- * - useEmployees: Fetches plant heads and accountants.
- * - useWarehouse: Provides functions to update, delete, and approve warehouse.
- * - useSingleWarehouse: Fetches single warehouse data.
- * - useProduct: Fetches and updates product information.
- *
- * Handles:
- * - Editing warehouse details.
- * - Updating product quantities and prices.
- * - Adding new products.
- * - Opening and closing modals for various operations.
- */
 const Warehouse = ({ warehouse }) => {
   const { planthead, accountant } = useEmployees();
   const { updateWarehouse, deleteWarehouse, isLoading, approveWarehouse } =
@@ -62,14 +42,17 @@ const Warehouse = ({ warehouse }) => {
   );
   const {
     products,
+    addProduct,
     isLoading: isProductsLoading,
     updateProductPrice,
+    deleteProduct,
   } = useProduct(warehouse._id);
 
   const {
     register,
     handleSubmit,
     control,
+    reset,
     formState: { errors },
   } = useForm();
   const [openEdit, setOpenEdit] = useState(false);
@@ -79,7 +62,23 @@ const Warehouse = ({ warehouse }) => {
   const [isUpdateMode, setIsUpdateMode] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
 
-  console.log("selectedProduct", selectedProduct);
+  useEffect(() => {
+    if (isUpdateMode && selectedProduct) {
+      reset({
+        name: selectedProduct.name,
+        quantity: selectedProduct.quantity,
+        price: selectedProduct.price,
+      });
+    } else {
+      reset({
+        name: "",
+        quantity: "",
+        price: "",
+        category: "",
+        description: "",
+      });
+    }
+  }, [isUpdateMode, selectedProduct, reset]);
 
   const handleEditWarehouse = (data) => {
     data._id = warehouse._id;
@@ -88,22 +87,32 @@ const Warehouse = ({ warehouse }) => {
   };
 
   const handleUpdateButton = (productId, quantity) => {
-    const selectedProduct = products?.find((p) => p.product._id == productId);
-    console.log("quantity", quantity);
+    const selectedProduct = products?.find((p) => p.productId == productId);
     selectedProduct.quantity = quantity;
     setSelectedProduct(selectedProduct);
     setIsUpdateMode(true);
   };
 
+  const handleDeleteProduct = (productId) => {
+    console.log("productId in delete", productId);
+    const data = {
+      warehouseId: warehouse._id,
+      productId: productId,
+    };
+    deleteProduct(data);
+    setOpenDelete(false);
+  };
+
   const handleUpdateProductPrice = (data) => {
     data.warehouseId = warehouse._id;
-    data.productId = selectedProduct.product._id;
-    console.log("data", data);
+    data.productId = selectedProduct.productId;
     updateProductPrice(data);
   };
 
   const handleAddProduct = (data) => {
-    console.log(data);
+    data.warehouseId = warehouse._id;
+    console.log("handle add product", data);
+    addProduct(data);
   };
 
   if (singleWarehouseLoading) return <CircularProgress />;
@@ -641,7 +650,7 @@ const Warehouse = ({ warehouse }) => {
       {/* --- Manage Products Modal --- */}
       {openManageStock && (
         <div className="transition-all bg-black/30 backdrop-blur-sm w-full z-50 h-screen absolute top-0 left-0 flex items-center justify-center">
-          <div className="bg-white p-7 rounded-lg w-[60rem] h-[22rem]">
+          <div className="bg-white p-7 rounded-lg w-[60rem] ">
             <div className="flex items-center justify-between">
               <p className="text-xl font-semibold">
                 Product Management - {warehouse?.name}
@@ -656,7 +665,7 @@ const Warehouse = ({ warehouse }) => {
             <div className="grid lg:grid-cols-2 gap-5 mt-2">
               <div>
                 <p className="font-semibold mb-3">Available Products</p>
-                <div className="relative h-[14rem] overflow-auto rounded mt-2">
+                <div className="relative max-h-64 overflow-auto rounded mt-2">
                   <table className="w-full">
                     <thead>
                       <tr className="bg-blue-50 sticky z-50 top-0 text-blue-800 text-center text-sm">
@@ -674,22 +683,25 @@ const Warehouse = ({ warehouse }) => {
                             <td className="p-2">{item.quantity}kg</td>
                             <td className="p-2">₹{item.product.price}</td>
                             <td className="p-2 flex items-center justify-center">
-                              <Button
-                                startIcon={
-                                  <EditIcon size={15} strokeWidth={1.5} />
-                                }
-                                variant="text"
-                                size="small"
-                                disableElevation
+                              <SquarePen
+                                color="green"
+                                className="hover:bg-green-100 active:scale-95 transition-all p-1.5 rounded-lg"
+                                size={30}
                                 onClick={() =>
                                   handleUpdateButton(
                                     item.product._id,
                                     item.quantity
                                   )
                                 }
-                              >
-                                Update
-                              </Button>
+                              />
+                              <Trash2
+                                color="red"
+                                className="hover:bg-red-100 active:scale-95 transition-all p-1.5 rounded-lg"
+                                size={30}
+                                onClick={() =>
+                                  handleDeleteProduct(item.product._id)
+                                }
+                              />
                             </td>
                           </tr>
                         ))
@@ -708,9 +720,27 @@ const Warehouse = ({ warehouse }) => {
                 </div>
               </div>
               <div>
-                <p className="font-semibold mb-3">Add/Update Products</p>
+                <div className="flex items-center justify-between mb-3">
+                  <p className="font-semibold ">{`${
+                    isUpdateMode ? "Update" : "Add"
+                  } Products`}</p>
+                  {isUpdateMode && (
+                    <Button
+                      sx={{
+                        textTransform: "none",
+                      }}
+                      onClick={() => {
+                        setIsUpdateMode(false);
+                        setSelectedProduct(null);
+                      }}
+                    >
+                      Back to Add
+                    </Button>
+                  )}
+                </div>
                 <div>
                   {isUpdateMode ? (
+                    // Update product form
                     <form onSubmit={handleSubmit(handleUpdateProductPrice)}>
                       <div className="space-y-4">
                         <TextField
@@ -719,11 +749,16 @@ const Warehouse = ({ warehouse }) => {
                           InputLabelProps={{
                             shrink: true,
                           }}
-                          defaultValue={selectedProduct?.product?.name}
                           size="small"
                           id="outlined-basic"
                           label="Product Name"
                           variant="outlined"
+                          {...register("name", {
+                            required: {
+                              value: true,
+                              message: "Product is required",
+                            },
+                          })}
                         />
                         <TextField
                           fullWidth
@@ -731,11 +766,16 @@ const Warehouse = ({ warehouse }) => {
                             shrink: true,
                           }}
                           disabled
-                          defaultValue={selectedProduct?.quantity}
                           size="small"
                           id="outlined-basic"
                           label="Quantity"
                           variant="outlined"
+                          {...register("quantity", {
+                            required: {
+                              value: true,
+                              message: "Quantity is required",
+                            },
+                          })}
                         />
                         <TextField
                           fullWidth
@@ -747,7 +787,6 @@ const Warehouse = ({ warehouse }) => {
                           id="outlined-basic"
                           label="Price"
                           variant="outlined"
-                          defaultValue={selectedProduct?.product?.price}
                           {...register("price", {
                             required: {
                               value: true,
@@ -768,11 +807,12 @@ const Warehouse = ({ warehouse }) => {
                       </div>
                     </form>
                   ) : (
+                    // Add product form
                     <form onSubmit={handleSubmit(handleAddProduct)}>
                       <div className="space-y-4">
                         <TextField
                           fullWidth
-                          {...register("productName", {
+                          {...register("name", {
                             required: {
                               value: true,
                               message: "Product Name is required",
@@ -783,17 +823,35 @@ const Warehouse = ({ warehouse }) => {
                           label="Product Name"
                           variant="outlined"
                         />
+                        {errors.name?.message && (
+                          <span className="text-red-500 text-xs">
+                            {errors.name?.message}
+                          </span>
+                        )}
                         <TextField
                           fullWidth
-                          {...register("quantity", {
+                          {...register("category", {
                             required: {
                               value: true,
-                              message: "Quantity is required",
+                              message: "Category is required",
                             },
                           })}
                           size="small"
                           id="outlined-basic"
-                          label="Quantity"
+                          label="Category"
+                          variant="outlined"
+                        />
+                        <TextField
+                          fullWidth
+                          {...register("description", {
+                            required: {
+                              value: true,
+                              message: "Description is required",
+                            },
+                          })}
+                          size="small"
+                          id="outlined-basic"
+                          label="Description"
                           variant="outlined"
                         />
                         <TextField

@@ -19,13 +19,17 @@ const createOrder = async (req, res) => {
 
     // Validate party fields
     if (!party?.companyName || !party?.contactPersonNumber || !party?.address) {
-      return res.status(400).json({ success: false, message: "Party information is incomplete" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Party information is incomplete" });
     }
 
     // Fetch product price
     const product = await Product.findById(item);
     if (!product) {
-      return res.status(404).json({ success: false, message: "Product not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
     }
 
     const totalAmount = quantity * product.price;
@@ -49,14 +53,14 @@ const createOrder = async (req, res) => {
 
     res.status(201).json({
       success: true,
-      message: 'Order placed successfully',
-      data: newOrder
+      message: "Order placed successfully",
+      data: newOrder,
     });
   } catch (err) {
     res.status(500).json({
       success: false,
-      message: 'Failed to create order',
-      error: err.message
+      message: "Failed to create order",
+      error: err.message,
     });
   }
 };
@@ -64,60 +68,69 @@ const createOrder = async (req, res) => {
 // Get all orders
 const getAllOrder = async (req, res) => {
   try {
-    const orders = await orderModel.find()
-      .populate('placedBy', 'name email')
-      .populate('party', 'companyName')
+    const orders = await orderModel
+      .find()
+      .populate("placedBy", "name email")
+      .populate("party", "companyName")
+      .populate("approvedBy", "name email role")
+      .populate("forwardedByManager", "name email role")
+      .populate("forwardedByAuthorizer", "name email role")
+      .populate("dispatchInfo.dispatchedBy", "name email role")
+      .populate("assignedWarehouse", "name location")
+      .populate("invoicedBy", "name email role")
+      .populate("paymentCollectedBy", "name email role")
+      .populate("canceledBy.user", "name email role")
       .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
       message: "Orders fetched successfully",
-      data: orders
+      data: orders,
     });
   } catch (err) {
     res.status(500).json({
       success: false,
       message: "Error fetching orders",
-      error: err.message
+      error: err.message,
     });
   }
 };
 
-
 // Get single order details
 const getOrderDetails = async (req, res) => {
   try {
-    const order = await orderModel.findById(req.params.id)
-      .populate('placedBy', 'name')
-      .populate('party', 'companyName')
-      .populate('assignedWarehouse', 'name')
-      .populate('approvedBy', 'name')
-      .populate('forwardedByManager', 'name')
-      .populate('assignedToManager', 'name')
-      .populate('invoicedBy', 'name')
-      .populate('dispatchInfo.dispatchedBy', 'name')
-      .populate('canceledBy.user', 'name email');
+    const order = await orderModel
+      .findById(req.params.id)
+      .populate("placedBy", "name email")
+      .populate("party", "companyName")
+      .populate("approvedBy", "name email role")
+      .populate("forwardedByManager", "name email role")
+      .populate("forwardedByAuthorizer", "name email role")
+      .populate("dispatchInfo.dispatchedBy", "name email role")
+      .populate("assignedWarehouse", "name location")
+      .populate("invoicedBy", "name email role")
+      .populate("paymentCollectedBy", "name email role")
+      .populate("canceledBy.user", "name email role");
 
     if (!order) {
       return res.status(404).json({
         success: false,
-        message: "Order not found"
+        message: "Order not found",
       });
     }
 
     res.status(200).json({
       success: true,
-      data: order
+      data: order,
     });
   } catch (err) {
     res.status(500).json({
       success: false,
       message: "Error fetching order details",
-      error: err.message
+      error: err.message,
     });
   }
 };
-
 
 //cancel order
 const cancelOrder = async (req, res) => {
@@ -128,7 +141,7 @@ const cancelOrder = async (req, res) => {
   if (!reason) {
     return res.status(422).json({
       success: false,
-      message: "Cancellation reason is required"
+      message: "Cancellation reason is required",
     });
   }
 
@@ -138,24 +151,24 @@ const cancelOrder = async (req, res) => {
     if (!order) {
       return res.status(404).json({
         success: false,
-        message: "Order not found"
+        message: "Order not found",
       });
     }
 
     // Prevent duplicate cancellation
-    if (order.orderStatus === 'Cancelled') {
+    if (order.orderStatus === "Cancelled") {
       return res.status(400).json({
         success: false,
-        message: "Order already cancelled"
+        message: "Order already cancelled",
       });
     }
 
-    order.orderStatus = 'Cancelled';
+    order.orderStatus = "Cancelled";
     order.canceledBy = {
       role,
       user: userId,
       reason,
-      date: new Date()
+      date: new Date(),
     };
 
     await order.save();
@@ -163,54 +176,52 @@ const cancelOrder = async (req, res) => {
     res.status(200).json({
       success: true,
       message: `Order cancelled by ${role}`,
-      data: order
+      data: order,
     });
   } catch (err) {
     res.status(500).json({
       success: false,
       message: "Error cancelling order",
-      error: err.message
+      error: err.message,
     });
   }
 };
 
 const getOrdersToApprove = async (req, res) => {
   try {
-    const orders = await orderModel.find({ orderStatus: 'WarehouseAssigned' })
-      .populate('placedBy', 'name email') // Optional: get salesman info
-      .populate('assignedWarehouse', 'name location') // Optional: get warehouse info
-      .populate('party', 'name contactPerson') // Optional: party info
+    const orders = await orderModel
+      .find({ orderStatus: "WarehouseAssigned" })
+      .populate("placedBy", "name email") // Optional: get salesman info
+      .populate("assignedWarehouse", "name location") // Optional: get warehouse info
+      .populate("party", "name contactPerson") // Optional: party info
       .sort({ createdAt: -1 });
 
     if (!orders.length) {
       return res.status(200).json({
         success: true,
         message: "No orders pending approval",
-        data: []
+        data: [],
       });
     }
 
     res.status(200).json({
       success: true,
       message: "Orders pending approval fetched successfully",
-      data: orders
+      data: orders,
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
       message: "Error fetching orders awaiting approval",
-      error: error.message
+      error: error.message,
     });
   }
 };
-
-
 
 module.exports = {
   createOrder,
   getAllOrder,
   getOrderDetails,
   cancelOrder,
-  getOrdersToApprove
+  getOrdersToApprove,
 };
