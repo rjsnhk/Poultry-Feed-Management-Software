@@ -1131,6 +1131,9 @@ const getWarehouse = async (req, res) => {
   }
 };
 
+
+
+
 const addProductToWarehouse = async (req, res) => {
   try {
     const { warehouseId } = req.params;
@@ -1186,8 +1189,8 @@ const addProductToWarehouse = async (req, res) => {
   }
 };
 
-//get all products that are in that particular warehouse when he click on the warehouse it will show all the products that are in that warehouse
-const getAllProducts = async (req, res) => {
+//OK
+const getAllProductsFromWarehouse = async (req, res) => {
   try {
     const { warehouseId } = req.params;
 
@@ -1223,36 +1226,7 @@ const getAllProducts = async (req, res) => {
   }
 };
 
-const updateProductsPrice = async (req, res) => {
-  try {
-    const { productId } = req.params;
-    const { price } = req.body;
-
-    const product = await Product.findById(productId);
-    if (!product) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Product not found" });
-    }
-
-    product.price = price;
-    await product.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Product price updated successfully",
-      data: product,
-    });
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      message: "Error updating price",
-      error: err.message,
-    });
-  }
-};
-
-const deleteProducts = async (req, res) => {
+const deleteProductsFromWarehouse = async (req, res) => {
   try {
     const { warehouseId, productId } = req.params;
 
@@ -1310,6 +1284,84 @@ const deleteWarehouse = async (req, res) => {
     });
   }
 };
+
+
+const addProduct = async (req, res) => {
+  
+}
+
+const getAllProducts = async (req, res) => {
+  try {
+    const products = await Product.find();
+    res.status(200).json({
+      success: true,
+      message: "All products fetched successfully",
+      data: products,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong while fetching products",
+      error: error.message,
+    });
+  }
+  
+}
+const updateProductsPrice = async (req, res) => {
+  try {
+    const { productId } = req.params;
+    const { price } = req.body;
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
+    }
+
+    product.price = price;
+    await product.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Product price updated successfully",
+      data: product,
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Error updating price",
+      error: err.message,
+    });
+  }
+};
+
+const deleteProducts = async (req, res) => {
+  try {
+    const { productId } = req.params;
+
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
+    }
+
+    await Product.findByIdAndDelete(productId); // Delete the product
+
+    res.status(200).json({ success: true, message: "Product deleted" });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Error deleting product",
+      error: err.message,
+    });
+  }
+};
+
+
+
+
 
 const approveWarehouse = async (req, res) => {
   try {
@@ -1397,5 +1449,8 @@ module.exports = {
   addProductToWarehouse,
   updateProductsPrice,
   deleteProducts,
+  getAllProductsFromWarehouse,
+  addProduct,
   getAllProducts,
+  deleteProductsFromWarehouse,
 };
