@@ -87,8 +87,10 @@ const getAllOrders = async (req, res) => {
     const orders = await Order.find({
       assignedWarehouse: warehouse._id,
       orderStatus: { $in: ['WarehouseAssigned', 'Approved'] }
-    }).populate('party', 'name contact')
-      .populate('placedBy', 'name email');
+    })
+      .populate('party', 'name contact')
+      .populate('placedBy', 'name email')
+      .populate('item', 'name category');
 
     res.status(200).json({ success: true, data: orders });
   } catch (err) {
@@ -102,7 +104,8 @@ const getOrderDetails = async (req, res) => {
   try {
     const order = await Order.findById(req.params.orderId)
       .populate('party', 'name contact')
-      .populate('placedBy', 'name email');
+      .populate('placedBy', 'name email')
+      .populate('item', 'name category');
 
     if (!order) {
       return res.status(404).json({ success: false, message: "Order not found" });

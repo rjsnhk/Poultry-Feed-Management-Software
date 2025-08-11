@@ -86,6 +86,7 @@ const getAllOrder = async (req, res) => {
   try {
     const orders = await orderModel
       .find()
+      .populate('item', 'name category price')
       .populate(orderPopulateFields)
       .sort({ createdAt: -1 });
 
@@ -108,6 +109,7 @@ const getOrderDetails = async (req, res) => {
   try {
     const order = await orderModel
       .findById(req.params.id)
+      .populate('item', 'name category price')
       .populate(orderPopulateFields);
 
     if (!order) {
@@ -191,6 +193,7 @@ const getOrdersToApprove = async (req, res) => {
   try {
     const orders = await orderModel
       .find({ orderStatus: "WarehouseAssigned" })
+      .populate('item', 'name category price')
       .populate("placedBy", "name email") // Optional: get salesman info
       .populate("assignedWarehouse", "name location") // Optional: get warehouse info
       .populate("party", "name contactPerson") // Optional: party info

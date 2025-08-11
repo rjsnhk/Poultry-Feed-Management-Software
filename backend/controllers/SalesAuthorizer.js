@@ -87,6 +87,7 @@ const getForwardedOrders = async (req, res) => {
       forwardedByManager: { $exists: true },
       forwardedByAuthorizer: { $exists: false }
     })
+    .populate("item", "name category")
     .populate("placedBy", "name email")
     .populate("party", "name contact");
 
@@ -103,6 +104,7 @@ const getOrderDetails = async (req, res) => {
     const orderId = req.params.orderId;
 
     const order = await Order.findById(orderId)
+      .populate("item", "name category")
       .populate("placedBy", "name email")
       .populate("party", "name contact")
       .populate("assignedWarehouse", "name location");

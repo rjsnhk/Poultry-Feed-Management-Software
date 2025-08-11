@@ -80,6 +80,7 @@ const loginSalesManager = async (req, res) => {
 const getAssignedOrders = async (req, res) => {
   try {
     const orders = await Order.find({ orderStatus: 'Placed' })
+      .populate('item', 'name category')
       .populate('party', 'name contact')
       .populate('placedBy', 'name email phone');
 
@@ -104,7 +105,8 @@ const getOrderDetails = async (req, res) => {
   try {
     const order = await Order.findById(orderId)
       .populate('party', 'name contact')
-      .populate('placedBy', 'name email phone');
+      .populate('placedBy', 'name email phone')
+      .populate('item', 'name category');
 
     if (!order) {
       return res.status(404).json({
@@ -178,8 +180,10 @@ const forwardOrderToAuthorizer = async (req, res) => {
 const getForwardedOrders = async (req, res) => {
   try {
     const orders = await Order.find({ forwardedByManager: req.user.id })
+
       .populate('party', 'name contact')
-      .populate('placedBy', 'name email phone');
+      .populate('placedBy', 'name email phone')
+      .populate('item', 'name category');
 
     res.status(200).json({
       success: true,

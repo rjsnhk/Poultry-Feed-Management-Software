@@ -229,7 +229,9 @@ const getDueOrders = async (req, res) => {
       placedBy: salesmanId,
       dueAmount: { $gt: 0 },
       orderStatus: { $ne: 'Paid' }
-    }).populate('party', 'name contact');
+    })
+    .populate('party', 'name contact')
+    .populate('item', 'name category');
 
     res.status(200).json({
       success: true,
@@ -251,7 +253,9 @@ const getAllOrder = async (req, res) => {
 
   try {
     const orders = await Order.find({ placedBy: salesmanId })
+    
       .populate('party', 'name contact')
+      .populate('item', 'name category')
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -274,6 +278,7 @@ const getOrderDetails = async (req, res) => {
 
   try {
     const order = await Order.findById(orderId)
+      .populate('item', 'name category')
       .populate('party', 'name contact')
       .populate('placedBy', 'name email');
 

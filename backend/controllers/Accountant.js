@@ -88,6 +88,7 @@ const getDispatchedOrders = async (req, res) => {
       invoiceGenerated: false,
       dueAmount: { $gt: 0 }
     })
+      .populate('item', 'name category')
       .populate('party', 'name contact')
       .populate('placedBy', 'name email');
 
