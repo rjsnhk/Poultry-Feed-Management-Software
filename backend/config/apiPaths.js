@@ -84,6 +84,7 @@ export const API_PATHS = {
     GET_ORDER: (orderId) => `/api/salesman/orders/${orderId}`,
     GET_DUE_ORDERS: "/api/salesman/orders/due",
     PAY_ORDER: (orderId) => `/api/salesman/orders/pay/${orderId}`,
+    CHANGE_ACTIVITY_STATUS: "/api/salesman/change-activity-status",
   },
 
   MANAGER: {
@@ -92,6 +93,7 @@ export const API_PATHS = {
     GET_ORDER: (orderId) => `/api/manager/orders/${orderId}`,
     FORWARD_ORDER: (orderId) => `/api/manager/forward/${orderId}`,
     GET_FORWARDED_ORDERS: "/api/manager/orders/forwarded",
+    CHANGE_ACTIVITY_STATUS: "/api/manager/change-activity-status",
   },
 
   AUTHORIZER: {
@@ -103,6 +105,7 @@ export const API_PATHS = {
     GET_ASSIGNMENT_HISTORY: "/api/authorizer/get-assignment-history",
     CHECK_WAREHOUSE_STATUS: (orderId) =>
       `/api/authorizer/warehouse-status/${orderId}`,
+    CHANGE_ACTIVITY_STATUS: "/api/authorizer/change-activity-status",
   },
 
   PLANT_HEAD: {
@@ -114,6 +117,7 @@ export const API_PATHS = {
       `/api/planthead/warehouse/products/${productId}`,
     DISPATCH_ORDER: (orderId) => `/api/planthead/dispatch/${orderId}`,
     GET_DISPATCHED_ORDERS: "/api/planthead/dispatched-orders",
+    CHANGE_ACTIVITY_STATUS: "/api/planthead/change-activity-status",
   },
 
   ACCOUNTANT: {
@@ -122,6 +126,7 @@ export const API_PATHS = {
     GENERATE_INVOICE: (orderId) =>
       `/api/accountant/generate-invoice/${orderId}`,
     GET_INVOICE: (orderId) => `/api/accountant/invoice/${orderId}`,
+    CHANGE_ACTIVITY_STATUS: "/api/accountant/change-activity-status",
   },
 
   ME: {

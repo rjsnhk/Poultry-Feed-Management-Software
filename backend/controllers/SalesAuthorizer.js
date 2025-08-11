@@ -1,13 +1,12 @@
-const Salesman = require('../models/Salesman');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
-
+const Salesman = require("../models/Salesman");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
 const Order = require("../models/Order");
 
-const Warehouse = require('../models/WareHouse');
+const Warehouse = require("../models/WareHouse");
 
-const SalesAuthorizer = require('../models/SalesAuthorizer');
+const SalesAuthorizer = require("../models/SalesAuthorizer");
 
 const SECRET_TOKEN = process.env.JWT_SECRET || "yourSecretKey";
 
@@ -43,16 +42,16 @@ const loginSalesAuthorizer = async (req, res) => {
 
     // Generate JWT
     const token = jwt.sign(
-      { id: authorizer._id, role: 'SalesAuthorizer' },
+      { id: authorizer._id, role: "SalesAuthorizer" },
       SECRET_TOKEN,
-      { expiresIn: '1d' }
+      { expiresIn: "1d" }
     );
 
     // Set cookie (optional)
     res.cookie("salesAuthorizerToken", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
 
@@ -64,11 +63,10 @@ const loginSalesAuthorizer = async (req, res) => {
         _id: authorizer._id,
         name: authorizer.name,
         email: authorizer.email,
-        role: 'SalesAuthorizer',
-        token
-      }
+        role: "SalesAuthorizer",
+        token,
+      },
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -85,7 +83,7 @@ const getForwardedOrders = async (req, res) => {
     const orders = await Order.find({
       orderStatus: "ForwardedToAuthorizer",
       forwardedByManager: { $exists: true },
-      forwardedByAuthorizer: { $exists: false }
+      forwardedByAuthorizer: { $exists: false },
     })
     .populate("item", "name category")
     .populate("placedBy", "name email")
@@ -93,10 +91,11 @@ const getForwardedOrders = async (req, res) => {
 
     res.status(200).json({ success: true, data: orders });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Fetch error", error: err.message });
+    res
+      .status(500)
+      .json({ success: false, message: "Fetch error", error: err.message });
   }
 };
-
 
 // 3. View single order
 const getOrderDetails = async (req, res) => {
@@ -109,14 +108,18 @@ const getOrderDetails = async (req, res) => {
       .populate("party", "name contact")
       .populate("assignedWarehouse", "name location");
 
-    if (!order) return res.status(404).json({ success: false, message: "Order not found" });
+    if (!order)
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
 
     res.status(200).json({ success: true, data: order });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Fetch error", error: err.message });
+    res
+      .status(500)
+      .json({ success: false, message: "Fetch error", error: err.message });
   }
 };
-
 
 // 4. Assign warehouse to order
 const assignWarehouse = async (req, res) => {
@@ -126,9 +129,15 @@ const assignWarehouse = async (req, res) => {
     const authorizerId = req.user.id;
 
     const order = await Order.findById(orderId);
-    if (!order) return res.status(404).json({ success: false, message: "Order not found" });
+    if (!order)
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
     if (order.orderStatus !== "ForwardedToAuthorizer") {
-      return res.status(400).json({ success: false, message: "Cannot assign warehouse at this stage" });
+      return res.status(400).json({
+        success: false,
+        message: "Cannot assign warehouse at this stage",
+      });
     }
 
     order.assignedWarehouse = warehouseId;
@@ -136,12 +145,17 @@ const assignWarehouse = async (req, res) => {
     order.forwardedByAuthorizer = authorizerId;
     await order.save();
 
-    res.status(200).json({ success: true, message: "Warehouse assigned", data: order });
+    res
+      .status(200)
+      .json({ success: true, message: "Warehouse assigned", data: order });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Assignment failed", error: err.message });
+    res.status(500).json({
+      success: false,
+      message: "Assignment failed",
+      error: err.message,
+    });
   }
 };
-
 
 // 5. Get warehouse assignment history
 const getAssignmentHistory = async (req, res) => {
@@ -150,35 +164,72 @@ const getAssignmentHistory = async (req, res) => {
 
     const orders = await Order.find({
       forwardedByAuthorizer: authorizerId,
-      assignedWarehouse: { $exists: true }
+      assignedWarehouse: { $exists: true },
     })
-    .populate("assignedWarehouse", "name location")
-    .select("assignedWarehouse orderStatus createdAt");
+      .populate("assignedWarehouse", "name location")
+      .select("assignedWarehouse orderStatus createdAt");
 
     res.status(200).json({ success: true, data: orders });
   } catch (err) {
-    res.status(500).json({ success: false, message: "History fetch error", error: err.message });
+    res.status(500).json({
+      success: false,
+      message: "History fetch error",
+      error: err.message,
+    });
   }
 };
-
 
 const checkWarehouseApproval = async (req, res) => {
   try {
     const orderId = req.params.orderId;
 
-    const order = await Order.findById(orderId)
-      .select("orderStatus approvedBy assignedWarehouse");
+    const order = await Order.findById(orderId).select(
+      "orderStatus approvedBy assignedWarehouse"
+    );
 
-    if (!order) return res.status(404).json({ success: false, message: "Order not found" });
+    if (!order)
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
 
     const approved = order.orderStatus === "Approved" && order.approvedBy;
-    res.status(200).json({ success: true, data: { approved, orderStatus: order.orderStatus } });
+    res.status(200).json({
+      success: true,
+      data: { approved, orderStatus: order.orderStatus },
+    });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Check failed", error: err.message });
+    res
+      .status(500)
+      .json({ success: false, message: "Check failed", error: err.message });
   }
 };
 
+const changeActivityStatus = async (req, res) => {
+  const id = req.user.id;
 
+  try {
+    const salesAuthorizer = await SalesAuthorizer.findById(id);
+    if (!salesAuthorizer) {
+      return res.status(404).json({
+        success: false,
+        message: "Sales Authorizer not found",
+      });
+    }
+    salesAuthorizer.isActive = !salesAuthorizer.isActive;
+    await salesAuthorizer.save();
+    res.status(200).json({
+      success: true,
+      message: "Sales Authorizer activity status changed successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message:
+        "Something went wrong while changing sales authorizer activity status",
+      error: error.message,
+    });
+  }
+};
 
 module.exports = {
   loginSalesAuthorizer,
@@ -186,5 +237,6 @@ module.exports = {
   getOrderDetails,
   assignWarehouse,
   getAssignmentHistory,
-  checkWarehouseApproval
+  checkWarehouseApproval,
+  changeActivityStatus,
 };

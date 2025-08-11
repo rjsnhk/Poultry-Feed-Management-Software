@@ -12,6 +12,10 @@ import { Toaster } from "react-hot-toast";
 import OrderManagementPage from "./pages/Admin/OrderManagementPage";
 import WarehouseManagementPage from "./pages/Admin/WarehouseManagementPage";
 import ProtectedRoutes from "./ui/ProtectedRoutes";
+import SalesAuthorizerDashboardPage from "./pages/SalesAuthorizer/SalesAuthorizerDashboardPage";
+import SalesManagerDashboardPage from "./pages/SalesManager/SalesManagerDashboardPage";
+import PlantheadDashboardPage from "./pages/Planthead/PlantheadDashboardPage";
+import AccoutantDashboardPage from "./pages/Accountant/AccoutantDashboardPage";
 
 const App = () => {
   const queryClient = new QueryClient();
@@ -60,6 +64,33 @@ const App = () => {
             <Route path="salesman">
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<SalesmanDashboardPage />} />
+            </Route>
+
+            {/* Sales Manager routes */}
+            <Route path="salesmanager">
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<SalesManagerDashboardPage />} />
+            </Route>
+
+            {/* Sales Authorizer routes */}
+            <Route path="salesauthorizer">
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route
+                path="dashboard"
+                element={<SalesAuthorizerDashboardPage />}
+              />
+            </Route>
+
+            {/* Plant Head routes */}
+            <Route path="planthead">
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<PlantheadDashboardPage />} />
+            </Route>
+
+            {/* Accountant routes */}
+            <Route path="accountant">
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<AccoutantDashboardPage />} />
             </Route>
           </Route>
 

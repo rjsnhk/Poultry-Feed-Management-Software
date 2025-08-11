@@ -1,9 +1,8 @@
-const Salesman = require('../models/Salesman');
-const Order = require('../models/Order');
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+const Salesman = require("../models/Salesman");
+const Order = require("../models/Order");
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 const SECRET_TOKEN = process.env.JWT_SECRET;
-
 
 const loginSalesman = async (req, res) => {
   try {
@@ -37,16 +36,16 @@ const loginSalesman = async (req, res) => {
 
     // Generate JWT token with uniform structure
     const token = jwt.sign(
-      { id: salesman._id, role: 'Salesman' },
+      { id: salesman._id, role: "Salesman" },
       SECRET_TOKEN,
-      { expiresIn: '1d' }
+      { expiresIn: "1d" }
     );
 
     // Optional: Set cookie
     res.cookie("salesmanToken", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
 
@@ -58,11 +57,10 @@ const loginSalesman = async (req, res) => {
         _id: salesman._id,
         name: salesman.name,
         email: salesman.email,
-        role: 'Salesman',
-        token
-      }
+        role: "Salesman",
+        token,
+      },
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -71,10 +69,6 @@ const loginSalesman = async (req, res) => {
     });
   }
 };
-
-
-
-
 
 const deleteOrder = async (req, res) => {
   const { orderId } = req.params;
@@ -106,7 +100,14 @@ const deleteOrder = async (req, res) => {
     }
 
     // Prevent deletion if order is already forwarded
-    const forwardSteps = ['ForwardedToAuthorizer', 'WarehouseAssigned', 'Approved', 'Dispatched', 'Delivered', 'Paid'];
+    const forwardSteps = [
+      "ForwardedToAuthorizer",
+      "WarehouseAssigned",
+      "Approved",
+      "Dispatched",
+      "Delivered",
+      "Paid",
+    ];
     if (forwardSteps.includes(order.orderStatus)) {
       return res.status(403).json({
         success: false,
@@ -128,7 +129,6 @@ const deleteOrder = async (req, res) => {
     });
   }
 };
-
 
 const updatePayment = async (req, res) => {
   const { orderId } = req.params;
@@ -193,9 +193,9 @@ const updatePayment = async (req, res) => {
             order: order._id,
             amount,
             paymentMode,
-            date: new Date()
-          }
-        }
+            date: new Date(),
+          },
+        },
       },
       { new: true }
     );
@@ -207,9 +207,8 @@ const updatePayment = async (req, res) => {
         orderId: order._id,
         newDueAmount: order.dueAmount,
         paymentStatus: order.paymentStatus,
-      }
+      },
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
@@ -218,7 +217,6 @@ const updatePayment = async (req, res) => {
     });
   }
 };
-
 
 // Get due orders
 const getDueOrders = async (req, res) => {
@@ -229,13 +227,11 @@ const getDueOrders = async (req, res) => {
       placedBy: salesmanId,
       dueAmount: { $gt: 0 },
       orderStatus: { $ne: 'Paid' }
-    })
-    .populate('party', 'name contact')
-    .populate('item', 'name category');
+    }).populate('party', 'name contact');
 
     res.status(200).json({
       success: true,
-      data: dueOrders
+      data: dueOrders,
     });
   } catch (error) {
     res.status(500).json({
@@ -246,21 +242,18 @@ const getDueOrders = async (req, res) => {
   }
 };
 
-
 // Dashboard (sales, due, dispatch)
 const getAllOrder = async (req, res) => {
   const salesmanId = req.user.id; // set by verifySalesmanToken middleware
 
   try {
     const orders = await Order.find({ placedBy: salesmanId })
-    
       .populate('party', 'name contact')
-      .populate('item', 'name category')
       .sort({ createdAt: -1 });
 
     res.status(200).json({
       success: true,
-      data: orders
+      data: orders,
     });
   } catch (error) {
     res.status(500).json({
@@ -271,14 +264,12 @@ const getAllOrder = async (req, res) => {
   }
 };
 
-
 const getOrderDetails = async (req, res) => {
   const orderId = req.params.id;
   const salesmanId = req.user.id; // set by verifySalesmanToken middleware
 
   try {
     const order = await Order.findById(orderId)
-      .populate('item', 'name category')
       .populate('party', 'name contact')
       .populate('placedBy', 'name email');
 
@@ -299,7 +290,7 @@ const getOrderDetails = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: order
+      data: order,
     });
   } catch (error) {
     res.status(500).json({
@@ -308,8 +299,33 @@ const getOrderDetails = async (req, res) => {
       error: error.message,
     });
   }
-}
+};
 
+const changeActivityStatus = async (req, res) => {
+  const id = req.user.id;
+
+  try {
+    const salesman = await Salesman.findById(id);
+    if (!salesman) {
+      return res.status(404).json({
+        success: false,
+        message: "Salesman not found",
+      });
+    }
+    salesman.isActive = !salesman.isActive;
+    await salesman.save();
+    res.status(200).json({
+      success: true,
+      message: "Salesman activity status changed successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong while changing salesman activity status",
+      error: error.message,
+    });
+  }
+};
 
 module.exports = {
   deleteOrder,
@@ -317,5 +333,6 @@ module.exports = {
   getDueOrders,
   updatePayment,
   getAllOrder,
-  getOrderDetails
+  getOrderDetails,
+  changeActivityStatus,
 };

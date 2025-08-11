@@ -1,10 +1,9 @@
 const orderModel = require("../models/Order");
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
-const PlantHead = require('../models/PlantHead');
-const Warehouse = require('../models/WareHouse');
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const PlantHead = require("../models/PlantHead");
+const Warehouse = require("../models/WareHouse");
 const SECRET_TOKEN = process.env.JWT_SECRET;
-
 
 // Login Plant Head
 const loginPlantHead = async (req, res) => {
@@ -39,16 +38,16 @@ const loginPlantHead = async (req, res) => {
 
     // Generate JWT
     const token = jwt.sign(
-      { id: plantHead._id, role: 'PlantHead' },
+      { id: plantHead._id, role: "PlantHead" },
       SECRET_TOKEN,
-      { expiresIn: '1d' }
+      { expiresIn: "1d" }
     );
 
     // Optional: set cookie
     res.cookie("plantHeadToken", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
 
@@ -60,16 +59,15 @@ const loginPlantHead = async (req, res) => {
         _id: plantHead._id,
         name: plantHead.name,
         email: plantHead.email,
-        role: 'PlantHead',
-        token
-      }
+        role: "PlantHead",
+        token,
+      },
     });
-
   } catch (err) {
     res.status(500).json({
       success: false,
       message: "Something went wrong during login",
-      error: err.message
+      error: err.message,
     });
   }
 };
@@ -81,7 +79,9 @@ const getAllOrders = async (req, res) => {
 
     const warehouse = await Warehouse.findOne({ plantHead: plantHeadId });
     if (!warehouse) {
-      return res.status(404).json({ success: false, message: "Warehouse not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Warehouse not found" });
     }
 
     const orders = await Order.find({
@@ -94,10 +94,13 @@ const getAllOrders = async (req, res) => {
 
     res.status(200).json({ success: true, data: orders });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Failed to fetch orders", error: err.message });
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch orders",
+      error: err.message,
+    });
   }
 };
-
 
 // Get order details
 const getOrderDetails = async (req, res) => {
@@ -108,15 +111,20 @@ const getOrderDetails = async (req, res) => {
       .populate('item', 'name category');
 
     if (!order) {
-      return res.status(404).json({ success: false, message: "Order not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
     }
 
     res.status(200).json({ success: true, data: order });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Failed to get order", error: err.message });
+    res.status(500).json({
+      success: false,
+      message: "Failed to get order",
+      error: err.message,
+    });
   }
 };
-
 
 // Update stock for a product
 
@@ -127,17 +135,26 @@ const updateProductStock = async (req, res) => {
     const plantHeadId = req.user.id;
 
     if (quantity < 0) {
-      return res.status(400).json({ success: false, message: 'Quantity must be non-negative' });
+      return res
+        .status(400)
+        .json({ success: false, message: "Quantity must be non-negative" });
     }
 
     const warehouse = await Warehouse.findOne({ plantHead: plantHeadId });
     if (!warehouse) {
-      return res.status(404).json({ success: false, message: 'Warehouse not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Warehouse not found" });
     }
 
-    const stockItem = warehouse.stock.find(item => item.product.toString() === productId);
+    const stockItem = warehouse.stock.find(
+      (item) => item.product.toString() === productId
+    );
     if (!stockItem) {
-      return res.status(404).json({ success: false, message: 'Product not found in your warehouse' });
+      return res.status(404).json({
+        success: false,
+        message: "Product not found in your warehouse",
+      });
     }
 
     stockItem.quantity += quantity;
@@ -145,26 +162,33 @@ const updateProductStock = async (req, res) => {
 
     await warehouse.save();
 
-    res.status(200).json({ success: true, message: 'Stock quantity updated successfully' });
-
+    res
+      .status(200)
+      .json({ success: true, message: "Stock quantity updated successfully" });
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Failed to update stock', error: err.message });
+    res.status(500).json({
+      success: false,
+      message: "Failed to update stock",
+      error: err.message,
+    });
   }
 };
-
-
 
 // Get all products in the warehouse
 const getAllProductsInWarehouse = async (req, res) => {
   try {
     const plantHeadId = req.user.id;
 
-    const warehouse = await Warehouse.findOne({ plantHead: plantHeadId }).populate('stock.product');
+    const warehouse = await Warehouse.findOne({
+      plantHead: plantHeadId,
+    }).populate("stock.product");
     if (!warehouse) {
-      return res.status(404).json({ success: false, message: 'Warehouse not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "Warehouse not found" });
     }
 
-    const products = warehouse.stock.map(item => ({
+    const products = warehouse.stock.map((item) => ({
       productId: item.product._id,
       name: item.product.name,
       category: item.product.category,
@@ -174,27 +198,34 @@ const getAllProductsInWarehouse = async (req, res) => {
     }));
 
     res.status(200).json({ success: true, data: products });
-
   } catch (err) {
-    res.status(500).json({ success: false, message: 'Failed to get products', error: err.message });
+    res.status(500).json({
+      success: false,
+      message: "Failed to get products",
+      error: err.message,
+    });
   }
 };
-
 
 // Dispatch order with transport info
 const dispatchOrder = async (req, res) => {
   try {
     const plantHeadId = req.user.id;
     const { orderId } = req.params;
-    const { vehicleNumber, driverName, driverContact, transportCompany } = req.body;
+    const { vehicleNumber, driverName, driverContact, transportCompany } =
+      req.body;
 
     const order = await Order.findById(orderId);
     if (!order) {
-      return res.status(404).json({ success: false, message: "Order not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
     }
 
     if (order.orderStatus !== "Approved") {
-      return res.status(400).json({ success: false, message: "Order is not ready to dispatch" });
+      return res
+        .status(400)
+        .json({ success: false, message: "Order is not ready to dispatch" });
     }
 
     order.dispatchInfo = {
@@ -204,36 +235,73 @@ const dispatchOrder = async (req, res) => {
       driverName,
       driverContact,
       transportCompany,
-
     };
     order.orderStatus = "Dispatched";
 
     await order.save();
 
-    res.status(200).json({ success: true, message: "Order dispatched successfully", data: order });
+    res.status(200).json({
+      success: true,
+      message: "Order dispatched successfully",
+      data: order,
+    });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Failed to dispatch order", error: err.message });
+    res.status(500).json({
+      success: false,
+      message: "Failed to dispatch order",
+      error: err.message,
+    });
   }
 };
-
 
 // Get all dispatched orders
 const getDispatchedOrders = async (req, res) => {
   try {
     const plantHeadId = req.user.id;
 
-    const orders = await orderModel.find({
-      'dispatchInfo.dispatchedBy': plantHeadId,
-      orderStatus: 'Dispatched'
-    }).populate('party', 'name contact')
-      .populate('placedBy', 'name');
+    const orders = await orderModel
+      .find({
+        "dispatchInfo.dispatchedBy": plantHeadId,
+        orderStatus: "Dispatched",
+      })
+      .populate("party", "name contact")
+      .populate("placedBy", "name");
 
     res.status(200).json({ success: true, data: orders });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Failed to fetch dispatched orders", error: err.message });
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch dispatched orders",
+      error: err.message,
+    });
   }
 };
 
+const changeActivityStatus = async (req, res) => {
+  const id = req.user.id;
+
+  try {
+    const plantHead = await PlantHead.findById(id);
+    if (!plantHead) {
+      return res.status(404).json({
+        success: false,
+        message: "Plant Head not found",
+      });
+    }
+    plantHead.isActive = !plantHead.isActive;
+    await plantHead.save();
+    res.status(200).json({
+      success: true,
+      message: "Plant Head activity status changed successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong while changing plant head activity status",
+      error: error.message,
+    });
+  }
+};
 
 module.exports = {
   loginPlantHead,
@@ -242,5 +310,6 @@ module.exports = {
   getAllProductsInWarehouse,
   updateProductStock,
   dispatchOrder,
-  getDispatchedOrders
+  getDispatchedOrders,
+  changeActivityStatus,
 };

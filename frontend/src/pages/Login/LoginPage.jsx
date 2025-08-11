@@ -57,9 +57,9 @@ const LoginPage = () => {
                   <MenuItem value="">Select Role</MenuItem>
                   <MenuItem value="admin">Admin</MenuItem>
                   <MenuItem value="salesman">Salesman</MenuItem>
-                  <MenuItem value="salesmanager">Sales Manager</MenuItem>
-                  <MenuItem value="salesauthorizer">Sales Authorizer</MenuItem>
-                  <MenuItem value="planthead">Plant Head</MenuItem>
+                  <MenuItem value="manager">Sales Manager</MenuItem>
+                  <MenuItem value="authorizer">Sales Authorizer</MenuItem>
+                  <MenuItem value="plant_head">Plant Head</MenuItem>
                   <MenuItem value="accountant">Accountant</MenuItem>
                 </Select>
               )}

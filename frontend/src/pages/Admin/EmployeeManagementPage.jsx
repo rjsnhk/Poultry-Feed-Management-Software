@@ -17,6 +17,7 @@ import SalesManager from "../../components/Admin/EmployeeManagement/SalesManager
 import PlantHead from "../../components/Admin/EmployeeManagement/PlantHead";
 import Accountant from "../../components/Admin/EmployeeManagement/Accountant";
 import { Controller, useForm } from "react-hook-form";
+import TotalEmployees from "../../components/Admin/EmployeeManagement/TotalEmployees";
 
 const EmployeeManagementPage = () => {
   const employeeTypes = [
@@ -56,6 +57,15 @@ const EmployeeManagementPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isActive, setIsActive] = useState("Salesman");
   const [openForm, setOpenForm] = useState(false);
+
+  const totalEmployees =
+    salesman?.length +
+    salesmanager?.length +
+    salesauthorizer?.length +
+    planthead?.length +
+    accountant?.length;
+
+  console.log(totalEmployees);
 
   const {
     register,
@@ -140,6 +150,9 @@ const EmployeeManagementPage = () => {
         >
           Add Employee
         </Button>
+      </div>
+      <div className="grid grid-cols-4">
+        <TotalEmployees total={totalEmployees} />
       </div>
       <div className="mt-5">
         <ButtonGroup aria-label="Medium-sized button group">

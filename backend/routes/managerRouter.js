@@ -1,32 +1,41 @@
-
-const express = require('express');
+const express = require("express");
 const managerRouter = express.Router();
 const {
   loginSalesManager,
   getAssignedOrders,
   forwardOrderToAuthorizer,
   getOrderDetails,
-  getForwardedOrders
-} = require('../controllers/Salesmanager');
+  getForwardedOrders,
+  changeActivityStatus,
+} = require("../controllers/Salesmanager");
 
-const { verifySalesmanager } = require('../middleware/verifySalesmanager');
-const { cancelOrder } = require('../controllers/Orders');
+const { verifySalesmanager } = require("../middleware/verifySalesmanager");
+const { cancelOrder } = require("../controllers/Orders");
 
 // Sales Manager Login
-managerRouter.post('/login', loginSalesManager);
+managerRouter.post("/login", loginSalesManager);
 
 // View all orders assigned to this Sales Manager (not yet forwarded)
-managerRouter.get('/orders/getAll',verifySalesmanager, getAssignedOrders);
+managerRouter.get("/orders/getAll", verifySalesmanager, getAssignedOrders);
 
-managerRouter.get('/orders/:orderId',verifySalesmanager, getOrderDetails);
+managerRouter.get("/orders/:orderId", verifySalesmanager, getOrderDetails);
 
 // Forward order to Authorizer
-managerRouter.put('/forward/:orderId',verifySalesmanager, forwardOrderToAuthorizer);
+managerRouter.put(
+  "/forward/:orderId",
+  verifySalesmanager,
+  forwardOrderToAuthorizer
+);
 
-
-managerRouter.post('/cancel_order/:orderId',verifySalesmanager, cancelOrder);
+managerRouter.post("/cancel_order/:orderId", verifySalesmanager, cancelOrder);
 
 // Get all forwarded orders
-managerRouter.get('/orders/forwarded', verifySalesmanager, getForwardedOrders);
+managerRouter.get("/orders/forwarded", verifySalesmanager, getForwardedOrders);
+
+managerRouter.put(
+  "/change-activity-status",
+  verifySalesmanager,
+  changeActivityStatus
+);
 
 module.exports = managerRouter;

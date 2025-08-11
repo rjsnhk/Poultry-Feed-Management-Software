@@ -7,6 +7,7 @@ const {
   updatePayment,
   getOrderDetails,
   deleteOrder,
+  changeActivityStatus,
 } = require("../controllers/Salesman");
 
 const { verifySalesmanToken } = require("../middleware/verifySalesman");
@@ -26,5 +27,10 @@ salesmanRouter.get("/get_allorder", verifySalesmanToken, getAllOrder);
 salesmanRouter.get("/orders/:orderId", verifySalesmanToken, getOrderDetails);
 salesmanRouter.get("/orders/due", verifySalesmanToken, getDueOrders);
 salesmanRouter.post("/orders/pay/:orderId", verifySalesmanToken, updatePayment);
+salesmanRouter.put(
+  "/change-activity-status",
+  verifySalesmanToken,
+  changeActivityStatus
+);
 
 module.exports = salesmanRouter;
