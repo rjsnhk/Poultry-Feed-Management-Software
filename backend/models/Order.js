@@ -8,9 +8,11 @@ const partySchema = new mongoose.Schema({
 });
 
 const OrderSchema = new mongoose.Schema({
-  // Order details
-  productType: { type: String, required: true },
-  item: { type: String, required: true },
+  
+  item: { type: mongoose.Schema.Types.ObjectId,
+     ref: 'Product',
+      required: true }
+  ,
   quantity: { type: Number, required: true, min: 1 },
   totalAmount: { type: Number, required: true },
   advanceAmount: { type: Number, default: 0 },

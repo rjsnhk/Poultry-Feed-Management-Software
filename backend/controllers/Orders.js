@@ -1,45 +1,45 @@
 const orderModel = require("../models/Order");
 const Product = require("../models/Product");
 
-// Create Order
 const createOrder = async (req, res) => {
   try {
     const {
-      productType,
       item, // product ID
       quantity,
       advanceAmount,
       dueDate,
       paymentMode,
       notes,
-      party, // { companyName, contactPersonNumber, address }
+      party // { companyName, contactPersonNumber, address }
     } = req.body;
 
-    const placedBy = req.user.id;
+    const placedBy = req.user.id; // from auth middleware
 
     // Validate party fields
     if (!party?.companyName || !party?.contactPersonNumber || !party?.address) {
-      return res
-        .status(400)
-        .json({ success: false, message: "Party information is incomplete" });
+      return res.status(400).json({
+        success: false,
+        message: "Party information is incomplete"
+      });
     }
 
-    // Fetch product price
+    // Check product existence
     const product = await Product.findById(item);
     if (!product) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Product not found" });
+      return res.status(404).json({
+        success: false,
+        message: "Product not found"
+      });
     }
 
+    // Calculate amounts
     const totalAmount = quantity * product.price;
     const advance = advanceAmount || 0;
     const dueAmount = totalAmount - advance;
 
     // Create order
-    const newOrder = await Order.create({
-      productType,
-      item: product.name, // Store product name instead of ID
+    const newOrder = await orderModel.create({
+      item, // store product ID, not name
       quantity,
       totalAmount,
       advanceAmount: advance,
@@ -48,38 +48,45 @@ const createOrder = async (req, res) => {
       paymentMode,
       notes,
       placedBy,
-      party, // embedded party object
+      party
     });
 
     res.status(201).json({
       success: true,
       message: "Order placed successfully",
-      data: newOrder,
+      data: newOrder
     });
   } catch (err) {
     res.status(500).json({
       success: false,
       message: "Failed to create order",
-      error: err.message,
+      error: err.message
     });
   }
 };
+
+
+// Get all orders
+// Common populate configuration
+const orderPopulateFields = [
+  { path: "placedBy", select: "name email" },
+  { path: "party", select: "companyName" },
+  { path: "approvedBy", select: "name email role" },
+  { path: "forwardedByManager", select: "name email role" },
+  { path: "forwardedByAuthorizer", select: "name email role" },
+  { path: "dispatchInfo.dispatchedBy", select: "name email role" },
+  { path: "assignedWarehouse", select: "name location" },
+  { path: "invoicedBy", select: "name email role" },
+  { path: "paymentCollectedBy", select: "name email role" },
+  { path: "canceledBy.user", select: "name email role" }
+];
 
 // Get all orders
 const getAllOrder = async (req, res) => {
   try {
     const orders = await orderModel
       .find()
-      .populate("placedBy", "name email")
-      .populate("party", "companyName")
-      .populate("approvedBy", "name email role")
-      .populate("forwardedByManager", "name email role")
-      .populate("forwardedByAuthorizer", "name email role")
-      .populate("dispatchInfo.dispatchedBy", "name email role")
-      .populate("assignedWarehouse", "name location")
-      .populate("invoicedBy", "name email role")
-      .populate("paymentCollectedBy", "name email role")
-      .populate("canceledBy.user", "name email role")
+      .populate(orderPopulateFields)
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -101,16 +108,7 @@ const getOrderDetails = async (req, res) => {
   try {
     const order = await orderModel
       .findById(req.params.id)
-      .populate("placedBy", "name email")
-      .populate("party", "companyName")
-      .populate("approvedBy", "name email role")
-      .populate("forwardedByManager", "name email role")
-      .populate("forwardedByAuthorizer", "name email role")
-      .populate("dispatchInfo.dispatchedBy", "name email role")
-      .populate("assignedWarehouse", "name location")
-      .populate("invoicedBy", "name email role")
-      .populate("paymentCollectedBy", "name email role")
-      .populate("canceledBy.user", "name email role");
+      .populate(orderPopulateFields);
 
     if (!order) {
       return res.status(404).json({
@@ -121,6 +119,7 @@ const getOrderDetails = async (req, res) => {
 
     res.status(200).json({
       success: true,
+      message: "Order fetched successfully",
       data: order,
     });
   } catch (err) {
@@ -131,6 +130,7 @@ const getOrderDetails = async (req, res) => {
     });
   }
 };
+
 
 //cancel order
 const cancelOrder = async (req, res) => {

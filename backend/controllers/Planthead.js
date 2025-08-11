@@ -137,7 +137,7 @@ const updateProductStock = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Product not found in your warehouse' });
     }
 
-    stockItem.quantity = quantity;
+    stockItem.quantity += quantity;
     stockItem.lastUpdated = new Date();
 
     await warehouse.save();
