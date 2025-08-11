@@ -1137,57 +1137,46 @@ const getWarehouse = async (req, res) => {
 const addProductToWarehouse = async (req, res) => {
   try {
     const { warehouseId } = req.params;
-    const { name, category, description, price } = req.body;
+    const { productId } = req.body;
 
-    if (!name || !category || price == null) {
-      return res.status(422).json({
-        success: false,
-        message: "Product name, category and price are required",
-      });
-    }
-
-    // 1. Create the product in Product collection
-    const newProduct = await Product.create({
-      name,
-      category,
-      description,
-      price,
-    });
-
-    // 2. Add product reference to warehouse stock
+    // Check warehouse
     const warehouse = await Warehouse.findById(warehouseId);
     if (!warehouse) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Warehouse not found" });
+      return res.status(404).json({ success: false, message: "Warehouse not found" });
     }
 
-    const alreadyExists = warehouse.stock.find(
-      (item) => item.product.toString() === newProduct._id.toString()
+    // Check product
+    const product = await Product.findById(productId);
+    if (!product) {
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
+    // Check if product already exists in stock
+    const alreadyExists = warehouse.stock.some(
+      (item) => item.product.toString() === productId
     );
     if (alreadyExists) {
-      return res.status(409).json({
-        success: false,
-        message: "Product already exists in warehouse",
-      });
+      return res.status(400).json({ success: false, message: "Product already added to warehouse" });
     }
 
-    warehouse.stock.push({ product: newProduct._id, quantity: 0 });
+    // Add product with quantity 0
+    warehouse.stock.push({
+      product: productId,
+      quantity: 0
+    });
+
     await warehouse.save();
 
-    res.status(201).json({
-      success: true,
-      message: "Product added to warehouse successfully",
-      product: newProduct,
-    });
-  } catch (error) {
+    res.status(200).json({ success: true, message: "Product added to warehouse", warehouse });
+  } catch (err) {
     res.status(500).json({
       success: false,
-      message: "Error adding product",
-      error: error.message,
+      message: "Error adding product to warehouse",
+      error: err.message
     });
   }
 };
+
 
 //OK
 const getAllProductsFromWarehouse = async (req, res) => {
@@ -1287,8 +1276,46 @@ const deleteWarehouse = async (req, res) => {
 
 
 const addProduct = async (req, res) => {
-  
-}
+  try {
+    let { name, category, description, price } = req.body;
+
+    // Normalize both to lowercase
+    const normalizedName = name.trim().toLowerCase();
+    const normalizedCategory = category.trim().toLowerCase();
+
+    // Check for existing product in same category
+    const existing = await Product.findOne({
+      name: normalizedName,
+      category: normalizedCategory
+    });
+
+    if (existing) {
+      return res.status(400).json({
+        success: false,
+        message: 'This product already exists in this category.'
+      });
+    }
+
+    const newProduct = new Product({
+      name: normalizedName,
+      category: normalizedCategory,
+      description,
+      price
+    });
+
+    await newProduct.save();
+
+    res.status(201).json({
+      success: true,
+      message: 'Product added successfully.',
+      product: newProduct
+    });
+
+  } catch (err) {
+    console.error('Add Product Error:', err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+};
 
 const getAllProducts = async (req, res) => {
   try {
@@ -1340,16 +1367,20 @@ const deleteProducts = async (req, res) => {
   try {
     const { productId } = req.params;
 
-    const product = await Product.findById(productId);
-    if (!product) {
+    // Delete directly and get the deleted product in one step
+    const deletedProduct = await Product.findByIdAndDelete(productId);
+
+    if (!deletedProduct) {
       return res
         .status(404)
         .json({ success: false, message: "Product not found" });
     }
 
-    await Product.findByIdAndDelete(productId); // Delete the product
-
-    res.status(200).json({ success: true, message: "Product deleted" });
+    res.status(200).json({
+      success: true,
+      message: "Product deleted successfully",
+      deletedProduct
+    });
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -1358,6 +1389,7 @@ const deleteProducts = async (req, res) => {
     });
   }
 };
+
 
 
 
