@@ -973,11 +973,11 @@ const addWarehouse = async (req, res) => {
 
 const updateWarehouse = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { warehouseId } = req.params;
     const { name, location, plantHead, accountant } = req.body;
 
     // 1. Fetch existing warehouse
-    const warehouse = await Warehouse.findById(id);
+    const warehouse = await Warehouse.findById(warehouseId);
     if (!warehouse) {
       return res.status(404).json({
         success: false,
@@ -1067,9 +1067,9 @@ const getAllWarehouse = async (req, res) => {
 };
 
 const getWarehouse = async (req, res) => {
-  const { id } = req.params;
+  const { warehouseId } = req.params;
 
-  if (!id) {
+  if (!warehouseId) {
     return res.status(422).json({
       success: false,
       message: "Warehouse ID is required",
@@ -1078,7 +1078,7 @@ const getWarehouse = async (req, res) => {
 
   try {
     // 1. Get warehouse with stock, plantHead, accountant, and product details
-    const warehouse = await Warehouse.findById(id)
+    const warehouse = await Warehouse.findById(warehouseId)
       .populate("plantHead", "name email phone")
       .populate("accountant", "name email phone")
       .populate("stock.product", "name category price description");
@@ -1092,7 +1092,7 @@ const getWarehouse = async (req, res) => {
 
     // 2. Get all assigned orders (where this warehouse is assigned)
     const assignedOrders = await orderModel
-      .find({ assignedWarehouse: id })
+      .find({ assignedWarehouse: warehouseId })
       .populate("placedBy", "name email")
       .populate("party", "companyName")
       .sort({ createdAt: -1 });
