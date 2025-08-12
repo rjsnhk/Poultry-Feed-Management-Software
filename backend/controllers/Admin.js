@@ -1049,6 +1049,7 @@ const updateWarehouse = async (req, res) => {
 const getAllWarehouse = async (req, res) => {
   try {
     const warehouses = await Warehouse.find()
+      .populate("stock.product", "name category price description")
       .populate("plantHead", "name email phone")
       .populate("accountant", "name email phone");
 
