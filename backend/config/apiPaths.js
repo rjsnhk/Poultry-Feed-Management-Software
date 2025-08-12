@@ -99,6 +99,7 @@ export const API_PATHS = {
     FORWARD_ORDER: (orderId) => `/api/manager/forward/${orderId}`,
     GET_FORWARDED_ORDERS: "/api/manager/orders/forwarded",
     CHANGE_ACTIVITY_STATUS: "/api/manager/change-activity-status",
+    CANCEL_ORDER: (orderId) => `/api/manager/cancel_order/${orderId}`,
   },
 
   AUTHORIZER: {
@@ -111,6 +112,7 @@ export const API_PATHS = {
     CHECK_WAREHOUSE_STATUS: (orderId) =>
       `/api/authorizer/warehouse-status/${orderId}`,
     CHANGE_ACTIVITY_STATUS: "/api/authorizer/change-activity-status",
+    CANCEL_ORDER: (orderId) => `/api/authorizer/cancel_order/${orderId}`,
   },
 
   PLANT_HEAD: {
@@ -123,6 +125,7 @@ export const API_PATHS = {
     DISPATCH_ORDER: (orderId) => `/api/planthead/dispatch/${orderId}`,
     GET_DISPATCHED_ORDERS: "/api/planthead/dispatched-orders",
     CHANGE_ACTIVITY_STATUS: "/api/planthead/change-activity-status",
+    CANCEL_ORDER: (orderId) => `/api/planthead/cancel_order/${orderId}`,
   },
 
   ACCOUNTANT: {

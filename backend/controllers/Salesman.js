@@ -265,7 +265,7 @@ const getAllOrder = async (req, res) => {
 };
 
 const getOrderDetails = async (req, res) => {
-  const orderId = req.params.id;
+  const orderId = req.params.orderId;
   const salesmanId = req.user.id; // set by verifySalesmanToken middleware
 
   try {
