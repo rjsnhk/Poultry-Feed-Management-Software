@@ -221,10 +221,60 @@ const getOrdersToApprove = async (req, res) => {
   }
 };
 
+const approveOrderToWarehouse = async (req, res) => {
+  try {
+    const { orderId } = req.body;
+    const adminId = req.user.adminId; // Make sure your middleware sets req.user correctly
+
+    // Validate input
+    if (!orderId) {
+      return res.status(422).json({
+        success: false,
+        message: "Order ID is required",
+      });
+    }
+
+    // Find order
+    const order = await orderModel.findById(orderId);
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found",
+      });
+    }
+
+    // Check order status
+    if (order.orderStatus !== "WarehouseAssigned") {
+      return res.status(400).json({
+        success: false,
+        message: `Order is not in 'WarehouseAssigned' status, current status: ${order.orderStatus}`,
+      });
+    }
+
+    // Approve order
+    order.orderStatus = "Approved";
+    order.approvedBy = adminId;
+    await order.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Order approved successfully",
+      data: order,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error approving the warehouse for this order",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   createOrder,
   getAllOrder,
   getOrderDetails,
   cancelOrder,
   getOrdersToApprove,
+  approveOrderToWarehouse,
 };

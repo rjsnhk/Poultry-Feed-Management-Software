@@ -1,9 +1,9 @@
 const express=require('express');
 const adminRouter=express.Router();
-const {registerAdmin,loginAdmin, addSalesman, getAllSalesman, getSalesman, updateSalesman, deleteSalesman, addSalesManager, getAllSalesManager, getSalesManager, updateSalesManager, deleteSalesManager, addSalesAuthorizer, getAllSalesAuthorizer, getSalesAuthorizer, updateSalesAuthorizer, deleteSalesAuthorizer, addWarehouse, getAllWarehouse, getWarehouse, updateWarehouse, deleteWarehouse, approveWarehouse, addProductToWarehouse, addPlantHead, getAllPlantHeads, getPlantHead, updatePlantHead, deletePlantHead, addAccountant, getAllAccountants, getAccountant, updateAccountant, deleteAccountant, getAllProductsFromWarehouse, addProduct, getAllProducts, updateProductsPrice, deleteProduct, deleteProductsFromWarehouse }=require('../controllers/Admin');
+const {registerAdmin,loginAdmin, addSalesman, getAllSalesman, getSalesman, updateSalesman, deleteSalesman, addSalesManager, getAllSalesManager, getSalesManager, updateSalesManager, deleteSalesManager, addSalesAuthorizer, getAllSalesAuthorizer, getSalesAuthorizer, updateSalesAuthorizer, deleteSalesAuthorizer, addWarehouse, getAllWarehouse, getWarehouse, updateWarehouse, deleteWarehouse, addProductToWarehouse, addPlantHead, getAllPlantHeads, getPlantHead, updatePlantHead, deletePlantHead, addAccountant, getAllAccountants, getAccountant, updateAccountant, deleteAccountant, getAllProductsFromWarehouse, addProduct, getAllProducts, updateProductsPrice, deleteProduct, deleteProductsFromWarehouse }=require('../controllers/Admin');
 
 const {verifyAdmin} = require('../middleware/verifyAdmin');
-const { cancelOrder, getOrderDetails,getAllOrder, getOrdersToApprove } = require('../controllers/Orders');
+const { cancelOrder, getOrderDetails,getAllOrder, getOrdersToApprove, approveOrderToWarehouse } = require('../controllers/Orders');
 
 //ok
 adminRouter.post('/register',registerAdmin);
@@ -74,7 +74,7 @@ adminRouter.delete('/:warehouseId/products/:productId', verifyAdmin, deleteProdu
 
 
 adminRouter.get('/get_orders_to_approve', verifyAdmin, getOrdersToApprove);
-adminRouter.post('/approve_warehouse', verifyAdmin, approveWarehouse);
+adminRouter.post('/approve_warehouse', verifyAdmin, approveOrderToWarehouse);
 
 adminRouter.get('/get_allorder', verifyAdmin, getAllOrder);
 adminRouter.get('/get_order/:id', verifyAdmin, getOrderDetails);
