@@ -13,6 +13,7 @@ const {
   getAssignmentHistory,
   checkWarehouseApproval,
   changeActivityStatus,
+  getAllWarehouse,
 } = require("../controllers/SalesAuthorizer");
 const { cancelOrder } = require("../controllers/Orders");
 
@@ -45,6 +46,7 @@ authorizerRouter.get(
   verifySalesauthorizer,
   getAssignmentHistory
 ); // Get assignment history
+
 authorizerRouter.get(
   "/warehouse-status/:orderId",
   verifySalesauthorizer,
@@ -55,6 +57,13 @@ authorizerRouter.put(
   "/change-activity-status",
   verifySalesauthorizer,
   changeActivityStatus
+); // Change activity status
+
+//Get All warehouses (needed to select a warehouse to assign)
+authorizerRouter.get(
+  "/get-all-warehouses",
+  verifySalesauthorizer,
+  getAllWarehouse
 ); // Change activity status
 
 module.exports = authorizerRouter;

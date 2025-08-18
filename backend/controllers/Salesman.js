@@ -226,8 +226,8 @@ const getDueOrders = async (req, res) => {
     const dueOrders = await Order.find({
       placedBy: salesmanId,
       dueAmount: { $gt: 0 },
-      orderStatus: { $ne: 'Paid' }
-    }).populate('party', 'name contact');
+      orderStatus: { $ne: "Paid" },
+    }).populate("party", "name contact");
 
     res.status(200).json({
       success: true,
@@ -248,7 +248,8 @@ const getAllOrder = async (req, res) => {
 
   try {
     const orders = await Order.find({ placedBy: salesmanId })
-      .populate('party', 'name contact')
+      .populate("party", "name contact")
+      .populate("item", "name price description category")
       .sort({ createdAt: -1 });
 
     res.status(200).json({
@@ -270,9 +271,10 @@ const getOrderDetails = async (req, res) => {
 
   try {
     const order = await Order.findById(orderId)
-      .populate('item', 'name category description')
-      .populate('party', 'name contact')
-      .populate('placedBy', 'name email');
+      .populate("item", "name price category description")
+      .populate("party", "name contact")
+      .populate("placedBy", "name email")
+      .populate("assignedWarehouse", "name location approved");
 
     if (!order) {
       return res.status(404).json({
@@ -281,8 +283,7 @@ const getOrderDetails = async (req, res) => {
       });
     }
 
-    // Check if the logged-in salesman placed the order
-    if (order.placedBy.toString() !== salesmanId.toString()) {
+    if (order.placedBy._id.toString() !== salesmanId.toString()) {
       return res.status(403).json({
         success: false,
         message: "Unauthorized. You can only view your own orders.",

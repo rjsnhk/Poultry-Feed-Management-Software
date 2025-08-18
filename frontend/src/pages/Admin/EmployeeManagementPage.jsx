@@ -18,6 +18,8 @@ import PlantHead from "../../components/Admin/EmployeeManagement/PlantHead";
 import Accountant from "../../components/Admin/EmployeeManagement/Accountant";
 import { Controller, useForm } from "react-hook-form";
 import TotalEmployees from "../../components/Admin/EmployeeManagement/TotalEmployees";
+import TotalActiveEmployees from "../../components/Admin/EmployeeManagement/TotalActiveEmployees";
+import InactiveEmployees from "../../components/Admin/EmployeeManagement/InactiveEmployees";
 
 const EmployeeManagementPage = () => {
   const employeeTypes = [
@@ -58,12 +60,32 @@ const EmployeeManagementPage = () => {
   const [isActive, setIsActive] = useState("Salesman");
   const [openForm, setOpenForm] = useState(false);
 
+  console.log("salesman", salesman);
+  console.log("salesmanager", salesmanager);
+  console.log("salesauthorizer", salesauthorizer);
+  console.log("planthead", planthead);
+  console.log("accountant", accountant);
+
   const totalEmployees =
     salesman?.length +
     salesmanager?.length +
     salesauthorizer?.length +
     planthead?.length +
     accountant?.length;
+
+  const totalActiveEmployees =
+    salesman?.filter((item) => item.isActive === true)?.length +
+    salesmanager?.filter((item) => item.isActive === true)?.length +
+    salesauthorizer?.filter((item) => item.isActive === true)?.length +
+    planthead?.filter((item) => item.isActive === true)?.length +
+    accountant?.filter((item) => item.isActive === true)?.length;
+
+  const totalInactiveEmployees =
+    salesman?.filter((item) => item.isActive === false)?.length +
+    salesmanager?.filter((item) => item.isActive === false)?.length +
+    salesauthorizer?.filter((item) => item.isActive === false)?.length +
+    planthead?.filter((item) => item.isActive === false)?.length +
+    accountant?.filter((item) => item.isActive === false)?.length;
 
   const {
     register,
@@ -77,13 +99,11 @@ const EmployeeManagementPage = () => {
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
   const FilteredSalesManager = salesmanager?.filter(
     (item) =>
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
   const FilteredSalesAuthorizer = salesauthorizer?.filter(
     (item) =>
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -149,8 +169,10 @@ const EmployeeManagementPage = () => {
           Add Employee
         </Button>
       </div>
-      <div className="grid grid-cols-4">
+      <div className="grid grid-cols-3 gap-7">
         <TotalEmployees total={totalEmployees} />
+        <TotalActiveEmployees total={totalActiveEmployees} />
+        <InactiveEmployees total={totalInactiveEmployees} />
       </div>
       <div className="mt-5">
         <ButtonGroup aria-label="Medium-sized button group">

@@ -73,10 +73,10 @@ const loginSalesManager = async (req, res) => {
 // View assigned but unforwarded orders
 const getAssignedOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ orderStatus: 'Placed' })
-      .populate('item', 'name category')
-      .populate('party', 'name contact')
-      .populate('placedBy', 'name email phone');
+    const orders = await Order.find({ orderStatus: "Placed" })
+      .populate("item", "name category description price")
+      .populate("party", "name contact")
+      .populate("placedBy", "name email phone");
 
     res.status(200).json({
       success: true,
@@ -97,9 +97,11 @@ const getOrderDetails = async (req, res) => {
 
   try {
     const order = await Order.findById(orderId)
-      .populate('party', 'name contact')
-      .populate('placedBy', 'name email phone')
-      .populate('item', 'name category');
+      .populate("party", "name contact")
+      .populate("placedBy", "name email phone")
+      .populate("item", "name category description price")
+      .populate("assignedWarehouse", "name location approved")
+      .populate("approvedBy", "name");
 
     if (!order) {
       return res.status(404).json({
@@ -168,9 +170,9 @@ const getForwardedOrders = async (req, res) => {
   try {
     const orders = await Order.find({ forwardedByManager: req.user.id })
 
-      .populate('party', 'name contact')
-      .populate('placedBy', 'name email phone')
-      .populate('item', 'name category');
+      .populate("party", "name contact")
+      .populate("placedBy", "name email phone")
+      .populate("item", "name category");
 
     res.status(200).json({
       success: true,

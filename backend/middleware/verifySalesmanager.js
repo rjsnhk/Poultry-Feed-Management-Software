@@ -1,4 +1,4 @@
-const jwt = require('jsonwebtoken');
+const jwt = require("jsonwebtoken");
 const SECRET = process.env.JWT_SECRET;
 
 if (!SECRET) {
@@ -7,9 +7,11 @@ if (!SECRET) {
 
 const verifySalesmanager = (req, res, next) => {
   const authHeader = req.headers.authorization;
-  const token = req.cookies.salesManagerToken ||  (authHeader && authHeader.startsWith("Bearer ")
-    ? authHeader.split(" ")[1]
-    : null);
+  const token =
+    req.cookies.salesManagerToken ||
+    (authHeader && authHeader.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : null);
 
   if (!token) {
     return res.status(401).json({
@@ -36,9 +38,10 @@ const verifySalesmanager = (req, res, next) => {
 
     next();
   } catch (err) {
-    const message = err.name === "TokenExpiredError"
-      ? "Token has expired."
-      : "Invalid or expired token.";
+    const message =
+      err.name === "TokenExpiredError"
+        ? "Token has expired."
+        : "Invalid or expired token.";
     return res.status(401).json({ success: false, message });
   }
 };

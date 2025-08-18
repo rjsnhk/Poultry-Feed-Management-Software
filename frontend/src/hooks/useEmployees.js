@@ -144,7 +144,7 @@ const useEmployees = () => {
     useMutation({
       mutationFn: async (id) => {
         const response = await axios.delete(
-          BASE_URL + API_PATHS.ADMIN.SALESMANAGER.DELETE(id),
+          BASE_URL + API_PATHS.ADMIN.SALES_MANAGER.DELETE(id),
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -171,7 +171,7 @@ const useEmployees = () => {
   } = useMutation({
     mutationFn: async (id) => {
       const response = await axios.delete(
-        BASE_URL + API_PATHS.ADMIN.SALESAUTHORIZER.DELETE(id),
+        BASE_URL + API_PATHS.ADMIN.SALES_AUTHORIZER.DELETE(id),
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -196,7 +196,7 @@ const useEmployees = () => {
     useMutation({
       mutationFn: async (id) => {
         const response = await axios.delete(
-          BASE_URL + API_PATHS.ADMIN.PLANTHEAD.DELETE(id),
+          BASE_URL + API_PATHS.ADMIN.PLANT_HEAD.DELETE(id),
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -273,7 +273,7 @@ const useEmployees = () => {
     useMutation({
       mutationFn: async (data) => {
         const response = await axios.post(
-          BASE_URL + API_PATHS.ADMIN.SALESMANAGER.ADD,
+          BASE_URL + API_PATHS.ADMIN.SALES_MANAGER.ADD,
           data,
           {
             headers: {
@@ -301,7 +301,7 @@ const useEmployees = () => {
     useMutation({
       mutationFn: async (data) => {
         const response = await axios.post(
-          BASE_URL + API_PATHS.ADMIN.SALESAUTHORIZER.ADD,
+          BASE_URL + API_PATHS.ADMIN.SALES_AUTHORIZER.ADD,
           data,
           {
             headers: {
@@ -327,7 +327,7 @@ const useEmployees = () => {
   const { mutate: addPlantHead, isPending: isAddingPlantHead } = useMutation({
     mutationFn: async (data) => {
       const response = await axios.post(
-        BASE_URL + API_PATHS.ADMIN.PLANTHEAD.ADD,
+        BASE_URL + API_PATHS.ADMIN.PLANT_HEAD.ADD,
         data,
         {
           headers: {
@@ -414,7 +414,7 @@ const useEmployees = () => {
         console.log("update", data);
 
         const response = await axios.put(
-          BASE_URL + API_PATHS.ADMIN.SALESMANAGER.UPDATE(data.id),
+          BASE_URL + API_PATHS.ADMIN.SALES_MANAGER.UPDATE(data.id),
           data,
           {
             headers: {
@@ -446,7 +446,7 @@ const useEmployees = () => {
       console.log("update", data);
 
       const response = await axios.put(
-        BASE_URL + API_PATHS.ADMIN.SALESAUTHORIZER.UPDATE(data.id),
+        BASE_URL + API_PATHS.ADMIN.SALES_AUTHORIZER.UPDATE(data.id),
         data,
         {
           headers: {
@@ -476,7 +476,7 @@ const useEmployees = () => {
         console.log("update", data);
 
         const response = await axios.put(
-          BASE_URL + API_PATHS.ADMIN.PLANTHEAD.UPDATE(data.id),
+          BASE_URL + API_PATHS.ADMIN.PLANT_HEAD.UPDATE(data.id),
           data,
           {
             headers: {

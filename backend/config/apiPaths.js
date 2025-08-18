@@ -69,7 +69,6 @@ export const API_PATHS = {
       GET_PRODUCTS: (warehouseId) => `/api/admin/${warehouseId}/products`,
       DELETE_PRODUCT: (warehouseId, productId) =>
         `/api/admin/${warehouseId}/products/${productId}`,
-      
     },
 
     ORDERS: {
@@ -104,6 +103,7 @@ export const API_PATHS = {
 
   AUTHORIZER: {
     LOGIN: "/api/authorizer/login",
+    GET_ALL_WAREHOUSES: "/api/authorizer/get-all-warehouses",
     GET_ASSIGNED_ORDERS: "/api/authorizer/orders/getAll",
     GET_ORDER: (orderId) => `/api/authorizer/orders/${orderId}`,
     ASSIGN_WAREHOUSE: (orderId) =>

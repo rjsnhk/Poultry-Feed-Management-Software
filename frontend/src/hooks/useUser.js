@@ -1,12 +1,14 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { BASE_URL, API_PATHS } from"../utils/apiPaths";
+import { BASE_URL, API_PATHS } from "../utils/apiPaths";
 import { toast } from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
 export const useUser = () => {
   const token = localStorage.getItem("token");
   const queryClient = useQueryClient();
+
+  //Current Logged in user data
   const {
     data: user,
     isPending,
@@ -31,7 +33,7 @@ export const useUser = () => {
     Accountant: API_PATHS.ACCOUNTANT.CHANGE_ACTIVITY_STATUS,
   };
 
-  //Change Activity Status of Salesman
+  //Change Activity Status (role based)
   const { mutate: changeStatus, isPending: changeStatusPending } = useMutation({
     mutationFn: async (role) => {
       console.log(role);

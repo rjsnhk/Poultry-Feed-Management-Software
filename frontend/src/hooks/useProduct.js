@@ -10,7 +10,7 @@ export const useProduct = (warehouseId) => {
 
   // GET all Products
   const { data: allProducts, isPending: allProductsLoading } = useQuery({
-    queryKey: ["allProducts", warehouseId],
+    queryKey: ["allProducts"],
     queryFn: async () => {
       const response = await axios.get(
         BASE_URL + API_PATHS.ADMIN.PRODUCT.GET_ALL,
@@ -47,10 +47,10 @@ export const useProduct = (warehouseId) => {
       },
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: ["singleWarehouse", warehouseId],
+          queryKey: ["singleWarehouse"],
         });
         queryClient.invalidateQueries({
-          queryKey: ["allProducts", warehouseId],
+          queryKey: ["allProducts"],
         });
         toast.success("Product price updated successfully");
       },
@@ -76,10 +76,10 @@ export const useProduct = (warehouseId) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["singleWarehouse", warehouseId],
+        queryKey: ["singleWarehouse"],
       });
       queryClient.invalidateQueries({
-        queryKey: ["allProducts", warehouseId],
+        queryKey: ["allProducts"],
       });
       toast.success("Product added successfully");
     },
@@ -104,10 +104,10 @@ export const useProduct = (warehouseId) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["singleWarehouse", warehouseId],
+        queryKey: ["singleWarehouse"],
       });
       queryClient.invalidateQueries({
-        queryKey: ["allProducts", warehouseId],
+        queryKey: ["allProducts"],
       });
       toast.success("Product deleted successfully");
     },

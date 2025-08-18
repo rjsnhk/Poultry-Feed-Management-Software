@@ -85,9 +85,10 @@ const getForwardedOrders = async (req, res) => {
       forwardedByManager: { $exists: true },
       forwardedByAuthorizer: { $exists: false },
     })
-    .populate("item", "name category")
-    .populate("placedBy", "name email")
-    .populate("party", "name contact");
+      .populate("item", "name category")
+      .populate("placedBy", "name email")
+      .populate("party", "name contact")
+      .populate("forwardedByManager", "name email");
 
     res.status(200).json({ success: true, data: orders });
   } catch (err) {
@@ -107,7 +108,6 @@ const getOrderDetails = async (req, res) => {
       .populate("placedBy", "name email")
       .populate("party", "name contact")
       .populate("assignedWarehouse", "name location");
-
     if (!order)
       return res
         .status(404)
@@ -126,6 +126,8 @@ const assignWarehouse = async (req, res) => {
   try {
     const { orderId } = req.params;
     const { warehouseId } = req.body;
+    console.log("warehouse id", warehouseId);
+    console.log("req.body", req.body);
     const authorizerId = req.user.id;
 
     const order = await Order.findById(orderId);
@@ -144,6 +146,8 @@ const assignWarehouse = async (req, res) => {
     order.orderStatus = "WarehouseAssigned";
     order.forwardedByAuthorizer = authorizerId;
     await order.save();
+
+    console.log("order in assign warehouse", order.assignedWarehouse);
 
     res
       .status(200)
@@ -231,6 +235,27 @@ const changeActivityStatus = async (req, res) => {
   }
 };
 
+const getAllWarehouse = async (req, res) => {
+  try {
+    const warehouses = await Warehouse.find()
+      .populate("stock.product", "name category price description")
+      .populate("plantHead", "name email phone")
+      .populate("accountant", "name email phone");
+
+    res.status(200).json({
+      success: true,
+      message: "All warehouses fetched successfully.",
+      data: warehouses,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Something went wrong while fetching warehouses.",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   loginSalesAuthorizer,
   getForwardedOrders,
@@ -239,4 +264,5 @@ module.exports = {
   getAssignmentHistory,
   checkWarehouseApproval,
   changeActivityStatus,
+  getAllWarehouse,
 };

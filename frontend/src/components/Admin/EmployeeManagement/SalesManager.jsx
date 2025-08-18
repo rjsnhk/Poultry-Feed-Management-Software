@@ -1,15 +1,10 @@
 import React, { useState } from "react";
 import { Mail, Phone, Trash2, SquarePen, Eye } from "lucide-react";
-import {
-  Avatar,
-  Button,
-  CircularProgress,
-  IconButton,
-  TextField,
-} from "@mui/material";
+import { Button, CircularProgress, IconButton, TextField } from "@mui/material";
 import useEmployees from "../../../hooks/useEmployees";
 import CloseIcon from "@mui/icons-material/Close";
 import { useForm } from "react-hook-form";
+import Avatar from "../../Avatar";
 
 const SalesManager = ({ item }) => {
   const { _id } = item;
@@ -48,7 +43,12 @@ const SalesManager = ({ item }) => {
     >
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-3">
-          <Avatar sx={{ width: 50, height: 50 }} />
+          <Avatar
+            // src={item.photo}
+            name={item.name}
+            online={item.isActive}
+            size={56}
+          />
           <div>
             <p className="font-semibold">{item.name}</p>
             <p className="text-sm">Sales Manager</p>

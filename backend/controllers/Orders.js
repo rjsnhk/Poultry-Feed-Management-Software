@@ -10,7 +10,7 @@ const createOrder = async (req, res) => {
       dueDate,
       paymentMode,
       notes,
-      party // { companyName, contactPersonNumber, address }
+      party, // { companyName, contactPersonNumber, address }
     } = req.body;
 
     const placedBy = req.user.id; // from auth middleware
@@ -19,7 +19,7 @@ const createOrder = async (req, res) => {
     if (!party?.companyName || !party?.contactPersonNumber || !party?.address) {
       return res.status(400).json({
         success: false,
-        message: "Party information is incomplete"
+        message: "Party information is incomplete",
       });
     }
 
@@ -28,14 +28,28 @@ const createOrder = async (req, res) => {
     if (!product) {
       return res.status(404).json({
         success: false,
-        message: "Product not found"
+        message: "Product not found",
       });
     }
 
     // Calculate amounts
     const totalAmount = quantity * product.price;
-    const advance = advanceAmount || 0;
+    const advance = Number(advanceAmount) || 0;
     const dueAmount = totalAmount - advance;
+
+    let paymentStatus;
+    if (totalAmount === advance) {
+      paymentStatus = "Paid";
+    } else if (
+      advance > 0 &&
+      advance < totalAmount &&
+      dueAmount > 0 &&
+      dueAmount < totalAmount
+    ) {
+      paymentStatus = "Partial";
+    } else {
+      paymentStatus = "Unpaid";
+    }
 
     // Create order
     const newOrder = await orderModel.create({
@@ -47,24 +61,24 @@ const createOrder = async (req, res) => {
       dueDate,
       paymentMode,
       notes,
+      paymentStatus,
       placedBy,
-      party
+      party,
     });
 
     res.status(201).json({
       success: true,
       message: "Order placed successfully",
-      data: newOrder
+      data: newOrder,
     });
   } catch (err) {
     res.status(500).json({
       success: false,
       message: "Failed to create order",
-      error: err.message
+      error: err.message,
     });
   }
 };
-
 
 // Get all orders
 // Common populate configuration
@@ -78,7 +92,7 @@ const orderPopulateFields = [
   { path: "assignedWarehouse", select: "name location" },
   { path: "invoicedBy", select: "name email role" },
   { path: "paymentCollectedBy", select: "name email role" },
-  { path: "canceledBy.user", select: "name email role" }
+  { path: "canceledBy.user", select: "name email role" },
 ];
 
 // Get all orders
@@ -86,7 +100,7 @@ const getAllOrder = async (req, res) => {
   try {
     const orders = await orderModel
       .find()
-      .populate('item', 'name category price')
+      .populate("item", "name category price")
       .populate(orderPopulateFields)
       .sort({ createdAt: -1 });
 
@@ -109,7 +123,7 @@ const getOrderDetails = async (req, res) => {
   try {
     const order = await orderModel
       .findById(req.params.id)
-      .populate('item', 'name category price')
+      .populate("item", "name category price")
       .populate(orderPopulateFields);
 
     if (!order) {
@@ -132,7 +146,6 @@ const getOrderDetails = async (req, res) => {
     });
   }
 };
-
 
 //cancel order
 const cancelOrder = async (req, res) => {
@@ -193,7 +206,7 @@ const getOrdersToApprove = async (req, res) => {
   try {
     const orders = await orderModel
       .find({ orderStatus: "WarehouseAssigned" })
-      .populate('item', 'name category price')
+      .populate("item", "name category price")
       .populate("placedBy", "name email") // Optional: get salesman info
       .populate("assignedWarehouse", "name location") // Optional: get warehouse info
       .populate("party", "name contactPerson") // Optional: party info
@@ -224,6 +237,7 @@ const getOrdersToApprove = async (req, res) => {
 const approveOrderToWarehouse = async (req, res) => {
   try {
     const { orderId } = req.body;
+    console.log("orderId", orderId);
     const adminId = req.user.adminId; // Make sure your middleware sets req.user correctly
 
     // Validate input

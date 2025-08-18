@@ -16,6 +16,7 @@ import SalesAuthorizerDashboardPage from "./pages/SalesAuthorizer/SalesAuthorize
 import SalesManagerDashboardPage from "./pages/SalesManager/SalesManagerDashboardPage";
 import PlantheadDashboardPage from "./pages/Planthead/PlantheadDashboardPage";
 import AccoutantDashboardPage from "./pages/Accountant/AccoutantDashboardPage";
+import ReportsPage from "./pages/Admin/ReportsPage";
 
 const App = () => {
   const queryClient = new QueryClient();
@@ -52,8 +53,7 @@ const App = () => {
                 path="warehouse-management"
                 element={<WarehouseManagementPage />}
               />
-              <Route path="party-master" element={<AdminDashboardPage />} />
-              <Route path="reports-module" element={<AdminDashboardPage />} />
+              <Route path="reports-module" element={<ReportsPage />} />
               <Route
                 path="settings-security"
                 element={<AdminDashboardPage />}

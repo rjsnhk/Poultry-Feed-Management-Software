@@ -86,15 +86,39 @@ const getDispatchedOrders = async (req, res) => {
       invoiceGenerated: false,
       dueAmount: { $gt: 0 },
     })
-      .populate('item', 'name category')
-      .populate('party', 'name contact')
-      .populate('placedBy', 'name email');
+      .populate("item", "name category")
+      .populate("party", "name contact")
+      .populate("placedBy", "name email");
 
     res.status(200).json({ success: true, data: orders });
   } catch (err) {
     res.status(500).json({
       success: false,
       message: "Failed to fetch dispatched orders",
+      error: err.message,
+    });
+  }
+};
+
+const getOrderDetails = async (req, res) => {
+  try {
+    const order = await Order.findById(req.params.orderId)
+      .populate("party", "name contact")
+      .populate("placedBy", "name email")
+      .populate("assignedWarehouse", "name location")
+      .populate("item", "name category");
+
+    if (!order) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Order not found" });
+    }
+
+    res.status(200).json({ success: true, data: order });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to get order",
       error: err.message,
     });
   }
@@ -235,4 +259,5 @@ module.exports = {
   generateInvoice,
   getInvoiceDetails,
   changeActivityStatus,
+  getOrderDetails,
 };

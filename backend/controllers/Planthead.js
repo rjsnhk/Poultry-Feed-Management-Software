@@ -2,7 +2,9 @@ const orderModel = require("../models/Order");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const PlantHead = require("../models/PlantHead");
-const Warehouse = require("../models/WareHouse");
+const Order = require("../models/Order");
+const WareHouse = require("../models/WareHouse");
+
 const SECRET_TOKEN = process.env.JWT_SECRET;
 
 // Login Plant Head
@@ -77,7 +79,7 @@ const getAllOrders = async (req, res) => {
   try {
     const plantHeadId = req.user.id;
 
-    const warehouse = await Warehouse.findOne({ plantHead: plantHeadId });
+    const warehouse = await WareHouse.findOne({ plantHead: plantHeadId });
     if (!warehouse) {
       return res
         .status(404)
@@ -86,12 +88,13 @@ const getAllOrders = async (req, res) => {
 
     const orders = await Order.find({
       assignedWarehouse: warehouse._id,
-      orderStatus: { $in: ['WarehouseAssigned', 'Approved'] }
+      orderStatus: { $in: ["WarehouseAssigned", "Approved"] },
     })
-      .populate('party', 'name contact')
-      .populate('placedBy', 'name email')
-      .populate('item', 'name category');
+      .populate("party", "name contact")
+      .populate("placedBy", "name email")
+      .populate("item", "name category");
 
+    console.log(orders, warehouse);
     res.status(200).json({ success: true, data: orders });
   } catch (err) {
     res.status(500).json({
@@ -106,9 +109,10 @@ const getAllOrders = async (req, res) => {
 const getOrderDetails = async (req, res) => {
   try {
     const order = await Order.findById(req.params.orderId)
-      .populate('party', 'name contact')
-      .populate('placedBy', 'name email')
-      .populate('item', 'name category');
+      .populate("party", "name contact")
+      .populate("placedBy", "name email")
+      .populate("assignedWarehouse", "name location")
+      .populate("item", "name category");
 
     if (!order) {
       return res
@@ -264,7 +268,7 @@ const getDispatchedOrders = async (req, res) => {
         "dispatchInfo.dispatchedBy": plantHeadId,
         orderStatus: "Dispatched",
       })
-      .populate('item', 'name category description')
+      .populate("item", "name category description")
       .populate("party", "name contact")
       .populate("placedBy", "name");
 

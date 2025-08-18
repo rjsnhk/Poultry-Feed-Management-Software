@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { Mail, Phone, Trash2, SquarePen, Eye } from "lucide-react";
-import { Avatar, Button, IconButton, TextField } from "@mui/material";
+import { Button, IconButton, TextField } from "@mui/material";
 import useEmployees from "../../../hooks/useEmployees";
 import { CircularProgress } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { useForm } from "react-hook-form";
+import Avatar from "../../Avatar";
 
 const SalesAuthorizer = ({ item }) => {
   const { _id } = item;
@@ -43,7 +44,12 @@ const SalesAuthorizer = ({ item }) => {
     >
       <div className="flex items-center justify-between w-full">
         <div className="flex items-center gap-3">
-          <Avatar sx={{ width: 50, height: 50 }} />
+          <Avatar
+            // src={item.photo}
+            name={item.name}
+            online={item.isActive}
+            size={56}
+          />
           <div>
             <p className="font-semibold">{item.name}</p>
             <p className="text-sm">Sales Authorizer</p>

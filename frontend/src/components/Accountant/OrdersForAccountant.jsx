@@ -1,33 +1,24 @@
 import { useState } from "react";
 import { Button, CircularProgress, IconButton } from "@mui/material";
-import { Eye, Mail, Phone, SquarePen, Trash2, User } from "lucide-react";
+import { Eye, SquarePen, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { DataGrid } from "@mui/x-data-grid";
 import CloseIcon from "@mui/icons-material/Close";
-import { formatRupee } from "../../../utils/formatRupee.js";
-import { useAdminOrder } from "../../../hooks/useAdminOrders.js";
+import { formatRupee } from "../../utils/formatRupee.js";
+import { usePlantheadOrder } from "../../hooks/usePlanthead.js";
+import { useAccountantOrder } from "../../hooks/useAccountant.js";
 
-const OrdersTable = () => {
+const OrdersForAccountant = () => {
   const [singleOrderId, setSingleOrderId] = useState(null);
   const [openView, setOpenView] = useState(false);
-  const {
-    orders,
-    singleOrder,
-    ordersLoading,
-    singleOrderLoading,
-    approveWarehouse,
-  } = useAdminOrder(singleOrderId);
+
+  const { ordersInAccountant, ordersInAccountantLoading } =
+    useAccountantOrder(singleOrderId);
+
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 5,
   });
-
-  const filteredOrders = orders?.filter(
-    (order) => order.orderStatus === "WarehouseAssigned"
-  );
-
-  console.log("filteredOrders", filteredOrders);
-  console.log("singleOrder", singleOrder);
 
   const handleView = (id) => {
     console.log(id);
@@ -43,17 +34,9 @@ const OrdersTable = () => {
     console.log(id);
   };
 
-  const handleApprove = (id) => {
-    console.log(id);
-    approveWarehouse(id);
+  const handleInvoiceGeneration = () => {
+    console.log(singleOrderId);
   };
-
-  if (singleOrderLoading)
-    return (
-      <div className="flex items-center justify-center h-full w-full">
-        <CircularProgress />
-      </div>
-    );
 
   const columns = [
     { field: "product", headerName: "Product", flex: 1, maxWidth: 150 },
@@ -124,7 +107,7 @@ const OrdersTable = () => {
     },
   ];
 
-  const rows = orders?.map((order) => ({
+  const rows = ordersInAccountant?.map((order) => ({
     id: order._id,
     party: order?.party?.companyName,
     date: format(order?.createdAt, "dd MMM yyyy"),
@@ -136,7 +119,7 @@ const OrdersTable = () => {
     orderStatus: order.orderStatus,
   }));
 
-  if (ordersLoading)
+  if (ordersInAccountantLoading)
     return (
       <div className="flex items-center justify-center h-full w-full">
         <CircularProgress />
@@ -189,6 +172,12 @@ const OrdersTable = () => {
             <div className="mb-5">
               <div className="flex items-center justify-between">
                 <p className="text-xl font-bold">Order Details</p>
+                <Button
+                  className="text-xl font-bold"
+                  onClick={handleInvoiceGeneration}
+                >
+                  Generate Invoice
+                </Button>
                 <IconButton size="small" onClick={() => setOpenView(false)}>
                   <CloseIcon />
                 </IconButton>
@@ -204,29 +193,29 @@ const OrdersTable = () => {
                     <span className="text-gray-600 font-normal">
                       Product Category:
                     </span>{" "}
-                    {singleOrder?.item?.category}
+                    {singleOrderFromPlanthead?.item?.category}
                   </div>
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
                       Product Name:
                     </span>{" "}
-                    {singleOrder?.item?.name}
+                    {singleOrderFromPlanthead?.item?.name}
                   </div>
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">Quantity:</span>{" "}
-                    {singleOrder?.quantity} kg
+                    {singleOrderFromPlanthead?.quantity} kg
                   </div>
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
                       Placed By:
-                    </span>{" "}
-                    {singleOrder?.placedBy?.name}
+                    </span>
+                    {singleOrderFromPlanthead?.placedBy?.name}
                   </div>
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
                       Placed Date:
-                    </span>{" "}
-                    {format(singleOrder?.createdAt, "dd MMM yyyy")}
+                    </span>
+                    {format(singleOrderFromPlanthead?.createdAt, "dd MMM yyyy")}
                   </div>
                 </div>
                 <div className="flex flex-col gap-2 text-sm">
@@ -237,29 +226,29 @@ const OrdersTable = () => {
                     <span className="text-gray-600 font-normal">
                       Total Amount:
                     </span>
-                    {formatRupee(singleOrder?.totalAmount)}
+                    {formatRupee(singleOrderFromPlanthead?.totalAmount)}
                   </div>
                   <div className="flex items-center justify-between font-semibold text-green-700">
                     <span className="text-gray-600 font-normal">
                       Advance Amount:
                     </span>{" "}
-                    {formatRupee(singleOrder?.advanceAmount)}
+                    {formatRupee(singleOrderFromPlanthead?.advanceAmount)}
                   </div>
                   <div className="flex items-center justify-between font-semibold text-red-700">
                     <span className="text-gray-600 font-normal">
                       Due Amount:
                     </span>{" "}
-                    {formatRupee(singleOrder?.dueAmount)}
+                    {formatRupee(singleOrderFromPlanthead?.dueAmount)}
                   </div>
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
                       Payment Mode:
                     </span>{" "}
-                    {singleOrder?.paymentMode}
+                    {singleOrderFromPlanthead?.paymentMode}
                   </div>
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">Due Date:</span>{" "}
-                    {format(singleOrder?.dueDate, "dd MMM yyyy")}
+                    {format(singleOrderFromPlanthead?.dueDate, "dd MMM yyyy")}
                   </div>
                 </div>
               </div>
@@ -273,13 +262,13 @@ const OrdersTable = () => {
                     <span className="text-gray-600 font-normal">
                       Order Status:
                     </span>{" "}
-                    {singleOrder?.orderStatus === "Delivered" ? (
+                    {singleOrderFromPlanthead?.orderStatus === "Delivered" ? (
                       <span className="text-green-700 bg-green-100 p-1 px-3 rounded-full text-xs">
-                        {singleOrder?.orderStatus}
+                        {singleOrderFromPlanthead?.orderStatus}
                       </span>
                     ) : (
                       <span className="text-gray-700 bg-gray-200 p-1 px-3 rounded-full text-xs">
-                        {singleOrder?.orderStatus}
+                        {singleOrderFromPlanthead?.orderStatus}
                       </span>
                     )}
                   </div>
@@ -287,19 +276,19 @@ const OrdersTable = () => {
                     <span className="text-gray-600 font-normal">
                       Payment Status:
                     </span>
-                    {singleOrder?.paymentStatus === "Partial" && (
+                    {singleOrderFromPlanthead?.paymentStatus === "Partial" && (
                       <span className="text-yellow-700 bg-yellow-100 p-1 px-3 rounded-full text-xs">
-                        {singleOrder?.paymentStatus}
+                        {singleOrderFromPlanthead?.paymentStatus}
                       </span>
                     )}
-                    {singleOrder?.paymentStatus === "Paid" && (
+                    {singleOrderFromPlanthead?.paymentStatus === "Paid" && (
                       <span className="text-green-700 bg-green-100 p-1 px-3 rounded-full text-xs">
-                        {singleOrder?.paymentStatus}
+                        {singleOrderFromPlanthead?.paymentStatus}
                       </span>
                     )}
-                    {singleOrder?.paymentStatus === "Unpaid" && (
+                    {singleOrderFromPlanthead?.paymentStatus === "Unpaid" && (
                       <span className="text-red-700 bg-red-100 p-1 px-3 rounded-full text-xs">
-                        {singleOrder?.paymentStatus}
+                        {singleOrderFromPlanthead?.paymentStatus}
                       </span>
                     )}
                   </div>
@@ -307,7 +296,7 @@ const OrdersTable = () => {
                     <span className="text-gray-600 font-normal">
                       Invoice Generated:
                     </span>{" "}
-                    {singleOrder?.invoiceGenerated === "true" ? (
+                    {singleOrderFromPlanthead?.invoiceGenerated === "true" ? (
                       <span className="text-green-700 bg-green-100 p-1 px-3 rounded-full text-xs">
                         Yes
                       </span>
@@ -324,7 +313,7 @@ const OrdersTable = () => {
                     Notes
                   </h1>
                   <p className="bg-gray-100 rounded-lg p-3">
-                    {singleOrder?.notes}
+                    {singleOrderFromPlanthead?.notes}
                   </p>
                 </div>
 
@@ -336,47 +325,27 @@ const OrdersTable = () => {
                     <span className="text-gray-600 font-normal">
                       Order Placed On:
                     </span>{" "}
-                    {format(singleOrder?.createdAt, "dd MMM yyyy")}
+                    {format(singleOrderFromPlanthead?.createdAt, "dd MMM yyyy")}
                   </div>
                 </div>
                 <div className="flex flex-col gap-2 text-sm">
-                  <div className="flex justify-between items-center">
-                    <h1 className="font-semibold text-base text-gray-800">
-                      Assigned Warehouse
-                    </h1>
-                    {singleOrder?.assignedWarehouse &&
-                    singleOrder?.orderStatus === "WarehouseAssigned" ? (
-                      <div className="flex gap-2 items-center">
-                        <button
-                          onClick={() => handleApprove(singleOrder?._id)}
-                          className="text-green-800 hover:bg-green-200 active:scale-95 transition-all bg-green-100 p-1 px-2 rounded-full text-xs"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          // onClick={() => handleCancel(singleOrder?.id)}
-                          className="text-red-800 hover:bg-red-200 active:scale-95 transition-all bg-red-100 p-1 px-2 rounded-full text-xs"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    ) : (
-                      <div>
-                        <span className="text-green-700 bg-green-100 p-1 px-3 rounded-full text-xs">
-                          Approved
-                        </span>
-                      </div>
-                    )}
-                  </div>
+                  <h1 className="font-semibold text-base text-gray-800">
+                    Assigned Warehouse
+                  </h1>
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
                       Warehouse:
                     </span>
-                    {singleOrder?.assignedWarehouse ? (
+                    {singleOrderFromPlanthead?.assignedWarehouse ? (
                       <div className="flex flex-col items-center">
-                        {singleOrder?.assignedWarehouse?.name}
+                        {singleOrderFromPlanthead?.assignedWarehouse?.name}
                         <span className="text-xs font-normal text-gray-600">
-                          ({singleOrder?.assignedWarehouse?.location})
+                          (
+                          {
+                            singleOrderFromPlanthead?.assignedWarehouse
+                              ?.location
+                          }
+                          )
                         </span>
                       </div>
                     ) : (
@@ -395,4 +364,4 @@ const OrdersTable = () => {
   );
 };
 
-export default OrdersTable;
+export default OrdersForAccountant;

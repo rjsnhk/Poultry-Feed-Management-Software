@@ -102,7 +102,7 @@ adminRouter.put("/update_accountant/:id", verifyAdmin, updateAccountant);
 adminRouter.delete("/delete_accountant/:id", verifyAdmin, deleteAccountant);
 
 adminRouter.post("/add_product", verifyAdmin, addProduct);
-adminRouter.get("/get_allproducts", verifyAdmin, getAllProducts);
+adminRouter.get("/get_allproducts", getAllProducts);
 adminRouter.delete("/delete_product/:productId", verifyAdmin, deleteProduct);
 adminRouter.put("/products/:productId", verifyAdmin, updateProductsPrice);
 
@@ -128,7 +128,7 @@ adminRouter.post(
 );
 adminRouter.get(
   "/:warehouseId/products",
-  verifyAdmin,
+  // verifyAdmin,
   getAllProductsFromWarehouse
 );
 adminRouter.delete(

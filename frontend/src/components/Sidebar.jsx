@@ -47,6 +47,7 @@ const Sidebar = () => {
           />
         )}
       </div>
+
       {user?.role === "Admin" && (
         <div className="mt-10 flex flex-col items-center justify-center m-2 gap-3">
           <NavLink
@@ -198,36 +199,6 @@ const Sidebar = () => {
           </NavLink>
 
           <NavLink
-            to="/admin/party-master"
-            className={({ isActive }) =>
-              isActive
-                ? "transition-all bg-blue-100 border-e-4 border-blue-500 p-2 w-full text-left rounded-lg"
-                : "transition-all hover:bg-blue-50 p-2 w-full text-gray-800 rounded-lg text-left"
-            }
-          >
-            {({ isActive }) => (
-              <div className="flex items-center gap-2 font-semibold w-56 h-6">
-                <div className="w-6 flex items-center justify-center">
-                  {isActive ? (
-                    <FaHandshake className="text-blue-600 text-xl" />
-                  ) : (
-                    <FaRegHandshake className="text-blue-600 text-xl" />
-                  )}
-                </div>
-                <span
-                  className={`${
-                    isCollapsed
-                      ? "hidden"
-                      : "block line-clamp-1 truncate w-full text-gray-800"
-                  }`}
-                >
-                  Party Master
-                </span>
-              </div>
-            )}
-          </NavLink>
-
-          <NavLink
             to="/admin/reports-module"
             className={({ isActive }) =>
               isActive
@@ -256,8 +227,13 @@ const Sidebar = () => {
               </div>
             )}
           </NavLink>
+        </div>
+      )}
+
+      {user?.role === "Salesman" && (
+        <div className="mt-10 flex flex-col items-center justify-center m-2 gap-3">
           <NavLink
-            to="/admin/settings-security"
+            to="/salesman/dashboard"
             className={({ isActive }) =>
               isActive
                 ? "transition-all bg-blue-100 border-e-4 border-blue-500 p-2 w-full text-left rounded-lg"
@@ -268,9 +244,9 @@ const Sidebar = () => {
               <div className="flex items-center gap-2 font-semibold w-56 h-6">
                 <div className="w-6 flex items-center justify-center">
                   {isActive ? (
-                    <PiGearSixFill className="text-blue-600 text-lg" />
+                    <IoCart className="text-blue-600 text-xl" />
                   ) : (
-                    <IoSettingsOutline className="text-blue-600 text-lg" />
+                    <IoCartOutline className="text-blue-600 text-xl" />
                   )}
                 </div>
                 <span
@@ -280,17 +256,18 @@ const Sidebar = () => {
                       : "block line-clamp-1 truncate w-full text-gray-800"
                   }`}
                 >
-                  Settings & Security
+                  Order Management
                 </span>
               </div>
             )}
           </NavLink>
         </div>
       )}
-      {user?.role === "Salesman" && (
+
+      {user?.role === "SalesAuthorizer" && (
         <div className="mt-10 flex flex-col items-center justify-center m-2 gap-3">
           <NavLink
-            to="/salesman/dashboard"
+            to="/salesauthorizer/dashboard"
             className={({ isActive }) =>
               isActive
                 ? "transition-all bg-blue-100 border-e-4 border-blue-500 p-2 w-full text-left rounded-lg"

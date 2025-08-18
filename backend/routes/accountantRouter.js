@@ -6,6 +6,7 @@ const {
   generateInvoice,
   getInvoiceDetails,
   changeActivityStatus,
+  getOrderDetails,
 } = require("../controllers/Accountant");
 const { verifyAccountant } = require("../middleware/verifyAccountant");
 
@@ -18,6 +19,10 @@ accountantRouter.get(
   verifyAccountant,
   getDispatchedOrders
 );
+
+//Get Order Details
+accountantRouter.get("/order/:orderId", verifyAccountant, getOrderDetails);
+
 accountantRouter.post(
   "/generate-invoice/:orderId",
   verifyAccountant,
