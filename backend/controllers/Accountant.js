@@ -81,9 +81,8 @@ const getDispatchedOrders = async (req, res) => {
     }
 
     const orders = await Order.find({
-      assignedWarehouse: warehouse._id,
+      assignedWarehouse: String(warehouse._id),
       orderStatus: "Dispatched",
-      invoiceGenerated: false,
       dueAmount: { $gt: 0 },
     })
       .populate("item", "name category")
