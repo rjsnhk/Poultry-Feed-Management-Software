@@ -182,6 +182,8 @@ const getInvoiceDetails = async (req, res) => {
   try {
     const accountantId = req.user.id;
     const { orderId } = req.params;
+    console.log("accountantId", accountantId);
+    console.log("orderId", orderId);
 
     const warehouse = await Warehouse.findOne({ accountant: accountantId });
     if (!warehouse) {
@@ -197,7 +199,10 @@ const getInvoiceDetails = async (req, res) => {
       .populate("assignedWarehouse", "name")
       .populate("dispatchInfo.dispatchedBy", "name");
 
-    if (!order || String(order.assignedWarehouse) !== String(warehouse._id)) {
+    if (
+      !order ||
+      String(order.assignedWarehouse._id) !== String(warehouse._id)
+    ) {
       return res
         .status(403)
         .json({ success: false, message: "Access denied to this order" });
