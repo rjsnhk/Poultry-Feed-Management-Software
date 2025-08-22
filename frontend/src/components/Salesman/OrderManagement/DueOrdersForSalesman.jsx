@@ -1,44 +1,47 @@
 import { useState } from "react";
-import { CircularProgress, IconButton } from "@mui/material";
-import { Eye, SquarePen, Trash2, User } from "lucide-react";
-import { useAdminOrder } from "../../../hooks/useAdminOrders.js";
+import { Button, CircularProgress, IconButton } from "@mui/material";
+import { Eye, Trash2 } from "lucide-react";
+import { TbFileInvoice } from "react-icons/tb";
 import { format } from "date-fns";
 import { DataGrid } from "@mui/x-data-grid";
 import CloseIcon from "@mui/icons-material/Close";
 import { formatRupee } from "../../../utils/formatRupee.js";
 import { useSalesmanOrder } from "../../../hooks/useSalesmanOrder.js";
+import { CgCreditCard } from "react-icons/cg";
 
-const OrdersForSalesman = () => {
+const DueOrdersForSalesman = () => {
   const [singleOrderId, setSingleOrderId] = useState(null);
   const [openView, setOpenView] = useState(false);
+  const [openDelete, setOpenDelete] = useState(false);
+  const [openInvoice, setOpenInvoice] = useState(false);
+
   const {
     deleteOrder,
     singleOrderFromSalesman,
     singleOrderLoading,
-    ordersInSalesman,
+    dueOrdersInSalesman,
+    dueOrdersInSalesmanLoading,
     isDeletingOrder,
-    ordersInSalesmanLoading,
   } = useSalesmanOrder(singleOrderId);
+
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
     pageSize: 5,
   });
 
-  console.log(singleOrderFromSalesman);
-
   const handleView = (id) => {
-    console.log(id);
     setSingleOrderId(id);
     setOpenView(true);
   };
 
-  const handleUpdate = (id) => {
-    console.log(id);
+  const handleOpenInvoice = (id) => {
+    setSingleOrderId(id);
+    setOpenInvoice(true);
   };
 
-  const handleDelete = (id) => {
-    console.log(id);
-    deleteOrder(id);
+  const handleDelete = () => {
+    deleteOrder(singleOrderId);
+    setOpenDelete(false);
   };
 
   const columns = [
@@ -89,28 +92,45 @@ const OrdersForSalesman = () => {
         <div className="flex items-center h-full gap-1">
           <Eye
             color="blue"
-            className="hover:bg-blue-100 active:scale-95 transition-all p-1.5 rounded-lg"
+            className="hover:bg-blue-200 active:scale-95 transition-all p-1.5 rounded-lg"
             size={30}
             onClick={() => handleView(params.row.id)}
           />
-          <SquarePen
-            color="green"
-            className="hover:bg-green-100 active:scale-95 transition-all p-1.5 rounded-lg"
-            size={30}
-            onClick={() => handleUpdate(params.row.id)}
-          />
-          <Trash2
-            color="red"
-            className="hover:bg-red-100 active:scale-95 transition-all p-1.5 rounded-lg"
-            size={30}
-            onClick={() => handleDelete(params.row.id)}
-          />
+
+          {params.row.invoiceGenerated && (
+            <TbFileInvoice
+              color="green"
+              className="hover:bg-green-200 active:scale-95 transition-all p-1.5 rounded-lg"
+              size={30}
+              onClick={() => handleOpenInvoice(params.row.id)}
+            />
+          )}
+          {params.row.invoiceGenerated && (
+            <CgCreditCard
+              color="purple"
+              className="hover:bg-purple-200 active:scale-95 transition-all p-1.5 rounded-lg"
+              size={30}
+              onClick={() => handleOpenInvoice(params.row.id)}
+            />
+          )}
+
+          {params.row.orderStatus == "Placed" && (
+            <Trash2
+              color="red"
+              className="hover:bg-red-100 active:scale-95 transition-all p-1.5 rounded-lg"
+              size={30}
+              onClick={() => {
+                setSingleOrderId(params.row.id);
+                setOpenDelete(true);
+              }}
+            />
+          )}
         </div>
       ),
     },
   ];
 
-  const rows = ordersInSalesman?.map((order) => ({
+  const rows = dueOrdersInSalesman?.map((order) => ({
     id: order._id,
     party: order?.party?.companyName,
     date: format(order?.createdAt, "dd MMM yyyy"),
@@ -120,9 +140,10 @@ const OrdersForSalesman = () => {
     advanceAmount: formatRupee(order.advanceAmount),
     dueAmount: formatRupee(order.dueAmount),
     orderStatus: order.orderStatus,
+    invoiceGenerated: order.invoiceGenerated,
   }));
 
-  if (ordersInSalesmanLoading || isDeletingOrder || singleOrderLoading)
+  if (dueOrdersInSalesmanLoading || isDeletingOrder || singleOrderLoading)
     return (
       <div className="flex items-center justify-center h-full w-full">
         <CircularProgress />
@@ -189,17 +210,17 @@ const OrdersForSalesman = () => {
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
                       Product Category:
-                    </span>{" "}
+                    </span>
                     {singleOrderFromSalesman?.item?.category}
                   </div>
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
                       Product Name:
-                    </span>{" "}
+                    </span>
                     {singleOrderFromSalesman?.item?.name}
                   </div>
                   <div className="flex items-center justify-between font-semibold">
-                    <span className="text-gray-600 font-normal">Quantity:</span>{" "}
+                    <span className="text-gray-600 font-normal">Quantity:</span>
                     {singleOrderFromSalesman?.quantity} kg
                   </div>
                   <div className="flex items-center justify-between font-semibold">
@@ -228,23 +249,23 @@ const OrdersForSalesman = () => {
                   <div className="flex items-center justify-between font-semibold text-green-700">
                     <span className="text-gray-600 font-normal">
                       Advance Amount:
-                    </span>{" "}
+                    </span>
                     {formatRupee(singleOrderFromSalesman?.advanceAmount)}
                   </div>
                   <div className="flex items-center justify-between font-semibold text-red-700">
                     <span className="text-gray-600 font-normal">
                       Due Amount:
-                    </span>{" "}
+                    </span>
                     {formatRupee(singleOrderFromSalesman?.dueAmount)}
                   </div>
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
                       Payment Mode:
-                    </span>{" "}
+                    </span>
                     {singleOrderFromSalesman?.paymentMode}
                   </div>
                   <div className="flex items-center justify-between font-semibold">
-                    <span className="text-gray-600 font-normal">Due Date:</span>{" "}
+                    <span className="text-gray-600 font-normal">Due Date:</span>
                     {format(singleOrderFromSalesman?.dueDate, "dd MMM yyyy")}
                   </div>
                 </div>
@@ -258,7 +279,7 @@ const OrdersForSalesman = () => {
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
                       Order Status:
-                    </span>{" "}
+                    </span>
                     {singleOrderFromSalesman?.orderStatus === "Delivered" ? (
                       <span className="text-green-700 bg-green-100 p-1 px-3 rounded-full text-xs">
                         {singleOrderFromSalesman?.orderStatus}
@@ -292,7 +313,7 @@ const OrdersForSalesman = () => {
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
                       Invoice Generated:
-                    </span>{" "}
+                    </span>
                     {singleOrderFromSalesman?.invoiceGenerated ? (
                       <span className="text-green-800 bg-green-100 p-1 px-3 rounded-full text-xs">
                         Yes
@@ -351,7 +372,7 @@ const OrdersForSalesman = () => {
                 </div>
               </div>
             </div>
-            <div className="flex flex-col gap-2 text-sm bg-green-50 p-5 rounded-lg mt-5">
+            <div className="flex flex-col gap-2 text-sm bg-green-50 p-3 rounded-lg mt-5">
               <h1 className="font-semibold text-base text-gray-800">
                 Dispatch Info
               </h1>
@@ -411,8 +432,133 @@ const OrdersForSalesman = () => {
           </div>
         </div>
       )}
+
+      {/* --- View Invoice Modal --- */}
+      {openInvoice && (
+        <div className="transition-all bg-black/30 backdrop-blur-sm w-full z-50 h-screen absolute top-0 left-0 flex items-center justify-center">
+          <div className="bg-white relative p-7 w-[35%] rounded-lg overflow-auto">
+            <div className="mb-5">
+              <div className="flex items-center justify-between">
+                <p className="text-xl font-bold">Invoice</p>
+                <IconButton size="small" onClick={() => setOpenInvoice(false)}>
+                  <CloseIcon />
+                </IconButton>
+              </div>
+            </div>
+            <div>
+              <div className="flex flex-col gap-2 text-sm">
+                <h1 className="font-semibold text-base text-gray-800">
+                  Invoice By
+                </h1>
+                <div className="flex items-center justify-between font-semibold">
+                  <span className="text-gray-600 font-normal">Name:</span>
+                  {singleOrderFromSalesman?.invoiceDetails?.invoicedBy?.name}
+                </div>
+                <div className="flex items-center justify-between font-semibold">
+                  <span className="text-gray-600 font-normal">Email:</span>
+                  {singleOrderFromSalesman?.invoiceDetails?.invoicedBy?.email}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 text-sm mt-5">
+                <h1 className="font-semibold text-base text-gray-800">
+                  Party Details
+                </h1>
+                <div className="flex items-center justify-between font-semibold">
+                  <span className="text-gray-600 font-normal">
+                    Company Name:
+                  </span>
+                  {singleOrderFromSalesman?.party?.companyName}
+                </div>
+                <div className="flex items-center justify-between font-semibold">
+                  <span className="text-gray-600 font-normal">Address:</span>
+                  {singleOrderFromSalesman?.party?.address}
+                </div>
+                <div className="flex items-center justify-between font-semibold">
+                  <span className="text-gray-600 font-normal">
+                    Contact Person Number:
+                  </span>
+                  {singleOrderFromSalesman?.party?.contactPersonNumber}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 text-sm mt-5">
+                <h1 className="font-semibold text-base text-gray-800">
+                  Payment Information
+                </h1>
+                <div className="flex items-center justify-between font-semibold">
+                  <span className="text-gray-600 font-normal">
+                    Total Amount:
+                  </span>
+                  {formatRupee(
+                    singleOrderFromSalesman?.invoiceDetails?.totalAmount
+                  )}
+                </div>
+                <div className="flex items-center justify-between font-semibold text-green-700">
+                  <span className="text-gray-600 font-normal">
+                    Advance Amount:
+                  </span>
+                  {formatRupee(
+                    singleOrderFromSalesman?.invoiceDetails?.advanceAmount
+                  )}
+                </div>
+                <div className="flex items-center justify-between font-semibold text-red-700">
+                  <span className="text-gray-600 font-normal">Due Amount:</span>
+                  {formatRupee(
+                    singleOrderFromSalesman?.invoiceDetails?.dueAmount
+                  )}
+                </div>
+                <div className="flex items-center justify-between font-semibold">
+                  <span className="text-gray-600 font-normal">Due Date:</span>
+                  {format(
+                    singleOrderFromSalesman?.invoiceDetails?.dueDate,
+                    "dd MMM yyyy"
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Order Modal */}
+      {openDelete && (
+        <div className="transition-all bg-black/30 backdrop-blur-sm w-full z-50 h-screen absolute top-0 left-0 flex items-center justify-center">
+          <div className="bg-white p-7 rounded-lg w-[29rem]">
+            <p className="text-lg font-semibold">
+              Are you sure you want to delete "
+              {singleOrderFromSalesman?.item?.name}"?
+            </p>
+            <p className="text-gray-500 text-sm">
+              This action cannot be undone.{" "}
+              {singleOrderFromSalesman?.item?.name}'s data will be permanently
+              removed.
+            </p>
+            <div className="flex items-center justify-end gap-3 mt-5">
+              <Button
+                variant="outlined"
+                disableElevation
+                color="error"
+                sx={{ textTransform: "none" }}
+                onClick={() => setOpenDelete(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="contained"
+                disableElevation
+                color="error"
+                sx={{ textTransform: "none" }}
+                onClick={handleDelete}
+              >
+                Delete
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-export default OrdersForSalesman;
+export default DueOrdersForSalesman;

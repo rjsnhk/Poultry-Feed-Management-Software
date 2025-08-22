@@ -79,8 +79,8 @@ export const useAccountantOrder = (id) => {
     });
 
   // GET INVOICE by order id in accountant
-  const { data: getInvoice, isPending: isGettingInvoice } = useQuery({
-    queryKey: ["getInvoice", id],
+  const { data: invoice, isPending: isGettingInvoice } = useQuery({
+    queryKey: ["invoice", id],
     queryFn: async () => {
       if (!id) return null;
       const response = await axios.get(
@@ -91,7 +91,8 @@ export const useAccountantOrder = (id) => {
           },
         }
       );
-      return response.data;
+      console.log("invoice in hook", response.data.data);
+      return response.data.data;
     },
     onError: (error) => {
       console.log(error);
@@ -103,7 +104,7 @@ export const useAccountantOrder = (id) => {
     ordersInAccountant,
     singleOrderInAccountant,
     generateInvoice,
-    getInvoice,
+    invoice,
 
     //Loading
     ordersInAccountantLoading,

@@ -35,6 +35,7 @@ authorizerRouter.put(
   assignWarehouse
 ); // Assign warehouse
 
+//cancel order
 authorizerRouter.post(
   "/cancel_order/:orderId",
   verifySalesauthorizer,
@@ -64,6 +65,6 @@ authorizerRouter.get(
   "/get-all-warehouses",
   verifySalesauthorizer,
   getAllWarehouse
-); // Change activity status
+);
 
 module.exports = authorizerRouter;

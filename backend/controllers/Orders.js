@@ -149,7 +149,7 @@ const getOrderDetails = async (req, res) => {
 
 //cancel order
 const cancelOrder = async (req, res) => {
-  const { id } = req.params;
+  const { orderId } = req.params;
   const { role, id: userId } = req.user; // from middleware
   const { reason } = req.body;
 
@@ -161,7 +161,7 @@ const cancelOrder = async (req, res) => {
   }
 
   try {
-    const order = await orderModel.findById(id);
+    const order = await orderModel.findById(orderId);
     if (!order) {
       return res.status(404).json({
         success: false,

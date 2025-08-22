@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, CircularProgress, IconButton } from "@mui/material";
+import { Button, CircularProgress, IconButton, TextField } from "@mui/material";
 import { Eye, SquarePen, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { DataGrid } from "@mui/x-data-grid";
@@ -7,18 +7,32 @@ import CloseIcon from "@mui/icons-material/Close";
 import { MdDoneAll } from "react-icons/md";
 import { formatRupee } from "../../../utils/formatRupee.js";
 import { useSalesManagerOrder } from "../../../hooks/useSalesManagerOrder.js";
+import { MdOutlineCancel } from "react-icons/md";
+import { useForm } from "react-hook-form";
 
 const OrdersForManager = () => {
   const [singleOrderId, setSingleOrderId] = useState(null);
   const [openView, setOpenView] = useState(false);
+  const [openCancel, setOpenCancel] = useState(false);
   const {
     ordersInSalesManager,
     singleOrderFromSalesManager,
     forwardOrder,
+    cancelOrder,
     ordersInSalesManagerLoading,
     singleOrderLoading,
     isForwardingOrder,
+    isCancelingOrder,
   } = useSalesManagerOrder(singleOrderId);
+
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm();
+
+  const reason = watch("reason");
 
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
@@ -39,12 +53,19 @@ const OrdersForManager = () => {
     console.log(id);
   };
 
-  const handleDelete = (id) => {
-    console.log(id);
-    deleteOrder(id);
+  const handleCancelOrder = (data) => {
+    data.orderId = singleOrderId;
+    console.log(data);
+    cancelOrder(data);
+    setOpenCancel(false);
   };
 
-  if (ordersInSalesManagerLoading || singleOrderLoading || isForwardingOrder)
+  if (
+    ordersInSalesManagerLoading ||
+    singleOrderLoading ||
+    isForwardingOrder ||
+    isCancelingOrder
+  )
     return (
       <div className="flex-1 flex items-center justify-center h-full w-full">
         <CircularProgress />
@@ -109,11 +130,14 @@ const OrdersForManager = () => {
             size={30}
             onClick={() => handleUpdate(params.row.id)}
           />
-          <Trash2
+          <MdOutlineCancel
             color="red"
             className="hover:bg-red-100 active:scale-95 transition-all p-1.5 rounded-lg"
             size={30}
-            onClick={() => handleDelete(params.row.id)}
+            onClick={() => {
+              setSingleOrderId(params.row.id);
+              setOpenCancel(true);
+            }}
           />
         </div>
       ),
@@ -394,6 +418,61 @@ const OrdersForManager = () => {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cancel Order Modal */}
+      {openCancel && (
+        <div className="transition-all bg-black/30 backdrop-blur-sm w-full z-50 h-screen absolute top-0 left-0 flex items-center justify-center">
+          <div className="bg-white p-7 rounded-lg w-[29rem]">
+            <p className="text-lg font-semibold">
+              Are you sure you want to cancel "
+              {singleOrderFromSalesManager?.item?.name}"?
+            </p>
+            <p className="text-gray-800 my-2">
+              Tell us why you are cancelling this order:
+            </p>
+            <form onSubmit={handleSubmit(handleCancelOrder)}>
+              <div>
+                <TextField
+                  error={!!errors.reason}
+                  size="small"
+                  label="Reason"
+                  variant="outlined"
+                  fullWidth
+                  {...register("reason", {
+                    required: "Reason is required",
+                  })}
+                />
+                {errors.reason && (
+                  <p className="text-red-500 text-xs mt-1">
+                    {errors.reason.message}
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center justify-end gap-3 mt-5">
+                <Button
+                  variant="outlined"
+                  disableElevation
+                  color="error"
+                  sx={{ textTransform: "none" }}
+                  onClick={() => setOpenCancel(false)}
+                >
+                  Keep Order
+                </Button>
+                <Button
+                  disabled={!reason}
+                  variant="contained"
+                  disableElevation
+                  color="error"
+                  type="Submit"
+                  sx={{ textTransform: "none" }}
+                >
+                  Cancel Order
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
       )}

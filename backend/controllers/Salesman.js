@@ -175,7 +175,7 @@ const updatePayment = async (req, res) => {
     // Update status
     if (newDueAmount <= 0) {
       order.paymentStatus = "Paid";
-      order.orderStatus = "Paid";
+      order.orderStatus = "Delivered";
     } else {
       order.paymentStatus = "Partial";
     }
@@ -220,14 +220,15 @@ const updatePayment = async (req, res) => {
 
 // Get due orders
 const getDueOrders = async (req, res) => {
-  const salesmanId = req.user.id; // set by verifySalesmanToken middleware
-
+  const salesmanId = req.user.id; // set by verifySalesmanToken middleware.
   try {
     const dueOrders = await Order.find({
       placedBy: salesmanId,
       dueAmount: { $gt: 0 },
       orderStatus: { $ne: "Paid" },
-    }).populate("party", "name contact");
+    })
+      .populate("party", "name contact")
+      .populate("item", "name price description category");
 
     res.status(200).json({
       success: true,
@@ -275,7 +276,8 @@ const getOrderDetails = async (req, res) => {
       .populate("party", "name contact")
       .populate("placedBy", "name email")
       .populate("assignedWarehouse", "name location approved")
-      .populate("dispatchInfo.dispatchedBy", "name email phone");
+      .populate("dispatchInfo.dispatchedBy", "name email phone")
+      .populate("invoiceDetails.invoicedBy", "name email phone");
 
     if (!order) {
       return res.status(404).json({

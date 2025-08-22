@@ -105,7 +105,8 @@ const getOrderDetails = async (req, res) => {
       .populate("party", "name contact")
       .populate("placedBy", "name email")
       .populate("assignedWarehouse", "name location")
-      .populate("item", "name category");
+      .populate("item", "name category")
+      .populate("invoiceDetails.invoicedBy", "name email");
 
     if (!order) {
       return res
@@ -130,10 +131,6 @@ const generateInvoice = async (req, res) => {
     const { orderId } = req.params;
     const { dueDate } = req.body;
 
-    console.log("accountantId", accountantId);
-    console.log("orderId", orderId);
-    console.log("dueDate", dueDate);
-
     const warehouse = await Warehouse.findOne({ accountant: accountantId });
     if (!warehouse) {
       return res.status(404).json({
@@ -156,9 +153,21 @@ const generateInvoice = async (req, res) => {
         .json({ success: false, message: "Invoice already generated" });
     }
 
+    console.log(order);
+
     order.invoiceGenerated = true;
-    order.invoicedBy = accountantId;
-    order.dueDate = dueDate || new Date();
+    // order.invoicedBy = accountantId;
+    // order.dueDate = dueDate || new Date();
+    order.invoiceDetails = {
+      totalAmount: order.totalAmount,
+      advanceAmount: order.advanceAmount,
+      dueAmount: order.dueAmount,
+      dueDate: dueDate || new Date(),
+      paymentMode: order.paymentMode,
+      party: order.party,
+      invoicedBy: accountantId,
+      generatedAt: new Date(),
+    };
 
     await order.save();
 
@@ -181,8 +190,6 @@ const getInvoiceDetails = async (req, res) => {
   try {
     const accountantId = req.user.id;
     const { orderId } = req.params;
-    console.log("accountantId", accountantId);
-    console.log("orderId", orderId);
 
     const warehouse = await Warehouse.findOne({ accountant: accountantId });
     if (!warehouse) {
@@ -193,10 +200,11 @@ const getInvoiceDetails = async (req, res) => {
 
     const order = await Order.findById(orderId)
       .populate("invoicedBy", "name email")
-      .populate("party", "name contact")
+      .populate("party", "contactPersonNumber address companyName")
       .populate("placedBy", "name")
       .populate("assignedWarehouse", "name")
       .populate("dispatchInfo.dispatchedBy", "name");
+    console.log("order", order);
 
     if (
       !order ||

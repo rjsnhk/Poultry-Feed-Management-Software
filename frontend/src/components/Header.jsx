@@ -7,6 +7,7 @@ import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
 import Avatar from "./Avatar";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { Power, PowerOff, LogOut } from "lucide-react";
 
 const Header = () => {
   const { changeStatus, user } = useUser();
@@ -76,6 +77,9 @@ const Header = () => {
               </div>
               {user?.role !== "Admin" && (
                 <Button
+                  startIcon={
+                    user.isActive ? <PowerOff size={15} /> : <Power size={15} />
+                  }
                   onClick={() => changeStatus(user.role)}
                   color="black"
                   sx={{
@@ -93,6 +97,7 @@ const Header = () => {
                 </Button>
               )}
               <Button
+                startIcon={<LogOut size={15} />}
                 onClick={handleLogout}
                 color="error"
                 sx={{

@@ -77,14 +77,43 @@ export const useSalesManagerOrder = (id) => {
     },
   });
 
+  // Cancel order
+  const { mutate: cancelOrder, isPending: isCancelingOrder } = useMutation({
+    mutationFn: async (data) => {
+      const response = await axios.post(
+        BASE_URL + API_PATHS.MANAGER.CANCEL_ORDER(data.orderId),
+        { reason: data.reason },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("cancel order response", response.data);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["order"] });
+      queryClient.invalidateQueries({ queryKey: ["ordersInSalesManager"] });
+      console.log(data);
+      toast.success(data.message);
+    },
+    onError: (error) => {
+      console.log(error);
+      toast.error(error.response.data.message);
+    },
+  });
+
   return {
     ordersInSalesManager,
     singleOrderFromSalesManager,
     forwardOrder,
+    cancelOrder,
 
     //Loading
     ordersInSalesManagerLoading,
     singleOrderLoading,
     isForwardingOrder,
+    isCancelingOrder,
   };
 };

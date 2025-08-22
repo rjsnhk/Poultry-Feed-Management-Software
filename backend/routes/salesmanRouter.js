@@ -24,8 +24,8 @@ salesmanRouter.delete(
   deleteOrder
 );
 salesmanRouter.get("/get_allorder", verifySalesmanToken, getAllOrder);
-salesmanRouter.get("/orders/:orderId", verifySalesmanToken, getOrderDetails);
 salesmanRouter.get("/orders/due", verifySalesmanToken, getDueOrders);
+salesmanRouter.get("/orders/:orderId", verifySalesmanToken, getOrderDetails);
 salesmanRouter.post("/orders/pay/:orderId", verifySalesmanToken, updatePayment);
 salesmanRouter.put(
   "/change-activity-status",

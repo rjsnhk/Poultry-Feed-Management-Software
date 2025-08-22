@@ -3,6 +3,7 @@ import { Controller, useForm } from "react-hook-form";
 import useLogin from "../../hooks/useLogin";
 import {
   Button,
+  CircularProgress,
   FormControl,
   InputLabel,
   MenuItem,
@@ -18,15 +19,18 @@ const LoginPage = () => {
     control,
   } = useForm();
 
-  const { login, isPending, error } = useLogin();
+  const { login, isPending } = useLogin();
 
   const onSubmit = (data) => {
     login(data);
   };
 
-  if (isPending) return <div>Loading...</div>;
-
-  if (error) return <div>{error.message}</div>;
+  if (isPending)
+    return (
+      <div className="flex items-center justify-center h-full w-full">
+        <CircularProgress />
+      </div>
+    );
 
   return (
     <div className="flex flex-col justify-center items-center h-screen w-full border-2 border-black">

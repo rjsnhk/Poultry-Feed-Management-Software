@@ -28,6 +28,27 @@ export const useSalesmanOrder = (id) => {
       },
     });
 
+  // GET Due orders from Salesman
+  const { data: dueOrdersInSalesman, isPending: dueOrdersInSalesmanLoading } =
+    useQuery({
+      queryKey: ["dueOrdersInSalesman"],
+      queryFn: async () => {
+        const response = await axios.get(
+          BASE_URL + API_PATHS.SALESMAN.GET_DUE_ORDERS,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        console.log("salesman due orders", response.data.data);
+        return response.data.data;
+      },
+      onError: (error) => {
+        console.log(error);
+      },
+    });
+
   //GET single order using order id
   const { data: singleOrderFromSalesman, isPending: singleOrderLoading } =
     useQuery({
@@ -102,15 +123,46 @@ export const useSalesmanOrder = (id) => {
     },
   });
 
+  // update payment in Salesman
+  const { mutate: updatePayment, isPending: isUpdatingPayment } = useMutation({
+    mutationFn: async (data) => {
+      console.log("data", data);
+      const response = await axios.post(
+        BASE_URL + API_PATHS.SALESMAN.UPDATE_PAYMENT(data.orderId),
+        { amount: data.amount, paymentMode: data.paymentMode },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["order"] });
+      queryClient.invalidateQueries({ queryKey: ["ordersInSalesman"] });
+      console.log(data);
+      toast.success(data.message);
+    },
+    onError: (error) => {
+      console.log(error);
+      toast.error(error.response.data.message);
+    },
+  });
+
   return {
     ordersInSalesman,
     singleOrderFromSalesman,
+    dueOrdersInSalesman,
     createOrder,
+    updatePayment,
     deleteOrder,
 
     //Loading
     ordersInSalesmanLoading,
     singleOrderLoading,
+    dueOrdersInSalesmanLoading,
+    isUpdatingPayment,
     isCreatingOrder,
     isDeletingOrder,
   };

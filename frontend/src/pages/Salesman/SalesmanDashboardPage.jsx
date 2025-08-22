@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import {
   Button,
+  ButtonGroup,
   FormControl,
   InputLabel,
   MenuItem,
@@ -13,8 +14,9 @@ import { useProduct } from "../../hooks/useProduct";
 import { CircularProgress } from "@mui/material";
 import { formatRupee } from "../../utils/formatRupee";
 import Box from "@mui/material/Box";
-import OrdersForSalesman from "../../components/Salesman/OrderManagement/OrdersForSalesman";
+import AllOrdersForSalesman from "../../components/Salesman/OrderManagement/AllOrdersForSalesman";
 import { useSalesmanOrder } from "../../hooks/useSalesmanOrder";
+import DueOrdersForSalesman from "../../components/Salesman/OrderManagement/DueOrdersForSalesman";
 
 const SalesmanDashboardPage = () => {
   const {
@@ -28,6 +30,9 @@ const SalesmanDashboardPage = () => {
 
   const [openForm, setOpenForm] = useState(false);
   const { allProducts, isLoading } = useProduct();
+
+  const orderTypes = ["All Orders", "Due Orders"];
+  const [isActive, setIsActive] = useState("All Orders");
 
   const onSubmit = (data) => {
     console.log(data);
@@ -45,7 +50,7 @@ const SalesmanDashboardPage = () => {
   return (
     <div>
       <div className="flex items-center justify-between">
-        <h1 className="lg:text-3xl lg:font-bold mb-5">Dashboard</h1>
+        <h1 className="lg:text-3xl lg:font-bold mb-5">{isActive}</h1>
         <Button
           disableElevation
           variant="contained"
@@ -59,8 +64,28 @@ const SalesmanDashboardPage = () => {
           Place Order
         </Button>
       </div>
+
+      <div className="mb-5">
+        <ButtonGroup aria-label="Medium-sized button group">
+          {orderTypes.map((order) => (
+            <Button
+              key={order._id}
+              disableElevation
+              variant={isActive === order ? "contained" : "outlined"}
+              sx={{
+                textTransform: "none",
+              }}
+              onClick={() => setIsActive(order)}
+            >
+              {order}
+            </Button>
+          ))}
+        </ButtonGroup>
+      </div>
+
       <div>
-        <OrdersForSalesman />
+        {isActive === "All Orders" && <AllOrdersForSalesman />}
+        {isActive === "Due Orders" && <DueOrdersForSalesman />}
       </div>
 
       {/* Place Order Modal */}
@@ -103,6 +128,7 @@ const SalesmanDashboardPage = () => {
                       <TextField
                         error={!!errors.party?.contactPersonNumber}
                         size="small"
+                        type="number"
                         fullWidth
                         id="outlined-basic"
                         label="Contact Person Number"
@@ -281,6 +307,7 @@ const SalesmanDashboardPage = () => {
                             label="Payment Mode"
                           >
                             <MenuItem>Select Payment Mode</MenuItem>
+                            <MenuItem value="Not Paid">Not Paid</MenuItem>
                             <MenuItem value="UPI">UPI</MenuItem>
                             <MenuItem value="Cash">Cash</MenuItem>
                             <MenuItem value="Bank Transfer">

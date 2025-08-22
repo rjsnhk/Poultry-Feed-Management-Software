@@ -69,6 +69,8 @@ export const API_PATHS = {
       GET_PRODUCTS: (warehouseId) => `/api/admin/${warehouseId}/products`,
       DELETE_PRODUCT: (warehouseId, productId) =>
         `/api/admin/${warehouseId}/products/${productId}`,
+      GET_FILTERED_PRODUCTS: (category) =>
+        `/api/admin/get-filtered-products/${category}`,
     },
 
     ORDERS: {
@@ -87,7 +89,7 @@ export const API_PATHS = {
     GET_ALL_ORDERS: "/api/salesman/get_allorder",
     GET_ORDER: (orderId) => `/api/salesman/orders/${orderId}`,
     GET_DUE_ORDERS: "/api/salesman/orders/due",
-    PAY_ORDER: (orderId) => `/api/salesman/orders/pay/${orderId}`,
+    UPDATE_PAYMENT: (orderId) => `/api/salesman/orders/pay/${orderId}`,
     CHANGE_ACTIVITY_STATUS: "/api/salesman/change-activity-status",
   },
 
@@ -96,15 +98,15 @@ export const API_PATHS = {
     GET_ASSIGNED_ORDERS: "/api/manager/orders/getAll",
     GET_ORDER: (orderId) => `/api/manager/orders/${orderId}`,
     FORWARD_ORDER: (orderId) => `/api/manager/forward/${orderId}`,
-    GET_FORWARDED_ORDERS: "/api/manager/orders/forwarded",
+    GET_FORWARDED_ORDERS: "/api/manager/orders/forwarded", //(History)
     CHANGE_ACTIVITY_STATUS: "/api/manager/change-activity-status",
     CANCEL_ORDER: (orderId) => `/api/manager/cancel_order/${orderId}`,
   },
 
   AUTHORIZER: {
     LOGIN: "/api/authorizer/login",
-    GET_ALL_WAREHOUSES: "/api/authorizer/get-all-warehouses",
     GET_ASSIGNED_ORDERS: "/api/authorizer/orders/getAll",
+    GET_ALL_WAREHOUSES: "/api/authorizer/get-all-warehouses",
     GET_ORDER: (orderId) => `/api/authorizer/orders/${orderId}`,
     ASSIGN_WAREHOUSE: (orderId) =>
       `/api/authorizer/assign-warehouse/${orderId}`,
@@ -131,6 +133,7 @@ export const API_PATHS = {
   ACCOUNTANT: {
     LOGIN: "/api/accountant/login",
     GET_DISPATCHED_ORDERS: "/api/accountant/dispatched-orders",
+    GET_ORDER: (orderId) => `/api/accountant/order/${orderId}`,
     GENERATE_INVOICE: (orderId) =>
       `/api/accountant/generate-invoice/${orderId}`,
     GET_INVOICE: (orderId) => `/api/accountant/invoice/${orderId}`,

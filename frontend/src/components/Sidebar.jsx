@@ -3,14 +3,11 @@ import { NavLink } from "react-router";
 import { MdDashboard } from "react-icons/md";
 import { MdOutlineDashboard } from "react-icons/md";
 import { RiBox3Fill, RiBox3Line } from "react-icons/ri";
-import { FaHandshake, FaRegUser, FaUser } from "react-icons/fa6";
-import { FaRegHandshake } from "react-icons/fa";
+import { FaRegUser, FaUser } from "react-icons/fa6";
 import { HiDocumentText } from "react-icons/hi";
 import { HiOutlineDocumentText } from "react-icons/hi";
-import { PiGearSixFill } from "react-icons/pi";
 import { TbLayoutSidebarLeftCollapse } from "react-icons/tb";
 import { TbLayoutSidebarLeftExpand } from "react-icons/tb";
-import { IoSettingsOutline } from "react-icons/io5";
 import { IoCartOutline, IoCart } from "react-icons/io5";
 import { MdOutlineWarehouse, MdWarehouse } from "react-icons/md";
 import { useUser } from "../hooks/useUser";
@@ -234,6 +231,40 @@ const Sidebar = () => {
         <div className="mt-10 flex flex-col items-center justify-center m-2 gap-3">
           <NavLink
             to="/salesman/dashboard"
+            className={({ isActive }) =>
+              isActive
+                ? "transition-all bg-blue-100 border-e-4 border-blue-500 p-2 w-full text-left rounded-lg"
+                : "transition-all hover:bg-blue-50 p-2 w-full text-gray-800 rounded-lg text-left"
+            }
+          >
+            {({ isActive }) => (
+              <div className="flex items-center gap-2 font-semibold w-56 h-6">
+                <div className="w-6 flex items-center justify-center">
+                  {isActive ? (
+                    <IoCart className="text-blue-600 text-xl" />
+                  ) : (
+                    <IoCartOutline className="text-blue-600 text-xl" />
+                  )}
+                </div>
+                <span
+                  className={`${
+                    isCollapsed
+                      ? "hidden"
+                      : "block line-clamp-1 truncate w-full text-gray-800"
+                  }`}
+                >
+                  Order Management
+                </span>
+              </div>
+            )}
+          </NavLink>
+        </div>
+      )}
+
+      {user?.role === "SalesManager" && (
+        <div className="mt-10 flex flex-col items-center justify-center m-2 gap-3">
+          <NavLink
+            to="/salesmanager/dashboard"
             className={({ isActive }) =>
               isActive
                 ? "transition-all bg-blue-100 border-e-4 border-blue-500 p-2 w-full text-left rounded-lg"

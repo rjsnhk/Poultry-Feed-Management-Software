@@ -106,16 +106,45 @@ export const useSalesAuthorizerOrder = (id) => {
       },
     });
 
+  // Cancel order
+  const { mutate: cancelOrder, isPending: isCancelingOrder } = useMutation({
+    mutationFn: async (data) => {
+      const response = await axios.post(
+        BASE_URL + API_PATHS.AUTHORIZER.CANCEL_ORDER(data.orderId),
+        { reason: data.reason },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("cancel order response", response.data);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["order"] });
+      queryClient.invalidateQueries({ queryKey: ["ordersInSalesManager"] });
+      console.log(data);
+      toast.success(data.message);
+    },
+    onError: (error) => {
+      console.log(error);
+      toast.error(error.response.data.message);
+    },
+  });
+
   return {
     ordersInSalesAuthorizer,
     singleOrderFromSalesauthorizer,
     allWarehouses,
     assignWarehouseToOrder,
+    cancelOrder,
 
     //Loading
     ordersInSalesAuthorizerLoading,
     singleOrderLoading,
     warehousesLoading,
     assignWarehouseLoading,
+    isCancelingOrder,
   };
 };

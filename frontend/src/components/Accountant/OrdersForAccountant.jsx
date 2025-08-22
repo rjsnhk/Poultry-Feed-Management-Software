@@ -6,10 +6,12 @@ import { DataGrid } from "@mui/x-data-grid";
 import CloseIcon from "@mui/icons-material/Close";
 import { formatRupee } from "../../utils/formatRupee.js";
 import { useAccountantOrder } from "../../hooks/useAccountant.js";
+import { TbFileInvoice } from "react-icons/tb";
 
 const OrdersForAccountant = () => {
   const [singleOrderId, setSingleOrderId] = useState(null);
   const [openView, setOpenView] = useState(false);
+  const [openInvoice, setOpenInvoice] = useState(false);
 
   const {
     ordersInAccountant,
@@ -17,9 +19,12 @@ const OrdersForAccountant = () => {
     ordersInAccountantLoading,
     singleOrderInAccountant,
     singleOrderInAccountantLoading,
+    isGettingInvoice,
   } = useAccountantOrder(singleOrderId);
 
-  console.log("ordersInAccountant", ordersInAccountant);
+  console.log(ordersInAccountant);
+
+  console.log("singleOrderInAccountant", singleOrderInAccountant);
 
   const [paginationModel, setPaginationModel] = useState({
     page: 0,
@@ -32,12 +37,10 @@ const OrdersForAccountant = () => {
     setOpenView(true);
   };
 
-  const handleUpdate = (id) => {
+  const handleGetInvoice = (id) => {
     console.log(id);
-  };
-
-  const handleDelete = (id) => {
-    console.log(id);
+    setSingleOrderId(id);
+    setOpenInvoice(true);
   };
 
   const handleInvoiceGeneration = () => {
@@ -97,22 +100,18 @@ const OrdersForAccountant = () => {
         <div className="flex items-center h-full gap-1">
           <Eye
             color="blue"
-            className="hover:bg-blue-100 active:scale-95 transition-all p-1.5 rounded-lg"
+            className="hover:bg-blue-200 active:scale-95 transition-all p-1.5 rounded-lg"
             size={30}
             onClick={() => handleView(params.row.id)}
           />
-          <SquarePen
-            color="green"
-            className="hover:bg-green-100 active:scale-95 transition-all p-1.5 rounded-lg"
-            size={30}
-            onClick={() => handleUpdate(params.row.id)}
-          />
-          <Trash2
-            color="red"
-            className="hover:bg-red-100 active:scale-95 transition-all p-1.5 rounded-lg"
-            size={30}
-            onClick={() => handleDelete(params.row.id)}
-          />
+          {params.row.invoiceGenerated === true && (
+            <TbFileInvoice
+              color="green"
+              className="hover:bg-green-200 active:scale-95 transition-all p-1.5 rounded-lg"
+              size={30}
+              onClick={() => handleGetInvoice(params.row.id)}
+            />
+          )}
         </div>
       ),
     },
@@ -128,9 +127,14 @@ const OrdersForAccountant = () => {
     advanceAmount: formatRupee(order.advanceAmount),
     dueAmount: formatRupee(order.dueAmount),
     orderStatus: order.orderStatus,
+    invoiceGenerated: order.invoiceGenerated,
   }));
 
-  if (ordersInAccountantLoading || singleOrderInAccountantLoading)
+  if (
+    ordersInAccountantLoading ||
+    singleOrderInAccountantLoading ||
+    isGettingInvoice
+  )
     return (
       <div className="flex items-center justify-center h-full w-full">
         <CircularProgress />
@@ -175,7 +179,6 @@ const OrdersForAccountant = () => {
         }}
         disableColumnResize={false}
       />
-
       {/* --- View Order Modal --- */}
       {openView && (
         <div className="transition-all bg-black/30 backdrop-blur-sm w-full z-50 h-screen absolute top-0 left-0 flex items-center justify-center">
@@ -183,12 +186,14 @@ const OrdersForAccountant = () => {
             <div className="mb-5">
               <div className="flex items-center justify-between">
                 <p className="text-xl font-bold">Order Details</p>
-                <Button
-                  className="text-xl font-bold"
-                  onClick={handleInvoiceGeneration}
-                >
-                  Generate Invoice
-                </Button>
+                {singleOrderInAccountant?.invoiceGenerated === false && (
+                  <Button
+                    className="text-xl font-bold"
+                    onClick={handleInvoiceGeneration}
+                  >
+                    Generate Invoice
+                  </Button>
+                )}
                 <IconButton size="small" onClick={() => setOpenView(false)}>
                   <CloseIcon />
                 </IconButton>
@@ -307,7 +312,7 @@ const OrdersForAccountant = () => {
                     <span className="text-gray-600 font-normal">
                       Invoice Generated:
                     </span>{" "}
-                    {singleOrderInAccountant?.invoiceGenerated === "true" ? (
+                    {singleOrderInAccountant?.invoiceGenerated === true ? (
                       <span className="text-green-700 bg-green-100 p-1 px-3 rounded-full text-xs">
                         Yes
                       </span>
@@ -323,7 +328,7 @@ const OrdersForAccountant = () => {
                   <h1 className="font-semibold text-base text-gray-800">
                     Notes
                   </h1>
-                  <p className="bg-gray-100 rounded-lg p-3">
+                  <p className="bg-green-50 rounded-lg p-3">
                     {singleOrderInAccountant?.notes}
                   </p>
                 </div>
@@ -362,6 +367,95 @@ const OrdersForAccountant = () => {
                       </span>
                     )}
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Open Invoice Modal */}
+      {openInvoice && (
+        <div className="transition-all bg-black/30 backdrop-blur-sm w-full z-50 h-screen absolute top-0 left-0 flex items-center justify-center">
+          <div className="bg-white relative p-7 rounded-lg w-[40%] overflow-auto">
+            <div className="mb-5">
+              <div className="flex items-center justify-between">
+                <p className="text-xl font-bold">Invoice</p>
+                <IconButton size="small" onClick={() => setOpenInvoice(false)}>
+                  <CloseIcon />
+                </IconButton>
+              </div>
+            </div>
+
+            <div>
+              <div className="flex flex-col gap-2 text-sm">
+                <h1 className="font-semibold text-base text-gray-800">
+                  Invoice By
+                </h1>
+                <div className="flex items-center justify-between font-semibold">
+                  <span className="text-gray-600 font-normal">Name:</span>
+                  {singleOrderInAccountant?.invoiceDetails?.invoicedBy?.name}
+                </div>
+                <div className="flex items-center justify-between font-semibold">
+                  <span className="text-gray-600 font-normal">Email:</span>
+                  {singleOrderInAccountant?.invoiceDetails?.invoicedBy?.email}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 text-sm mt-5">
+                <h1 className="font-semibold text-base text-gray-800">
+                  Party Details
+                </h1>
+                <div className="flex items-center justify-between font-semibold">
+                  <span className="text-gray-600 font-normal">
+                    Company Name:
+                  </span>
+                  {singleOrderInAccountant?.party?.companyName}
+                </div>
+                <div className="flex items-center justify-between font-semibold">
+                  <span className="text-gray-600 font-normal">Address:</span>
+                  {singleOrderInAccountant?.party?.address}
+                </div>
+                <div className="flex items-center justify-between font-semibold">
+                  <span className="text-gray-600 font-normal">
+                    Contact Person Number:
+                  </span>
+                  {singleOrderInAccountant?.party?.contactPersonNumber}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 text-sm mt-5">
+                <h1 className="font-semibold text-base text-gray-800">
+                  Payment Information
+                </h1>
+                <div className="flex items-center justify-between font-semibold">
+                  <span className="text-gray-600 font-normal">
+                    Total Amount:
+                  </span>
+                  {formatRupee(
+                    singleOrderInAccountant?.invoiceDetails?.totalAmount
+                  )}
+                </div>
+                <div className="flex items-center justify-between font-semibold text-green-700">
+                  <span className="text-gray-600 font-normal">
+                    Advance Amount:
+                  </span>
+                  {formatRupee(
+                    singleOrderInAccountant?.invoiceDetails?.advanceAmount
+                  )}
+                </div>
+                <div className="flex items-center justify-between font-semibold text-red-700">
+                  <span className="text-gray-600 font-normal">Due Amount:</span>
+                  {formatRupee(
+                    singleOrderInAccountant?.invoiceDetails?.dueAmount
+                  )}
+                </div>
+                <div className="flex items-center justify-between font-semibold">
+                  <span className="text-gray-600 font-normal">Due Date:</span>
+                  {format(
+                    singleOrderInAccountant?.invoiceDetails?.dueDate,
+                    "dd MMM yyyy"
+                  )}
                 </div>
               </div>
             </div>
