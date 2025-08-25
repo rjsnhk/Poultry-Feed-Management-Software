@@ -290,7 +290,6 @@ const AllOrdersForSalesman = () => {
     totalAmount: formatRupee(order.totalAmount),
     advanceAmount: formatRupee(order.advanceAmount),
     dueAmount: formatRupee(order.dueAmount),
-    orderStatus: order.orderStatus,
     invoiceGenerated: order.invoiceGenerated,
     orderStatus: order.orderStatus,
   }));
