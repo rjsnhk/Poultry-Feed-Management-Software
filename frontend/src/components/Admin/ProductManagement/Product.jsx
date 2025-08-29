@@ -136,7 +136,7 @@ const Product = ({ product }) => {
                 size="small"
                 fullWidth
                 id="outlined-basic"
-                label="Price per kg"
+                label="Price per bag"
                 variant="outlined"
                 defaultValue={product.price}
                 {...register("price", {

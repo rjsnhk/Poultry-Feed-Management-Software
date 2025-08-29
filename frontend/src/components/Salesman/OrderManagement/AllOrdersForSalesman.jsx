@@ -8,6 +8,7 @@ import {
   MenuItem,
   Select,
   TextField,
+  Tooltip,
 } from "@mui/material";
 import { DownloadIcon, Eye, Trash2 } from "lucide-react";
 import { TbFileInvoice } from "react-icons/tb";
@@ -610,14 +611,17 @@ const AllOrdersForSalesman = () => {
                 <p className="text-xl font-bold">Invoice</p>
                 <div className="flex items-center gap-5">
                   <div className="relative group">
-                    <DownloadIcon
-                      onClick={handleDownloadInvoice}
-                      className="text-blue-600 hover:bg-blue-100 p-1.5 rounded-lg active:scale-95 transition-all"
-                      size={30}
-                    />
-                    <div className="group-hover:visible invisible absolute text-xs right-10 -bottom-1 bg-blue-600 text-white px-2 py-1 rounded-lg transition-all delay-100">
-                      Download Invoice
-                    </div>
+                    <Tooltip
+                      title="Download Invoice"
+                      placement="top"
+                      enterDelay={500}
+                    >
+                      <DownloadIcon
+                        onClick={handleDownloadInvoice}
+                        className="text-blue-600 hover:bg-blue-100 p-1.5 rounded-lg active:scale-95 transition-all"
+                        size={30}
+                      />
+                    </Tooltip>
                   </div>
 
                   <IconButton

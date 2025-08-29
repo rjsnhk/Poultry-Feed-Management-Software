@@ -148,7 +148,7 @@ const ProductManagementPage = () => {
                 size="small"
                 fullWidth
                 id="outlined-basic"
-                label="Price per kg"
+                label="Price per bag"
                 variant="outlined"
                 {...register("price", {
                   required: {

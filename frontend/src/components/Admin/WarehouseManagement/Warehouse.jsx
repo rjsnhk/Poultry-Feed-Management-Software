@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { SiDecentraland } from "react-icons/si";
 import { IoLocationOutline } from "react-icons/io5";
-import { BadgeCheck, Phone } from "lucide-react";
+import { BadgeCheck, CircleMinus, Cross, Phone } from "lucide-react";
 import {
   MdOutlineAccountBalance,
   MdOutlineManageAccounts,
@@ -18,6 +18,7 @@ import {
   MenuItem,
   Select,
   TextField,
+  Tooltip,
 } from "@mui/material";
 import { Controller, useForm } from "react-hook-form";
 import useEmployees from "../../../hooks/useEmployees";
@@ -641,17 +642,19 @@ const Warehouse = ({ warehouse }) => {
                           <tr key={index} className="text-center text-sm">
                             <td className="p-2">{item?.product?.name}</td>
                             <td className="p-2">{item?.product?.category}</td>
-                            <td className="p-2">{item?.quantity}kg</td>
-                            <td className="p-2">₹{item?.product?.price}/kg</td>
+                            <td className="p-2">{item?.quantity} Bags</td>
+                            <td className="p-2">₹{item?.product?.price}/bag</td>
                             <td className="p-2 flex items-center justify-center">
-                              <Trash2
-                                color="red"
-                                className="hover:bg-red-100 active:scale-95 transition-all p-1.5 rounded-lg"
-                                size={30}
-                                onClick={() =>
-                                  handleDeleteProduct(item?.product?._id)
-                                }
-                              />
+                              <Tooltip title="Remove Product" placement="right">
+                                <CircleMinus
+                                  color="red"
+                                  className="hover:bg-red-100 active:scale-95 transition-all p-1.5 rounded-lg"
+                                  size={30}
+                                  onClick={() =>
+                                    handleDeleteProduct(item?.product?._id)
+                                  }
+                                />
+                              </Tooltip>
                             </td>
                           </tr>
                         ))

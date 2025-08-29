@@ -9,7 +9,7 @@ import {
   TextField,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, set, useForm } from "react-hook-form";
 import { useProduct } from "../../hooks/useProduct";
 import { CircularProgress } from "@mui/material";
 import { formatRupee } from "../../utils/formatRupee";
@@ -19,23 +19,61 @@ import { useSalesmanOrder } from "../../hooks/useSalesmanOrder";
 import DueOrdersForSalesman from "../../components/Salesman/OrderManagement/DueOrdersForSalesman";
 
 const SalesmanDashboardPage = () => {
+  const [price, setPrice] = useState(0);
+  const [totalAmount, setTotalAmount] = useState(0);
+  const [error, setError] = useState("");
+  const [dueDateError, setDueDateError] = useState("");
+
   const {
     register,
     handleSubmit,
     formState: { errors },
     control,
+    watch,
   } = useForm();
+
+  const { allProducts, isLoading } = useProduct();
+
+  const selectedProductId = watch("item");
+  useEffect(() => {
+    const selectedProduct = allProducts?.find(
+      (product) => product._id === selectedProductId
+    );
+    setPrice(selectedProduct?.price);
+  }, [selectedProductId]);
+
+  const quantity = watch("quantity");
+  useEffect(() => {
+    const total = price * quantity;
+    setTotalAmount(total);
+  }, [quantity]);
+
+  const advanceAmount = watch("advanceAmount");
+  useEffect(() => {
+    if (advanceAmount > totalAmount) {
+      setError("Advance cannot be greater than total amount");
+    } else {
+      setError("");
+    }
+  }, [totalAmount, advanceAmount]);
+
+  const dueDate = watch("dueDate");
+  useEffect(() => {
+    if (dueDate < new Date().toISOString().split("T")[0]) {
+      setDueDateError("Due Date cannot be in past");
+    } else {
+      setDueDateError("");
+    }
+  }, [dueDate]);
 
   const { createOrder, isCreatingOrder } = useSalesmanOrder();
 
   const [openForm, setOpenForm] = useState(false);
-  const { allProducts, isLoading } = useProduct();
 
   const orderTypes = ["All Orders", "Due Orders"];
   const [isActive, setIsActive] = useState("All Orders");
 
   const onSubmit = (data) => {
-    console.log(data);
     createOrder(data);
     setOpenForm(false);
   };
@@ -171,9 +209,16 @@ const SalesmanDashboardPage = () => {
                 </div>
 
                 <div>
-                  <h1 className="font-semibold text-gray-800 mb-3">
-                    Product Information
-                  </h1>
+                  <div className="flex items-start justify-between">
+                    <h1 className="font-semibold text-gray-800 mb-3">
+                      Product Information
+                    </h1>
+                    {!isNaN(totalAmount) && (
+                      <span className="text-blue-600 text-sm font-semibold">
+                        Total: {formatRupee(totalAmount)}
+                      </span>
+                    )}
+                  </div>
                   <div className="space-y-5">
                     <FormControl
                       fullWidth
@@ -242,7 +287,7 @@ const SalesmanDashboardPage = () => {
                   <div className="space-y-5">
                     <div>
                       <TextField
-                        error={!!errors.advanceAmount}
+                        error={!!errors.advanceAmount || error}
                         size="small"
                         fullWidth
                         type="number"
@@ -262,10 +307,13 @@ const SalesmanDashboardPage = () => {
                           {errors.advanceAmount.message}
                         </p>
                       )}
+                      {error && (
+                        <p className="text-red-600 text-xs mt-1">{error}</p>
+                      )}
                     </div>
                     <Box sx={{ width: "100%" }}>
                       <TextField
-                        error={!!errors.dueDate}
+                        error={!!errors.dueDate || dueDateError}
                         fullWidth
                         label="Due Date"
                         type="date"
@@ -283,6 +331,11 @@ const SalesmanDashboardPage = () => {
                       {errors.dueDate && (
                         <p className="text-red-600 text-xs mt-1">
                           {errors.dueDate.message}
+                        </p>
+                      )}
+                      {dueDateError && (
+                        <p className="text-red-600 text-xs mt-1">
+                          {dueDateError}
                         </p>
                       )}
                     </Box>
@@ -307,7 +360,9 @@ const SalesmanDashboardPage = () => {
                             label="Payment Mode"
                           >
                             <MenuItem>Select Payment Mode</MenuItem>
-                            <MenuItem value="Not Paid">Not Paid</MenuItem>
+                            {Number(watch("advanceAmount")) === 0 && (
+                              <MenuItem value="Not Paid">Not Paid</MenuItem>
+                            )}
                             <MenuItem value="UPI">UPI</MenuItem>
                             <MenuItem value="Cash">Cash</MenuItem>
                             <MenuItem value="Bank Transfer">

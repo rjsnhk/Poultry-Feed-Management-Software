@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, CircularProgress, IconButton } from "@mui/material";
+import { Button, CircularProgress, IconButton, Tooltip } from "@mui/material";
 import { Eye, SquarePen, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { DataGrid } from "@mui/x-data-grid";
@@ -68,8 +68,29 @@ const OrdersForAccountant = () => {
       headerName: "Advance Amount",
       flex: 1,
       maxWidth: 150,
+      renderCell: (params) => (
+        console.log(params.value),
+        (
+          <span className={`${params.value !== "₹0" && "text-green-700"}`}>
+            {params.value}
+          </span>
+        )
+      ),
     },
-    { field: "dueAmount", headerName: "Due Amount", flex: 1, maxWidth: 150 },
+    {
+      field: "dueAmount",
+      headerName: "Due Amount",
+      flex: 1,
+      maxWidth: 150,
+      renderCell: (params) => (
+        console.log(params.value),
+        (
+          <span className={`${params.value !== "₹0" && "text-red-600"}`}>
+            {params.value}
+          </span>
+        )
+      ),
+    },
     {
       field: "orderStatus",
       headerName: "Status",
@@ -98,19 +119,23 @@ const OrdersForAccountant = () => {
       filterable: false,
       renderCell: (params) => (
         <div className="flex items-center h-full gap-1">
-          <Eye
-            color="blue"
-            className="hover:bg-blue-200 active:scale-95 transition-all p-1.5 rounded-lg"
-            size={30}
-            onClick={() => handleView(params.row.id)}
-          />
-          {params.row.invoiceGenerated === true && (
-            <TbFileInvoice
-              color="green"
-              className="hover:bg-green-200 active:scale-95 transition-all p-1.5 rounded-lg"
+          <Tooltip title="View Order" placement="left" enterDelay={500}>
+            <Eye
+              color="blue"
+              className="hover:bg-blue-200 active:scale-95 transition-all p-1.5 rounded-lg"
               size={30}
-              onClick={() => handleGetInvoice(params.row.id)}
+              onClick={() => handleView(params.row.id)}
             />
+          </Tooltip>
+          {params.row.invoiceGenerated === true && (
+            <Tooltip title="View invoice" enterDelay={500} placement="right">
+              <TbFileInvoice
+                color="green"
+                className="hover:bg-green-200 active:scale-95 transition-all p-1.5 rounded-lg"
+                size={30}
+                onClick={() => handleGetInvoice(params.row.id)}
+              />
+            </Tooltip>
           )}
         </div>
       ),
@@ -186,14 +211,23 @@ const OrdersForAccountant = () => {
             <div className="mb-5">
               <div className="flex items-center justify-between">
                 <p className="text-xl font-bold">Order Details</p>
-                {singleOrderInAccountant?.invoiceGenerated === false && (
-                  <Button
-                    className="text-xl font-bold"
-                    onClick={handleInvoiceGeneration}
-                  >
+                {/* {singleOrderInAccountant?.paymentStatus === "Paid" ? (
+                  <Button onClick={handleInvoiceGeneration}>
                     Generate Invoice
                   </Button>
-                )}
+                ) : (
+                  <Tooltip
+                    placement="top"
+                    title="Cannot generate invoice as order is not paid, ask salesman to clear dues"
+                  >
+                    <span>
+                      <Button disabled>Generate Invoice</Button>
+                    </span>
+                  </Tooltip>
+                )} */}
+                <Button onClick={handleInvoiceGeneration}>
+                  Generate Invoice
+                </Button>
                 <IconButton size="small" onClick={() => setOpenView(false)}>
                   <CloseIcon />
                 </IconButton>
@@ -377,7 +411,7 @@ const OrdersForAccountant = () => {
       {/* Open Invoice Modal */}
       {openInvoice && (
         <div className="transition-all bg-black/30 backdrop-blur-sm w-full z-50 h-screen absolute top-0 left-0 flex items-center justify-center">
-          <div className="bg-white relative p-7 rounded-lg w-[40%] overflow-auto">
+          <div className="bg-white relative p-7 rounded-lg w-[35%] overflow-auto">
             <div className="mb-5">
               <div className="flex items-center justify-between">
                 <p className="text-xl font-bold">Invoice</p>
