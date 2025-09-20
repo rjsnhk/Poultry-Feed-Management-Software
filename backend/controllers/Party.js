@@ -4,13 +4,13 @@ const addParty = async (req, res) => {
   try {
     const salesmanId = req.user.id;
     console.log("salesmanId", salesmanId);
-    const { companyName, contactPersonNumber, address, discount } = req.body;
+    const { companyName, contactPersonNumber, address, limit } = req.body;
 
     const party = new Party({
       companyName,
       contactPersonNumber,
       address,
-      discount,
+      limit,
       addedBy: salesmanId,
     });
 
@@ -32,13 +32,13 @@ const addParty = async (req, res) => {
 const updateParty = async (req, res) => {
   try {
     const { partyId } = req.params;
-    const { companyName, contactPersonNumber, address, discount } = req.body;
+    const { companyName, contactPersonNumber, address, limit } = req.body;
 
     const party = await Party.findByIdAndUpdate(partyId, {
       companyName,
       contactPersonNumber,
       address,
-      discount,
+      limit,
     });
     if (!party)
       return res.json({

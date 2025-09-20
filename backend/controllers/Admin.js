@@ -1096,7 +1096,7 @@ const getWarehouse = async (req, res) => {
       .find({ assignedWarehouse: warehouseId })
       .populate("placedBy", "name email")
       .populate("party", "companyName")
-      .populate("item", "name category price description")
+      .populate("items.product", "name category price description")
       .sort({ createdAt: -1 });
 
     // 3. Get all dispatched orders from this warehouse

@@ -39,8 +39,6 @@ const PartyToApproveForAdmin = ({ party }) => {
     });
   };
 
-  const pendingDue = 1000000 - party.balance;
-
   return (
     <div className="shadow bg-white lg:rounded-lg lg:p-4 lg:flex lg:flex-col justify-between hover:shadow-md transition-all">
       <div className="flex flex-col gap-2">
@@ -99,23 +97,9 @@ const PartyToApproveForAdmin = ({ party }) => {
             </div>
             <div className="flex items-center justify-between font-semibold">
               <span className="text-gray-600 font-normal text-right">
-                Discount:
+                Limit:
               </span>
-              {party?.discount}%
-            </div>
-            <div className="flex items-center justify-between font-semibold">
-              <span className="text-gray-600 font-normal text-right">
-                Balance:
-              </span>
-              {formatRupee(party?.balance)}
-            </div>
-            <div className="flex items-center justify-between font-semibold">
-              <span className="text-gray-600 font-normal text-right">
-                Pending Due:
-              </span>
-              <span className="text-red-600 font-semibold">
-                {formatRupee(pendingDue)}
-              </span>
+              {formatRupee(party?.limit)}
             </div>
           </div>
         </div>

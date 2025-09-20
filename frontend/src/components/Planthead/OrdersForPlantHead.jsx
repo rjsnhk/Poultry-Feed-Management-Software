@@ -73,6 +73,13 @@ const OrdersForPlantHead = () => {
   };
 
   const columns = [
+    {
+      field: "orderId",
+      headerName: "Order ID",
+      flex: 1,
+      minWidth: 80,
+      maxWidth: 100,
+    },
     { field: "product", headerName: "Product", flex: 1 },
     { field: "party", headerName: "Party", flex: 1 },
     { field: "date", headerName: "Date", flex: 1 },
@@ -166,10 +173,11 @@ const OrdersForPlantHead = () => {
 
   const rows = ordersInPlanthead?.map((order) => ({
     id: order._id,
+    orderId: `#${order.orderId}`,
     party: order?.party?.companyName,
     date: format(order?.createdAt, "dd MMM yyyy"),
-    product: order?.item?.name,
-    quantity: `${order.quantity} bags`,
+    product: order?.items?.map((p) => p.product?.name).join(", "),
+    quantity: order?.items?.map((p) => `${p.quantity} bags`).join(", "),
     totalAmount: formatRupee(order.totalAmount),
     advanceAmount: formatRupee(order.advanceAmount),
     dueAmount: formatRupee(order.dueAmount),
@@ -239,6 +247,49 @@ const OrdersForPlantHead = () => {
                 </IconButton>
               </div>
             </div>
+
+            {/* products table */}
+            <div className="relative overflow-x-auto mb-5 max-h-52">
+              <table className="w-full text-sm text-left text-gray-500 overflow-auto">
+                <thead className="sticky top-0 bg-gray-100 text-gray-800 z-10">
+                  <tr>
+                    <th scope="col" className="px-6 py-3">
+                      Product Name
+                    </th>
+                    <th scope="col" className="px-6 py-3">
+                      Category
+                    </th>
+                    <th scope="col" className="px-6 py-3">
+                      Price/bag
+                    </th>
+                    <th scope="col" className="px-6 py-3">
+                      Quantity
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="text-sm">
+                  {singleOrderFromPlanthead?.items?.map((item) => (
+                    <tr
+                      key={item._id}
+                      className="bg-white border-b border-gray-200"
+                    >
+                      <th
+                        scope="row"
+                        className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap"
+                      >
+                        {item?.product?.name}
+                      </th>
+                      <td className="px-6 py-4">{item?.product?.category}</td>
+                      <td className="px-6 py-4">
+                        {formatRupee(item?.product?.price)}
+                      </td>
+                      <td className="px-6 py-4">{item?.quantity} bags</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
             <div className="grid grid-cols-2 gap-7">
               <div className="flex flex-col gap-5">
                 <div className="flex flex-col gap-2 text-sm">
@@ -246,20 +297,8 @@ const OrdersForPlantHead = () => {
                     Order Information
                   </h1>
                   <div className="flex items-center justify-between font-semibold">
-                    <span className="text-gray-600 font-normal">
-                      Product Category:
-                    </span>{" "}
-                    {singleOrderFromPlanthead?.item?.category}
-                  </div>
-                  <div className="flex items-center justify-between font-semibold">
-                    <span className="text-gray-600 font-normal">
-                      Product Name:
-                    </span>{" "}
-                    {singleOrderFromPlanthead?.item?.name}
-                  </div>
-                  <div className="flex items-center justify-between font-semibold">
-                    <span className="text-gray-600 font-normal">Quantity:</span>{" "}
-                    {singleOrderFromPlanthead?.quantity} kg
+                    <span className="text-gray-600 font-normal">Order Id:</span>
+                    #{singleOrderFromPlanthead?.orderId}
                   </div>
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
@@ -336,22 +375,25 @@ const OrdersForPlantHead = () => {
                     <span className="text-gray-600 font-normal">
                       Payment Status:
                     </span>
-                    {singleOrderFromPlanthead?.paymentStatus === "Partial" && (
-                      <span className="text-yellow-700 bg-yellow-100 p-1 px-3 rounded-full text-xs">
-                        {singleOrderFromPlanthead?.paymentStatus}
+                    {singleOrderFromPlanthead?.paymentStatus ===
+                      "PendingDues" && (
+                      <span className="text-red-700 bg-red-100 p-1 px-3 rounded-full text-xs">
+                        Pending Dues
                       </span>
                     )}
                     {singleOrderFromPlanthead?.paymentStatus === "Paid" && (
                       <span className="text-green-700 bg-green-100 p-1 px-3 rounded-full text-xs">
-                        {singleOrderFromPlanthead?.paymentStatus}
+                        Paid
                       </span>
                     )}
-                    {singleOrderFromPlanthead?.paymentStatus === "Unpaid" && (
-                      <span className="text-red-700 bg-red-100 p-1 px-3 rounded-full text-xs">
-                        {singleOrderFromPlanthead?.paymentStatus}
+                    {singleOrderFromPlanthead?.paymentStatus ===
+                      "ConfirmationPending" && (
+                      <span className="text-yellow-700 bg-yellow-100 p-1 px-3 rounded-full text-xs">
+                        Confirmation Pending
                       </span>
                     )}
                   </div>
+
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
                       Invoice Generated:
@@ -368,15 +410,7 @@ const OrdersForPlantHead = () => {
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2 text-sm">
-                  <h1 className="font-semibold text-base text-gray-800">
-                    Notes
-                  </h1>
-                  <p className="bg-gray-100 rounded-lg p-3">
-                    {singleOrderFromPlanthead?.notes}
-                  </p>
-                </div>
-
+                {/* order timeline */}
                 <div className="flex flex-col gap-2 text-sm">
                   <h1 className="font-semibold text-base text-gray-800">
                     Order Timeline
@@ -388,6 +422,8 @@ const OrdersForPlantHead = () => {
                     {format(singleOrderFromPlanthead?.createdAt, "dd MMM yyyy")}
                   </div>
                 </div>
+
+                {/* assigned warehouse */}
                 <div className="flex flex-col gap-2 text-sm">
                   <h1 className="font-semibold text-base text-gray-800">
                     Assigned Warehouse
@@ -429,6 +465,16 @@ const OrdersForPlantHead = () => {
                     )}
                   </div>
                 </div>
+              </div>
+            </div>
+
+            {/* notes  */}
+            <div className="flex flex-col gap-2 text-sm mt-5">
+              <h1 className="font-semibold text-base text-gray-800">Notes</h1>
+              <div className="bg-yellow-50 rounded-lg p-3 w-full">
+                <p className="break-words whitespace-normal">
+                  {singleOrderFromPlanthead?.notes}
+                </p>
               </div>
             </div>
           </div>

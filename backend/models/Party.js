@@ -4,7 +4,7 @@ const partySchema = new mongoose.Schema({
   companyName: { type: String, required: true },
   contactPersonNumber: { type: String, required: true },
   address: { type: String, required: true },
-  discount: { type: Number, required: true },
+  // discount: { type: Number, required: true },
   addedBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Salesman",
@@ -26,11 +26,9 @@ const partySchema = new mongoose.Schema({
     enum: ["pending", "sentForApproval", "approved", "rejected"],
     default: "pending",
   },
-  balance: {
+  limit: {
     type: Number,
     required: true,
-    default: 1000000,
-    max: [1000000, "Balance cannot exceed 10 lakh"],
   },
 });
 

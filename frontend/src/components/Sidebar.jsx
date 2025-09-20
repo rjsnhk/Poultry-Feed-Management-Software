@@ -222,7 +222,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
               </div>
             )}
           </NavLink>
-          <NavLink
+          {/* <NavLink
             to="/admin/reports-module"
             className={({ isActive }) =>
               isActive
@@ -250,7 +250,7 @@ const Sidebar = ({ isCollapsed, setIsCollapsed }) => {
                 </span>
               </div>
             )}
-          </NavLink>
+          </NavLink> */}
         </div>
       )}
 

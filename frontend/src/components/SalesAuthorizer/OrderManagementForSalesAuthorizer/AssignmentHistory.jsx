@@ -34,6 +34,13 @@ const AssignmentHistory = () => {
   };
 
   const columns = [
+    {
+      field: "orderId",
+      headerName: "Order ID",
+      flex: 1,
+      minWidth: 80,
+      maxWidth: 100,
+    },
     { field: "warehouseName", headerName: "Warehouse", flex: 1 },
     { field: "location", headerName: "Location", flex: 1 },
     {
@@ -95,6 +102,7 @@ const AssignmentHistory = () => {
 
   const rows = AuthorizerAssignmentHistory?.map((order) => ({
     id: order._id,
+    orderId: `#${order.orderId}`,
     warehouseName: order?.assignedWarehouse?.name,
     location: order?.assignedWarehouse?.location,
     orderStatus: order.orderStatus,
@@ -153,13 +161,55 @@ const AssignmentHistory = () => {
       {/* --- View Order Modal --- */}
       {openView && (
         <div className="transition-all bg-black/30 backdrop-blur-sm w-full z-50 h-screen absolute top-0 left-0 flex items-center justify-center">
-          <div className="bg-white relative p-7 rounded-lg w-[50%] overflow-auto">
+          <div className="bg-white relative p-7 rounded-lg min-w-[50%] max-w-[55%] max-h-[90%] overflow-auto">
             <div className="mb-5">
               <div className="flex items-center justify-between">
                 <p className="text-xl font-bold">Order Details</p>
                 <IconButton size="small" onClick={() => setOpenView(false)}>
                   <CloseIcon />
                 </IconButton>
+              </div>
+
+              {/* products table */}
+              <div className="relative overflow-x-auto mt-5 max-h-52">
+                <table className="w-full text-sm text-left text-gray-500 overflow-auto">
+                  <thead className="sticky top-0 bg-gray-100 text-gray-800 z-10">
+                    <tr>
+                      <th scope="col" className="px-6 py-3">
+                        Product Name
+                      </th>
+                      <th scope="col" className="px-6 py-3">
+                        Category
+                      </th>
+                      <th scope="col" className="px-6 py-3">
+                        Price/bag
+                      </th>
+                      <th scope="col" className="px-6 py-3">
+                        Quantity
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-sm">
+                    {singleOrderFromSalesauthorizer?.items?.map((item) => (
+                      <tr
+                        key={item._id}
+                        className="bg-white border-b border-gray-200"
+                      >
+                        <th
+                          scope="row"
+                          className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap"
+                        >
+                          {item?.product?.name}
+                        </th>
+                        <td className="px-6 py-4">{item?.product?.category}</td>
+                        <td className="px-6 py-4">
+                          {formatRupee(item?.product?.price)}
+                        </td>
+                        <td className="px-6 py-4">{item?.quantity} bags</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-7">
@@ -169,20 +219,8 @@ const AssignmentHistory = () => {
                     Order Information
                   </h1>
                   <div className="flex items-center justify-between font-semibold">
-                    <span className="text-gray-600 font-normal">
-                      Product Category:
-                    </span>
-                    {singleOrderFromSalesauthorizer?.item?.category}
-                  </div>
-                  <div className="flex items-center justify-between font-semibold">
-                    <span className="text-gray-600 font-normal">
-                      Product Name:
-                    </span>
-                    {singleOrderFromSalesauthorizer?.item?.name}
-                  </div>
-                  <div className="flex items-center justify-between font-semibold">
-                    <span className="text-gray-600 font-normal">Quantity:</span>
-                    {singleOrderFromSalesauthorizer?.quantity} kg
+                    <span className="text-gray-600 font-normal">Order Id:</span>
+                    #{singleOrderFromSalesauthorizer?.orderId}
                   </div>
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
@@ -194,7 +232,10 @@ const AssignmentHistory = () => {
                     <span className="text-gray-600 font-normal">
                       Placed Date:
                     </span>
-                    {(singleOrderFromSalesauthorizer?.createdAt, "dd MMM yyyy")}
+                    {format(
+                      singleOrderFromSalesauthorizer?.createdAt,
+                      "dd MMM yyyy"
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-col gap-2 text-sm">
@@ -265,24 +306,25 @@ const AssignmentHistory = () => {
                       Payment Status:
                     </span>
                     {singleOrderFromSalesauthorizer?.paymentStatus ===
-                      "Partial" && (
-                      <span className="text-yellow-700 bg-yellow-100 p-1 px-3 rounded-full text-xs">
-                        {singleOrderFromSalesauthorizer?.paymentStatus}
+                      "PendingDues" && (
+                      <span className="text-red-700 bg-red-100 p-1 px-3 rounded-full text-xs">
+                        Pending Dues
                       </span>
                     )}
                     {singleOrderFromSalesauthorizer?.paymentStatus ===
                       "Paid" && (
                       <span className="text-green-700 bg-green-100 p-1 px-3 rounded-full text-xs">
-                        {singleOrderFromSalesauthorizer?.paymentStatus}
+                        Paid
                       </span>
                     )}
                     {singleOrderFromSalesauthorizer?.paymentStatus ===
-                      "Unpaid" && (
-                      <span className="text-red-700 bg-red-100 p-1 px-3 rounded-full text-xs">
-                        {singleOrderFromSalesauthorizer?.paymentStatus}
+                      "ConfirmationPending" && (
+                      <span className="text-yellow-700 bg-yellow-100 p-1 px-3 rounded-full text-xs">
+                        Confirmation Pending
                       </span>
                     )}
                   </div>
+
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
                       Invoice Generated:
@@ -299,15 +341,7 @@ const AssignmentHistory = () => {
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2 text-sm">
-                  <h1 className="font-semibold text-base text-gray-800">
-                    Notes
-                  </h1>
-                  <p className="bg-green-50 rounded-lg p-3">
-                    {singleOrderFromSalesauthorizer?.notes}
-                  </p>
-                </div>
-
+                {/* order timeline */}
                 <div className="flex flex-col gap-2 text-sm">
                   <h1 className="font-semibold text-base text-gray-800">
                     Order Timeline
@@ -322,28 +356,34 @@ const AssignmentHistory = () => {
                     )}
                   </div>
                 </div>
+
+                {/* assigned warehouse */}
                 <div className="flex flex-col gap-2 text-sm">
                   <h1 className="font-semibold text-base text-gray-800">
                     Assigned Warehouse
                   </h1>
+
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
                       Warehouse:
                     </span>
                     {singleOrderFromSalesauthorizer?.assignedWarehouse ? (
-                      <div className="flex flex-col items-center">
-                        {
-                          singleOrderFromSalesauthorizer?.assignedWarehouse
-                            ?.name
-                        }
-                        <span className="text-xs font-normal text-gray-600">
+                      <div className="flex items-center">
+                        <p>
+                          {
+                            singleOrderFromSalesauthorizer?.assignedWarehouse
+                              ?.name
+                          }
+                        </p>
+                        &nbsp;
+                        <p className="text-xs font-normal text-gray-600">
                           (
                           {
                             singleOrderFromSalesauthorizer?.assignedWarehouse
                               ?.location
                           }
                           )
-                        </span>
+                        </p>
                       </div>
                     ) : (
                       <span className="text-red-700 bg-red-100 p-1 px-3 rounded-full text-xs">
@@ -351,9 +391,35 @@ const AssignmentHistory = () => {
                       </span>
                     )}
                   </div>
+                  <div className="flex items-center justify-between font-semibold">
+                    <span className="text-gray-600 font-normal">
+                      Warehouse Approval:
+                    </span>
+                    {singleOrderFromSalesauthorizer?.approvedBy ? (
+                      <span className="text-green-700 font-semibold bg-green-100 p-1 px-3 rounded-full text-xs">
+                        Approved
+                      </span>
+                    ) : (
+                      <span className="text-red-700 font-semibold bg-red-100 p-1 px-3 rounded-full text-xs">
+                        Pending
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
+
+            {/* notes  */}
+            <div className="flex flex-col gap-2 text-sm mt-5">
+              <h1 className="font-semibold text-base text-gray-800">Notes</h1>
+              <div className="bg-yellow-50 rounded-lg p-3 w-full">
+                <p className="break-words whitespace-normal">
+                  {singleOrderFromSalesauthorizer?.notes}
+                </p>
+              </div>
+            </div>
+
+            {/* dispatch info */}
             {singleOrderFromSalesauthorizer?.dispatchInfo && (
               <div className="flex flex-col gap-2 text-sm bg-green-50 p-3 rounded-lg mt-5">
                 <h1 className="font-semibold text-base text-gray-800">

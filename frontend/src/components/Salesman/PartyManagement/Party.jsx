@@ -21,7 +21,7 @@ const Party = ({ party }) => {
       companyName: party.companyName,
       contactPersonNumber: party.contactPersonNumber,
       address: party.address,
-      discount: party.discount,
+      limit: party.limit,
     },
   });
 
@@ -95,17 +95,12 @@ const Party = ({ party }) => {
               </span>
               {party?.contactPersonNumber}
             </div>
+
             <div className="flex items-center justify-between font-semibold">
               <span className="text-gray-600 font-normal text-right">
-                Discount:
+                Limit:
               </span>
-              {party?.discount}%
-            </div>
-            <div className="flex items-center justify-between font-semibold">
-              <span className="text-gray-600 font-normal text-right">
-                Max Loan Available:
-              </span>
-              {formatRupee(party?.balance)}
+              {formatRupee(party?.limit)}
             </div>
           </div>
         </div>
@@ -267,24 +262,25 @@ const Party = ({ party }) => {
                   </span>
                 )}
               </div>
-              <div>
-                <TextField
-                  error={!!errors.discount}
-                  size="small"
-                  fullWidth
-                  id="outlined-basic"
-                  label="Discount"
-                  variant="outlined"
-                  {...register("discount", {
-                    required: { value: true, message: "Discount is required" },
-                  })}
-                />
-                {errors.discount && (
-                  <span className="text-red-500 text-xs mt-1">
-                    {errors.discount.message}
-                  </span>
-                )}
-              </div>
+              <TextField
+                error={!!errors.limit}
+                size="small"
+                fullWidth
+                id="outlined-basic"
+                label="Limit"
+                variant="outlined"
+                helperText={
+                  errors.limit && (
+                    <span className="text-red-500 text-xs mt-1">
+                      {errors.limit.message}
+                    </span>
+                  )
+                }
+                {...register("limit", {
+                  required: { value: true, message: "Limit is required" },
+                })}
+              />
+
               <div className="flex items-center justify-end gap-3 mt-5">
                 <Button
                   variant="outlined"

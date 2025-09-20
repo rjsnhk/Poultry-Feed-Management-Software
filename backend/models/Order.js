@@ -29,20 +29,34 @@ const dueInvoiceSchema = new mongoose.Schema({
 });
 
 const OrderSchema = new mongoose.Schema({
-  item: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "Product",
-    required: true,
-  },
-  quantity: { type: Number, required: true, min: 1 },
-  totalAmount: { type: Number, required: true },
-  advanceAmount: { type: Number, default: 0 },
-  dueAmount: { type: Number },
-  dueDate: { type: Date },
+  orderId: { type: String, required: true, unique: true },
+  items: [
+    {
+      product: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Product",
+        required: true,
+      },
+      quantity: { type: Number, required: true, min: 1 },
+    },
+  ],
   paymentMode: {
     type: String,
     enum: ["UPI", "Cash", "Bank Transfer", "Not Paid"],
   },
+  totalAmount: { type: Number, required: true },
+  advanceAmount: { type: Number, default: 0 },
+  dueAmount: { type: Number },
+  dueDate: { type: Date },
+  advancePaymentMode: {
+    type: String,
+    enum: ["UPI", "Cash", "Bank Transfer", "Not Paid"],
+  },
+  duePaymentMode: {
+    type: String,
+    enum: ["UPI", "Cash", "Bank Transfer", "Not Paid"],
+  },
+
   notes: { type: String },
 
   // Status & Tracking
@@ -79,7 +93,7 @@ const OrderSchema = new mongoose.Schema({
   },
   paymentStatus: {
     type: String,
-    enum: ["Unpaid", "Partial", "Paid"],
+    enum: ["Paid", "ConfirmationPending", "PendingDues"],
     default: "Unpaid",
   },
   invoiceGenerated: { type: Boolean, default: false },
@@ -162,6 +176,8 @@ const OrderSchema = new mongoose.Schema({
   dueInvoiceDetails: {
     type: dueInvoiceSchema,
   },
+
+  discount: { type: Number },
 
   createdAt: { type: Date, default: Date.now },
 });

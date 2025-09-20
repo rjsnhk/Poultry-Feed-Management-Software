@@ -32,23 +32,9 @@ const RejectedPartiesForAdmin = ({ party }) => {
             </div>
             <div className="flex items-center justify-between font-semibold">
               <span className="text-gray-600 font-normal text-right">
-                Discount:
+                Limit:
               </span>
-              {party?.discount}%
-            </div>
-            <div className="flex items-center justify-between font-semibold">
-              <span className="text-gray-600 font-normal text-right">
-                Balance:
-              </span>
-              {formatRupee(party?.balance)}
-            </div>
-            <div className="flex items-center justify-between font-semibold">
-              <span className="text-gray-600 font-normal text-right">
-                Pending Due:
-              </span>
-              <span className="text-red-600 font-semibold">
-                {formatRupee(pendingDue)}
-              </span>
+              {formatRupee(party?.limit)}
             </div>
           </div>
         </div>

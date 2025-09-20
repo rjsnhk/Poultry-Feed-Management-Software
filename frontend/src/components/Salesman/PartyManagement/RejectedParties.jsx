@@ -70,15 +70,9 @@ const RejectedParties = ({ party }) => {
             </div>
             <div className="flex items-center justify-between font-semibold">
               <span className="text-gray-600 font-normal text-right">
-                Discount:
+                Limit:
               </span>
-              {party?.discount}%
-            </div>
-            <div className="flex items-center justify-between font-semibold">
-              <span className="text-gray-600 font-normal text-right">
-                Max Loan Available:
-              </span>
-              {formatRupee(party?.balance)}
+              {formatRupee(party?.limit)}
             </div>
           </div>
         </div>

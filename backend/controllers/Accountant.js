@@ -81,7 +81,7 @@ const getOrdersToApprovePayment = async (req, res) => {
       advanceAmount: { $gt: 0 },
       advancePaymentDoc: { $ne: null },
     })
-      .populate("item", "name category")
+      .populate("items.product", "name category price description")
       .populate("party", "companyName address contactPersonNumber")
       .populate("placedBy", "name email");
 
@@ -103,10 +103,11 @@ const getOrdersToApproveDuePayment = async (req, res) => {
       // orderStatus: { $in: ["Dispatched", "Delivered", "Approved"] },
       duePaymentStatus: { $in: ["SentForApproval", "Approved"] },
       duePaymentApprovalSentTo: accountantId,
-      dueAmount: { $eq: 0 },
+      paymentStatus: { $in: ["Not Paid", "Pending", "Paid"] },
+      dueAmount: { $eq: 0.0 },
       duePaymentDoc: { $ne: null },
     })
-      .populate("item", "name category")
+      .populate("items.product", "name category")
       .populate("party", "companyName address contactPersonNumber")
       .populate("placedBy", "name email")
       .populate("paymentCollectedBy", "name email");
@@ -137,7 +138,7 @@ const getDispatchedOrders = async (req, res) => {
       assignedWarehouse: String(warehouse._id),
       orderStatus: "Dispatched",
     })
-      .populate("item", "name category")
+      .populate("items.product", "name category")
       .populate("party", "companyName address contactPersonNumber")
       .populate("placedBy", "name email");
 
@@ -214,7 +215,7 @@ const getOrderDetails = async (req, res) => {
       .populate("party", "companyName address contactPersonNumber")
       .populate("placedBy", "name email")
       .populate("assignedWarehouse", "name location")
-      .populate("item", "name category")
+      .populate("items.product", "name category price description")
       .populate("invoiceDetails.invoicedBy", "name email")
       .populate(
         "invoiceDetails.party",
@@ -225,6 +226,7 @@ const getOrderDetails = async (req, res) => {
         "companyName address contactPersonNumber"
       )
       .populate("dueInvoiceDetails.invoicedBy", "name email")
+      .populate("dispatchInfo.dispatchedBy", "name email phone")
       .populate("paymentCollectedBy", "name email");
 
     if (!order) {
@@ -275,8 +277,6 @@ const generateInvoice = async (req, res) => {
     console.log(order);
 
     order.invoiceGenerated = true;
-    // order.invoicedBy = accountantId;
-    // order.dueDate = dueDate || new Date();
     order.invoiceDetails = {
       totalAmount: order.totalAmount,
       advanceAmount: order.advanceAmount,

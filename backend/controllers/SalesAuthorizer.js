@@ -87,7 +87,7 @@ const getForwardedOrders = async (req, res) => {
       forwardedByManager: { $exists: true },
       forwardedByAuthorizer: { $exists: false },
     })
-      .populate("item", "name category")
+      .populate("items.product", "name category")
       .populate("placedBy", "name email")
       .populate("party", "companyName address contactPersonNumber")
       .populate("forwardedByManager", "name email");
@@ -106,7 +106,7 @@ const getOrderDetails = async (req, res) => {
     const orderId = req.params.orderId;
 
     const order = await Order.findById(orderId)
-      .populate("item", "name category")
+      .populate("items.product", "name category price description")
       .populate("placedBy", "name email")
       .populate("party", "companyName address contactPersonNumber")
       .populate("assignedWarehouse", "name location");
@@ -130,11 +130,12 @@ const assignWarehouse = async (req, res) => {
     const { warehouseId } = req.body;
     const authorizerId = req.user.id;
 
-    const order = await Order.findById(orderId);
+    const order = await Order.findById(orderId).populate("items.product");
     if (!order)
       return res
         .status(404)
         .json({ success: false, message: "Order not found" });
+
     if (order.orderStatus !== "ForwardedToAuthorizer") {
       return res.status(400).json({
         success: false,
@@ -142,53 +143,73 @@ const assignWarehouse = async (req, res) => {
       });
     }
 
-    const warehouse = await Warehouse.findById(warehouseId);
+    const warehouse = await Warehouse.findById(warehouseId).populate(
+      "stock.product"
+    );
     if (!warehouse)
       return res
         .status(404)
         .json({ success: false, message: "Warehouse not found" });
 
-    const isItemAvailable = warehouse.stock.some(
-      (item) => item.product._id.toString() === order.item._id.toString()
-    );
+    // report object
+    let report = {
+      warehouse: warehouse.name,
+      available: [],
+      insufficient: [],
+      missing: [],
+      canFulfill: true,
+    };
 
-    if (!isItemAvailable) {
+    order.items.forEach((orderItem) => {
+      const stockItem = warehouse.stock.find(
+        (s) => String(s.product._id) === String(orderItem.product._id)
+      );
+
+      if (!stockItem) {
+        report.missing.push({
+          product: orderItem.product.name,
+          requested: orderItem.quantity,
+          available: 0,
+        });
+        report.canFulfill = false;
+      } else if (stockItem.quantity < orderItem.quantity) {
+        report.insufficient.push({
+          product: orderItem.product.name,
+          requested: orderItem.quantity,
+          available: stockItem.quantity,
+        });
+        report.canFulfill = false;
+      } else {
+        report.available.push({
+          product: orderItem.product.name,
+          requested: orderItem.quantity,
+          available: stockItem.quantity,
+          remaining: stockItem.quantity - orderItem.quantity,
+        });
+      }
+    });
+
+    // agar fulfill nahi ho raha to sirf report bhej do
+    if (!report.canFulfill) {
       return res.status(400).json({
         success: false,
-        message: "Ordered item is not available in this warehouse",
+        message: "Warehouse cannot fully fulfill this order",
+        report,
       });
     }
 
-    let orderedQuantity = order.quantity;
-    let orderedItem = order.item;
-
-    const isStockAvailableAsPerOrderedQuantity = warehouse.stock.some(
-      (item) => item.quantity > orderedQuantity
-    );
-
-    if (!isStockAvailableAsPerOrderedQuantity) {
-      return res.status(400).json({
-        success: false,
-        message: "Not enough stock to place order",
-      });
-    }
-
-    // const item = warehouse.stock.find((item) => {
-    //   return String(item.product._id) === String(orderedItem);
-    // });
-
-    // item.quantity = item.quantity - orderedQuantity;
-
+    // agar fulfill ho raha hai to assign kar do
     order.assignedWarehouse = warehouseId;
     order.orderStatus = "WarehouseAssigned";
     order.warehouseAssignedByAuthorizer = authorizerId;
     await order.save();
 
-    // await warehouse.save();
-
-    res
-      .status(200)
-      .json({ success: true, message: "Warehouse assigned", data: order });
+    return res.status(200).json({
+      success: true,
+      message: "Warehouse assigned successfully",
+      report,
+      data: order,
+    });
   } catch (err) {
     res.status(500).json({
       success: false,
@@ -208,7 +229,7 @@ const getAssignmentHistory = async (req, res) => {
       assignedWarehouse: { $exists: true },
     })
       .populate("assignedWarehouse", "name location")
-      .select("assignedWarehouse orderStatus createdAt");
+      .select("assignedWarehouse orderStatus createdAt orderId");
 
     res.status(200).json({ success: true, data: orders });
   } catch (err) {

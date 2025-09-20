@@ -138,88 +138,96 @@ const PartyManagementPage = () => {
           <div className="bg-white p-7 rounded-lg w-[29rem]">
             <p className="text-xl font-semibold mb-7">Add a new party</p>
             <form className="space-y-5" onSubmit={handleSubmit(onSubmit)}>
-              <div>
-                <TextField
-                  size="small"
-                  fullWidth
-                  id="outlined-basic"
-                  label="Company Name"
-                  variant="outlined"
-                  {...register("companyName", {
-                    required: {
-                      value: true,
-                      message: "Company Name is required",
-                    },
-                  })}
-                />
-                {errors.companyName && (
-                  <span className="text-red-500 text-xs mt-1">
-                    {errors.companyName.message}
-                  </span>
-                )}
-              </div>
-              <div>
-                <TextField
-                  size="small"
-                  fullWidth
-                  type="number"
-                  id="outlined-basic"
-                  label="Contact Person Number"
-                  variant="outlined"
-                  {...register("contactPersonNumber", {
-                    required: {
-                      value: true,
-                      message: "Contact person number is required",
-                    },
-                  })}
-                />
-                {errors.contactPersonNumber && (
-                  <span className="text-red-500 text-xs mt-1">
-                    {errors.contactPersonNumber.message}
-                  </span>
-                )}
-              </div>
-              <div>
-                <TextField
-                  size="small"
-                  fullWidth
-                  id="outlined-basic"
-                  label="Address"
-                  variant="outlined"
-                  {...register("address", {
-                    required: {
-                      value: true,
-                      message: "Address is required",
-                    },
-                  })}
-                />
-                {errors.address && (
-                  <span className="text-red-500 text-xs mt-1">
-                    {errors.address.message}
-                  </span>
-                )}
-              </div>
-              <div>
-                <TextField
-                  size="small"
-                  fullWidth
-                  type="number"
-                  id="outlined-basic"
-                  label="Discount"
-                  variant="outlined"
-                  {...register("discount", {
-                    required: {
-                      value: true,
-                      message: "Discount is required",
-                    },
-                  })}
-                />
-                {errors.discount && (
-                  <span className="text-red-500 text-xs mt-1">
-                    {errors.discount.message}
-                  </span>
-                )}
-              </div>
+              <TextField
+                size="small"
+                fullWidth
+                id="outlined-basic"
+                label="Company Name"
+                variant="outlined"
+                error={!!errors.companyName}
+                helperText={
+                  errors.companyName && (
+                    <span className="text-red-600 text-xs mt-1">
+                      {errors.companyName.message}
+                    </span>
+                  )
+                }
+                {...register("companyName", {
+                  required: {
+                    value: true,
+                    message: "Company Name is required",
+                  },
+                })}
+              />
+
+              <TextField
+                size="small"
+                fullWidth
+                type="number"
+                id="outlined-basic"
+                label="Contact Person Number"
+                variant="outlined"
+                error={!!errors.contactPersonNumber}
+                helperText={
+                  errors.contactPersonNumber && (
+                    <span className="text-red-600 text-xs mt-1">
+                      {errors.contactPersonNumber.message}
+                    </span>
+                  )
+                }
+                {...register("contactPersonNumber", {
+                  required: {
+                    value: true,
+                    message: "Contact person number is required",
+                  },
+                })}
+              />
+
+              <TextField
+                size="small"
+                fullWidth
+                id="outlined-basic"
+                label="Address"
+                variant="outlined"
+                error={!!errors.address}
+                helperText={
+                  errors.address && (
+                    <span className="text-red-600 text-xs mt-1">
+                      {errors.address.message}
+                    </span>
+                  )
+                }
+                {...register("address", {
+                  required: {
+                    value: true,
+                    message: "Address is required",
+                  },
+                })}
+              />
+
+              <TextField
+                size="small"
+                fullWidth
+                type="number"
+                id="outlined-basic"
+                label="Limit"
+                variant="outlined"
+                error={!!errors.limit}
+                helperText={
+                  errors.limit && (
+                    <span className="text-red-600 text-xs mt-1">
+                      {errors.limit.message}
+                    </span>
+                  )
+                }
+                {...register("limit", {
+                  required: {
+                    value: true,
+                    message: "Limit is required",
+                  },
+                })}
+              />
+
               <div className="flex items-center justify-end gap-3 mt-5">
                 <Button
                   variant="outlined"

@@ -88,6 +88,13 @@ const OrdersForAuthorizer = () => {
     );
 
   const columns = [
+    {
+      field: "orderId",
+      headerName: "Order ID",
+      flex: 1,
+      minWidth: 80,
+      maxWidth: 100,
+    },
     { field: "product", headerName: "Product", flex: 1 },
     { field: "party", headerName: "Party", flex: 1 },
     { field: "date", headerName: "Date", flex: 1 },
@@ -185,15 +192,20 @@ const OrdersForAuthorizer = () => {
 
   const rows = ordersInSalesAuthorizer?.map((order) => ({
     id: order._id,
+    orderId: `#${order.orderId}`,
     party: order?.party?.companyName,
     date: format(order?.createdAt, "dd MMM yyyy"),
-    product: order?.item?.name,
-    quantity: `${order.quantity} bags`,
+    product: order?.items?.map((p) => p.product?.name).join(", "),
+    quantity: order?.items?.map((p) => `${p.quantity} bags`).join(", "),
     totalAmount: formatRupee(order.totalAmount),
     advanceAmount: formatRupee(order.advanceAmount),
     dueAmount: formatRupee(order.dueAmount),
     orderStatus: order.orderStatus,
   }));
+
+  console.log("====================================");
+  console.log(singleOrderFromSalesauthorizer);
+  console.log("====================================");
 
   return (
     <div className="transition-all rounded-lg mt-5 max-w-full">
@@ -235,69 +247,58 @@ const OrdersForAuthorizer = () => {
       />
 
       {/* --- View Order Modal --- */}
+
       {openView && (
         <div className="transition-all bg-black/30 backdrop-blur-sm w-full z-50 h-screen absolute top-0 left-0 flex items-center justify-center">
-          <div className="bg-white relative p-7 rounded-lg w-[50%] max-h-[90%] overflow-auto">
+          <div className="bg-white relative p-7 rounded-lg min-w-[50%] max-w-[55%] max-h-[90%] overflow-auto">
             <div className="mb-5">
               <div className="flex items-center justify-between">
                 <p className="text-xl font-bold">Order Details</p>
-
-                <div className="w-64">
-                  {singleOrderFromSalesauthorizer?.orderStatus ===
-                    "ForwardedToAuthorizer" && (
-                    <form
-                      className="flex items-center gap-2"
-                      onSubmit={handleSubmit(handleAssignWarehouse)}
-                    >
-                      <FormControl fullWidth size="small">
-                        <InputLabel id="item-label">
-                          Assign Warehouse
-                        </InputLabel>
-                        <Controller
-                          disabled={!user.isActive}
-                          name="warehouseId"
-                          control={control}
-                          rules={{ required: "Warehouse is required" }}
-                          render={({ field }) => (
-                            <Select
-                              {...field}
-                              labelId="warehouse-label"
-                              id="warehouseId"
-                              label="Assign Warehouse"
-                            >
-                              <MenuItem>Select Warehouse</MenuItem>
-                              {allWarehouses?.map((warehouse) => (
-                                <MenuItem
-                                  key={warehouse._id}
-                                  value={warehouse._id}
-                                >
-                                  {warehouse.name}
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          )}
-                        />
-                        {errors?.warehouse && (
-                          <span className="text-red-600 text-xs mt-1">
-                            {errors.warehouse?.message}
-                          </span>
-                        )}
-                      </FormControl>
-                      <Button
-                        disabled={!user.isActive}
-                        size="small"
-                        variant="outlined"
-                        type="submit"
-                      >
-                        Assign
-                      </Button>
-                    </form>
-                  )}
-                </div>
-
                 <IconButton size="small" onClick={() => setOpenView(false)}>
                   <CloseIcon />
                 </IconButton>
+              </div>
+
+              {/* products table */}
+              <div className="relative overflow-x-auto mt-5 max-h-52">
+                <table className="w-full text-sm text-left text-gray-500 overflow-auto">
+                  <thead className="sticky top-0 bg-gray-100 text-gray-800 z-10">
+                    <tr>
+                      <th scope="col" className="px-6 py-3">
+                        Product Name
+                      </th>
+                      <th scope="col" className="px-6 py-3">
+                        Category
+                      </th>
+                      <th scope="col" className="px-6 py-3">
+                        Price/bag
+                      </th>
+                      <th scope="col" className="px-6 py-3">
+                        Quantity
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-sm">
+                    {singleOrderFromSalesauthorizer?.items?.map((item) => (
+                      <tr
+                        key={item._id}
+                        className="bg-white border-b border-gray-200"
+                      >
+                        <th
+                          scope="row"
+                          className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap"
+                        >
+                          {item?.product?.name}
+                        </th>
+                        <td className="px-6 py-4">{item?.product?.category}</td>
+                        <td className="px-6 py-4">
+                          {formatRupee(item?.product?.price)}
+                        </td>
+                        <td className="px-6 py-4">{item?.quantity} bags</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-7">
@@ -307,35 +308,20 @@ const OrdersForAuthorizer = () => {
                     Order Information
                   </h1>
                   <div className="flex items-center justify-between font-semibold">
-                    <span className="text-gray-600 font-normal">
-                      Product Category:
-                    </span>{" "}
-                    {singleOrderFromSalesauthorizer?.item?.category}
-                  </div>
-                  <div className="flex items-center justify-between font-semibold">
-                    <span className="text-gray-600 font-normal">
-                      Product Name:
-                    </span>{" "}
-                    {singleOrderFromSalesauthorizer?.item?.name}
-                  </div>
-                  <div className="flex items-center justify-between font-semibold">
-                    <span className="text-gray-600 font-normal">Quantity:</span>{" "}
-                    {singleOrderFromSalesauthorizer?.quantity} kg
+                    <span className="text-gray-600 font-normal">Order Id:</span>
+                    #{singleOrderFromSalesauthorizer?.orderId}
                   </div>
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
                       Placed By:
-                    </span>{" "}
+                    </span>
                     {singleOrderFromSalesauthorizer?.placedBy?.name}
                   </div>
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
                       Placed Date:
-                    </span>{" "}
-                    {format(
-                      singleOrderFromSalesauthorizer?.createdAt,
-                      "dd MMM yyyy"
-                    )}
+                    </span>
+                    {(singleOrderFromSalesauthorizer?.createdAt, "dd MMM yyyy")}
                   </div>
                 </div>
                 <div className="flex flex-col gap-2 text-sm">
@@ -351,32 +337,28 @@ const OrdersForAuthorizer = () => {
                   <div className="flex items-center justify-between font-semibold text-green-700">
                     <span className="text-gray-600 font-normal">
                       Advance Amount:
-                    </span>{" "}
+                    </span>
                     {formatRupee(singleOrderFromSalesauthorizer?.advanceAmount)}
                   </div>
                   <div className="flex items-center justify-between font-semibold text-red-700">
                     <span className="text-gray-600 font-normal">
                       Due Amount:
-                    </span>{" "}
+                    </span>
                     {formatRupee(singleOrderFromSalesauthorizer?.dueAmount)}
                   </div>
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
                       Payment Mode:
-                    </span>{" "}
+                    </span>
                     {singleOrderFromSalesauthorizer?.paymentMode}
                   </div>
-                  {singleOrderFromSalesauthorizer?.dueAmount !== 0 && (
-                    <div className="flex items-center justify-between font-semibold">
-                      <span className="text-gray-600 font-normal">
-                        Due Date:
-                      </span>{" "}
-                      {format(
-                        singleOrderFromSalesauthorizer?.dueDate,
-                        "dd MMM yyyy"
-                      )}
-                    </div>
-                  )}
+                  <div className="flex items-center justify-between font-semibold">
+                    <span className="text-gray-600 font-normal">Due Date:</span>
+                    {format(
+                      singleOrderFromSalesauthorizer?.dueDate,
+                      "dd MMM yyyy"
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -388,10 +370,15 @@ const OrdersForAuthorizer = () => {
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
                       Order Status:
-                    </span>{" "}
+                    </span>
                     {singleOrderFromSalesauthorizer?.orderStatus ===
                     "Delivered" ? (
                       <span className="text-green-700 bg-green-100 p-1 px-3 rounded-full text-xs">
+                        {singleOrderFromSalesauthorizer?.orderStatus}
+                      </span>
+                    ) : singleOrderFromSalesauthorizer?.orderStatus ===
+                      "Cancelled" ? (
+                      <span className="text-red-700 bg-red-100 p-1 px-3 rounded-full text-xs">
                         {singleOrderFromSalesauthorizer?.orderStatus}
                       </span>
                     ) : (
@@ -405,31 +392,31 @@ const OrdersForAuthorizer = () => {
                       Payment Status:
                     </span>
                     {singleOrderFromSalesauthorizer?.paymentStatus ===
-                      "Partial" && (
-                      <span className="text-yellow-700 bg-yellow-100 p-1 px-3 rounded-full text-xs">
-                        {singleOrderFromSalesauthorizer?.paymentStatus}
+                      "PendingDues" && (
+                      <span className="text-red-700 bg-red-100 p-1 px-3 rounded-full text-xs">
+                        Pending Dues
                       </span>
                     )}
                     {singleOrderFromSalesauthorizer?.paymentStatus ===
                       "Paid" && (
                       <span className="text-green-700 bg-green-100 p-1 px-3 rounded-full text-xs">
-                        {singleOrderFromSalesauthorizer?.paymentStatus}
+                        Paid
                       </span>
                     )}
                     {singleOrderFromSalesauthorizer?.paymentStatus ===
-                      "Unpaid" && (
-                      <span className="text-red-700 bg-red-100 p-1 px-3 rounded-full text-xs">
-                        {singleOrderFromSalesauthorizer?.paymentStatus}
+                      "ConfirmationPending" && (
+                      <span className="text-yellow-700 bg-yellow-100 p-1 px-3 rounded-full text-xs">
+                        Confirmation Pending
                       </span>
                     )}
                   </div>
+
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
                       Invoice Generated:
-                    </span>{" "}
-                    {singleOrderFromSalesauthorizer?.invoiceGenerated ===
-                    "true" ? (
-                      <span className="text-green-700 bg-green-100 p-1 px-3 rounded-full text-xs">
+                    </span>
+                    {singleOrderFromSalesauthorizer?.invoiceGenerated ? (
+                      <span className="text-green-800 bg-green-100 p-1 px-3 rounded-full text-xs">
                         Yes
                       </span>
                     ) : (
@@ -440,15 +427,7 @@ const OrdersForAuthorizer = () => {
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-2 text-sm">
-                  <h1 className="font-semibold text-base text-gray-800">
-                    Notes
-                  </h1>
-                  <p className="bg-gray-100 rounded-lg p-3">
-                    {singleOrderFromSalesauthorizer?.notes}
-                  </p>
-                </div>
-
+                {/* order timeline */}
                 <div className="flex flex-col gap-2 text-sm">
                   <h1 className="font-semibold text-base text-gray-800">
                     Order Timeline
@@ -463,8 +442,10 @@ const OrdersForAuthorizer = () => {
                     )}
                   </div>
                 </div>
+
+                {/* assigned warehouse */}
                 <div className="flex flex-col gap-2 text-sm">
-                  <div className="flex items-center justify-between">
+                  <div className="flex justify-between text-sm">
                     <h1 className="font-semibold text-base text-gray-800">
                       Assigned Warehouse
                     </h1>
@@ -483,7 +464,10 @@ const OrdersForAuthorizer = () => {
                             padding: "2px 10px",
                             borderRadius: "999px",
                           }}
-                          onClick={() => approveWarehouse(singleOrderId)}
+                          onClick={() => {
+                            approveWarehouse(singleOrderId);
+                            setOpenView(false);
+                          }}
                         >
                           Approve
                         </Button>
@@ -509,19 +493,22 @@ const OrdersForAuthorizer = () => {
                       Warehouse:
                     </span>
                     {singleOrderFromSalesauthorizer?.assignedWarehouse ? (
-                      <div className="flex flex-col items-center">
-                        {
-                          singleOrderFromSalesauthorizer?.assignedWarehouse
-                            ?.name
-                        }
-                        <span className="text-xs font-normal text-gray-600">
+                      <div className="flex items-center">
+                        <p>
+                          {
+                            singleOrderFromSalesauthorizer?.assignedWarehouse
+                              ?.name
+                          }
+                        </p>
+                        &nbsp;
+                        <p className="text-xs font-normal text-gray-600">
                           (
                           {
                             singleOrderFromSalesauthorizer?.assignedWarehouse
                               ?.location
                           }
                           )
-                        </span>
+                        </p>
                       </div>
                     ) : (
                       <span className="text-red-700 bg-red-100 p-1 px-3 rounded-full text-xs">
@@ -546,6 +533,93 @@ const OrdersForAuthorizer = () => {
                 </div>
               </div>
             </div>
+
+            {/* notes  */}
+            <div className="flex flex-col gap-2 text-sm mt-5">
+              <h1 className="font-semibold text-base text-gray-800">Notes</h1>
+              <div className="bg-yellow-50 rounded-lg p-3 w-full">
+                <p className="break-words whitespace-normal">
+                  {singleOrderFromSalesauthorizer?.notes}
+                </p>
+              </div>
+            </div>
+
+            {/* dispatch info */}
+            {singleOrderFromSalesauthorizer?.dispatchInfo && (
+              <div className="flex flex-col gap-2 text-sm bg-green-50 p-3 rounded-lg mt-5">
+                <h1 className="font-semibold text-base text-gray-800">
+                  Dispatch Info
+                </h1>
+                <div className="grid grid-cols-2 gap-5">
+                  <div className="flex flex-col gap-2 text-sm">
+                    <div className="flex items-center justify-between font-semibold">
+                      <span className="text-gray-600 font-normal">
+                        Driver Name
+                      </span>
+                      {singleOrderFromSalesauthorizer?.dispatchInfo?.driverName}
+                    </div>
+                    <div className="flex items-center justify-between font-semibold">
+                      <span className="text-gray-600 font-normal">
+                        Driver Contact
+                      </span>
+                      {
+                        singleOrderFromSalesauthorizer?.dispatchInfo
+                          ?.driverContact
+                      }
+                    </div>
+                    <div className="flex items-center justify-between font-semibold">
+                      <span className="text-gray-600 font-normal">
+                        Transport Company:
+                      </span>{" "}
+                      {
+                        singleOrderFromSalesauthorizer?.dispatchInfo
+                          ?.transportCompany
+                      }
+                    </div>
+                    <div className="flex items-center justify-between font-semibold">
+                      <span className="text-gray-600 font-normal">
+                        Vehicle Number:
+                      </span>{" "}
+                      {
+                        singleOrderFromSalesauthorizer?.dispatchInfo
+                          ?.vehicleNumber
+                      }
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2 text-sm">
+                    <div className="flex items-center justify-between font-semibold">
+                      <span className="text-gray-600 font-normal">
+                        Dispatched By:
+                      </span>{" "}
+                      {
+                        singleOrderFromSalesauthorizer?.dispatchInfo
+                          ?.dispatchedBy?.name
+                      }
+                    </div>
+                    <div className="flex items-center justify-between font-semibold">
+                      <span className="text-gray-600 font-normal">
+                        Plant Head Contact:
+                      </span>{" "}
+                      {
+                        singleOrderFromSalesauthorizer?.dispatchInfo
+                          ?.dispatchedBy?.phone
+                      }
+                    </div>
+                    <div className="flex items-center justify-between font-semibold">
+                      <span className="text-gray-600 font-normal">
+                        Dispatched Date:
+                      </span>{" "}
+                      {format(
+                        singleOrderFromSalesauthorizer?.dispatchInfo
+                          ?.dispatchDate,
+                        "dd MMM yyyy"
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

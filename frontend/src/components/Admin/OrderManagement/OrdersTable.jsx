@@ -148,6 +148,13 @@ const OrdersTable = () => {
     );
 
   const columns = [
+    {
+      field: "orderId",
+      headerName: "Order ID",
+      flex: 1,
+      minWidth: 80,
+      maxWidth: 100,
+    },
     { field: "product", headerName: "Product", flex: 1 },
     { field: "party", headerName: "Party", flex: 1 },
     { field: "date", headerName: "Date", flex: 1 },
@@ -234,10 +241,11 @@ const OrdersTable = () => {
 
   const rows = orders?.map((order) => ({
     id: order._id,
+    orderId: `#${order.orderId}`,
     party: order?.party?.companyName,
     date: format(order?.createdAt, "dd MMM yyyy"),
-    product: order?.item?.name,
-    quantity: `${order.quantity} bags`,
+    product: order?.items?.map((p) => p.product?.name).join(", "),
+    quantity: order?.items?.map((p) => `${p.quantity} bags`).join(", "),
     totalAmount: formatRupee(order.totalAmount),
     advanceAmount: formatRupee(order.advanceAmount),
     dueAmount: formatRupee(order.dueAmount),

@@ -194,16 +194,22 @@ const updatePayment = async (req, res) => {
     const newDueAmount = Number(order.dueAmount) - Number(amount);
     order.dueAmount = newDueAmount;
     order.duePaymentStatus = "SentForApproval";
+    if (order.advanceAmount > 0 && newDueAmount > 0) {
+      order.paymentStatus = "SentForConfirmation";
+    }
+    if (order.advanceAmount === order.totalAmount) {
+      order.paymentStatus = "SentForConfirmation";
+    }
 
-    let updatedBalance = Number(party.balance) + Number(amount);
+    let updatedLimit = Number(party.limit) + Number(amount);
 
-    party.balance = Number(updatedBalance);
+    party.limit = Number(updatedLimit);
 
     // Update status
-    if (newDueAmount <= 0) {
+    if (newDueAmount === 0) {
       order.paymentStatus = "Paid";
     } else {
-      order.paymentStatus = "Partial";
+      order.paymentStatus = "PendingDues";
     }
 
     order.paymentCollectedBy = salesmanId;
@@ -256,7 +262,7 @@ const getDueOrders = async (req, res) => {
       orderStatus: { $ne: "Paid" },
     })
       .populate("party", "companyName contactPersonNumber address")
-      .populate("item", "name price description category");
+      .populate("items.product", "name price description category");
 
     res.status(200).json({
       success: true,
@@ -277,7 +283,7 @@ const getAllOrder = async (req, res) => {
 
   try {
     const orders = await Order.find({ placedBy: salesmanId })
-      .populate("item", "name price description category")
+      .populate("items.product", "name price description category")
       .populate("party", "companyName contactPersonNumber address")
       .sort({ createdAt: -1 });
 
@@ -300,7 +306,7 @@ const getOrderDetails = async (req, res) => {
 
   try {
     const order = await Order.findById(orderId)
-      .populate("item", "name price category description")
+      .populate("items.product", "name price category description")
       .populate("party", "companyName address contactPersonNumber")
       .populate("placedBy", "name email")
       .populate("assignedWarehouse", "name location approved")

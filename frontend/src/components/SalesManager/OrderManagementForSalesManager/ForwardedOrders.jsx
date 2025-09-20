@@ -70,6 +70,13 @@ const ForwardedOrders = () => {
     );
 
   const columns = [
+    {
+      field: "orderId",
+      headerName: "Order ID",
+      flex: 1,
+      minWidth: 80,
+      maxWidth: 100,
+    },
     { field: "product", headerName: "Product", flex: 1 },
     { field: "party", headerName: "Party", flex: 1 },
     { field: "date", headerName: "Date", flex: 1 },
@@ -158,10 +165,11 @@ const ForwardedOrders = () => {
 
   const rows = ForwardedOrdersInSalesManager?.map((order) => ({
     id: order._id,
+    orderId: `#${order.orderId}`,
     party: order?.party?.companyName,
     date: format(order?.createdAt, "dd MMM yyyy"),
-    product: order?.item?.name,
-    quantity: `${order.quantity} bags`,
+    product: order?.items?.map((p) => p.product?.name).join(", "),
+    quantity: order?.items?.map((p) => `${p.quantity} bags`).join(", "),
     totalAmount: formatRupee(order.totalAmount),
     advanceAmount: formatRupee(order.advanceAmount),
     dueAmount: formatRupee(order.dueAmount),
@@ -210,34 +218,55 @@ const ForwardedOrders = () => {
       {/* --- View Order Modal --- */}
       {openView && (
         <div className="transition-all bg-black/30 backdrop-blur-sm w-full z-50 h-screen absolute top-0 left-0 flex items-center justify-center">
-          <div className="bg-white relative p-7 rounded-lg w-[50%] h-[75%] overflow-auto">
+          <div className="bg-white relative p-7 rounded-lg max-w-[50%] min-w-[45%] max-h-[95%] overflow-auto">
             <div className="mb-5">
               <div className="flex items-center justify-between">
                 <p className="text-xl font-bold">Order Details</p>
-                {singleOrderFromSalesManager?.orderStatus === "Placed" && (
-                  <Button
-                    disabled={!user.isActive}
-                    onClick={() =>
-                      handleForwardOrder(singleOrderFromSalesManager?._id)
-                    }
-                    variant="outlined"
-                    size="small"
-                    disableElevation
-                    sx={{
-                      borderRadius: "999px",
-                      textTransform: "none",
-                      fontSize: "14px",
-                    }}
-                  >
-                    Forward to Authorizer
-                  </Button>
-                )}
-
                 <IconButton size="small" onClick={() => setOpenView(false)}>
                   <CloseIcon />
                 </IconButton>
               </div>
             </div>
+
+            {/* products table */}
+            <div className="relative overflow-x-auto mb-5 max-h-52">
+              <table className="w-full text-sm text-left text-gray-500 overflow-auto">
+                <thead className="sticky top-0 bg-gray-100 text-gray-800 z-10">
+                  <tr>
+                    <th scope="col" className="px-6 py-3">
+                      Product Name
+                    </th>
+                    <th scope="col" className="px-6 py-3">
+                      Category
+                    </th>
+                    <th scope="col" className="px-6 py-3">
+                      Price/bag
+                    </th>
+                    <th scope="col" className="px-6 py-3">
+                      Quantity
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="text-sm">
+                  {singleOrderFromSalesManager?.items?.map((item) => (
+                    <tr className="bg-white border-b border-gray-200">
+                      <th
+                        scope="row"
+                        className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap"
+                      >
+                        {item?.product?.name}
+                      </th>
+                      <td className="px-6 py-4">{item?.product?.category}</td>
+                      <td className="px-6 py-4">
+                        {formatRupee(item?.product?.price)}
+                      </td>
+                      <td className="px-6 py-4">{item?.quantity} bags</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
             <div className="grid grid-cols-2 gap-7">
               <div className="flex flex-col gap-5">
                 <div className="flex flex-col gap-2 text-sm">
@@ -246,30 +275,14 @@ const ForwardedOrders = () => {
                   </h1>
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
-                      Product Category:
-                    </span>{" "}
-                    {singleOrderFromSalesManager?.item?.category}
-                  </div>
-                  <div className="flex items-center justify-between font-semibold">
-                    <span className="text-gray-600 font-normal">
-                      Product Name:
-                    </span>{" "}
-                    {singleOrderFromSalesManager?.item?.name}
-                  </div>
-                  <div className="flex items-center justify-between font-semibold">
-                    <span className="text-gray-600 font-normal">Quantity:</span>{" "}
-                    {singleOrderFromSalesManager?.quantity} kg
-                  </div>
-                  <div className="flex items-center justify-between font-semibold">
-                    <span className="text-gray-600 font-normal">
                       Placed By:
-                    </span>{" "}
+                    </span>
                     {singleOrderFromSalesManager?.placedBy?.name}
                   </div>
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
                       Placed Date:
-                    </span>{" "}
+                    </span>
                     {format(
                       singleOrderFromSalesManager?.createdAt,
                       "dd MMM yyyy"
@@ -289,26 +302,26 @@ const ForwardedOrders = () => {
                   <div className="flex items-center justify-between font-semibold text-green-700">
                     <span className="text-gray-600 font-normal">
                       Advance Amount:
-                    </span>{" "}
+                    </span>
                     {formatRupee(singleOrderFromSalesManager?.advanceAmount)}
                   </div>
                   <div className="flex items-center justify-between font-semibold text-red-700">
                     <span className="text-gray-600 font-normal">
                       Due Amount:
-                    </span>{" "}
+                    </span>
                     {formatRupee(singleOrderFromSalesManager?.dueAmount)}
                   </div>
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
                       Payment Mode:
-                    </span>{" "}
+                    </span>
                     {singleOrderFromSalesManager?.paymentMode}
                   </div>
                   {singleOrderFromSalesManager?.dueAmount !== 0 && (
                     <div className="flex items-center justify-between font-semibold">
                       <span className="text-gray-600 font-normal">
                         Due Date:
-                      </span>{" "}
+                      </span>
                       {format(
                         singleOrderFromSalesManager?.dueDate,
                         "dd MMM yyyy"
@@ -326,10 +339,15 @@ const ForwardedOrders = () => {
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
                       Order Status:
-                    </span>{" "}
+                    </span>
                     {singleOrderFromSalesManager?.orderStatus ===
                     "Delivered" ? (
                       <span className="text-green-700 bg-green-100 p-1 px-3 rounded-full text-xs">
+                        {singleOrderFromSalesManager?.orderStatus}
+                      </span>
+                    ) : singleOrderFromSalesManager?.orderStatus ===
+                      "Cancelled" ? (
+                      <span className="text-red-700 bg-red-100 p-1 px-3 rounded-full text-xs">
                         {singleOrderFromSalesManager?.orderStatus}
                       </span>
                     ) : (
@@ -343,30 +361,29 @@ const ForwardedOrders = () => {
                       Payment Status:
                     </span>
                     {singleOrderFromSalesManager?.paymentStatus ===
-                      "Partial" && (
-                      <span className="text-yellow-700 bg-yellow-100 p-1 px-3 rounded-full text-xs">
-                        {singleOrderFromSalesManager?.paymentStatus}
+                      "PendingDues" && (
+                      <span className="text-red-700 bg-red-100 p-1 px-3 rounded-full text-xs">
+                        Pending Dues
                       </span>
                     )}
                     {singleOrderFromSalesManager?.paymentStatus === "Paid" && (
                       <span className="text-green-700 bg-green-100 p-1 px-3 rounded-full text-xs">
-                        {singleOrderFromSalesManager?.paymentStatus}
+                        Paid
                       </span>
                     )}
                     {singleOrderFromSalesManager?.paymentStatus ===
-                      "Unpaid" && (
-                      <span className="text-red-700 bg-red-100 p-1 px-3 rounded-full text-xs">
-                        {singleOrderFromSalesManager?.paymentStatus}
+                      "ConfirmationPending" && (
+                      <span className="text-yellow-700 bg-yellow-100 p-1 px-3 rounded-full text-xs">
+                        Confirmation Pending
                       </span>
                     )}
                   </div>
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
                       Invoice Generated:
-                    </span>{" "}
-                    {singleOrderFromSalesManager?.invoiceGenerated ===
-                    "true" ? (
-                      <span className="text-green-700 bg-green-100 p-1 px-3 rounded-full text-xs">
+                    </span>
+                    {singleOrderFromSalesManager?.invoiceGenerated ? (
+                      <span className="text-green-800 bg-green-100 p-1 px-3 rounded-full text-xs">
                         Yes
                       </span>
                     ) : (
@@ -381,54 +398,110 @@ const ForwardedOrders = () => {
                   <h1 className="font-semibold text-base text-gray-800">
                     Notes
                   </h1>
-                  <p className="bg-gray-100 rounded-lg p-3">
+                  <p className="bg-green-50 rounded-lg p-3">
                     {singleOrderFromSalesManager?.notes}
                   </p>
                 </div>
-
-                <div className="flex flex-col gap-2 text-sm">
-                  <h1 className="font-semibold text-base text-gray-800">
-                    Order Timeline
-                  </h1>
-                  <div className="flex items-center justify-between font-semibold">
-                    <span className="text-gray-600 font-normal">
-                      Order Placed On:
-                    </span>{" "}
-                    {format(
-                      singleOrderFromSalesManager?.createdAt,
-                      "dd MMM yyyy"
-                    )}
-                  </div>
-                </div>
-                <div className="flex flex-col gap-2 text-sm">
-                  <h1 className="font-semibold text-base text-gray-800">
-                    Assigned Warehouse
-                  </h1>
-                  <div className="flex items-center justify-between font-semibold">
-                    <span className="text-gray-600 font-normal">
-                      Warehouse:
-                    </span>
-                    {singleOrderFromSalesManager?.assignedWarehouse ? (
-                      <div className="flex flex-col items-center">
+              </div>
+            </div>
+            {singleOrderFromSalesManager?.assignedWarehouse && (
+              <div className="flex flex-col text-sm my-5">
+                <h1 className="font-semibold text-base text-gray-800">
+                  Assigned Warehouse
+                </h1>
+                <div className="flex items-center justify-between font-semibold">
+                  <span className="text-gray-600 font-normal">Warehouse:</span>
+                  {singleOrderFromSalesManager?.assignedWarehouse ? (
+                    <div className="flex items-center">
+                      <p>
                         {singleOrderFromSalesManager?.assignedWarehouse?.name}
-                        <span className="text-xs font-normal text-gray-600">
-                          (
-                          {
-                            singleOrderFromSalesManager?.assignedWarehouse
-                              ?.location
-                          }
-                          )
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-red-700 bg-red-100 p-1 px-3 rounded-full text-xs">
-                        Not Assigned
+                      </p>
+                      &nbsp;
+                      <p className="text-xs font-normal text-gray-600">
+                        (
+                        {
+                          singleOrderFromSalesManager?.assignedWarehouse
+                            ?.location
+                        }
+                        )
+                      </p>
+                    </div>
+                  ) : (
+                    <span className="text-red-700 bg-red-100 p-1 px-3 rounded-full text-xs">
+                      Not Assigned
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+            {singleOrderFromSalesManager?.dispatchInfo && (
+              <div className="flex flex-col gap-2 text-sm bg-green-50 p-3 rounded-lg mt-5">
+                <h1 className="font-semibold text-base text-gray-800">
+                  Dispatch Info
+                </h1>
+                <div className="grid grid-cols-2 gap-5">
+                  <div className="flex flex-col gap-2 text-sm">
+                    <div className="flex items-center justify-between font-semibold">
+                      <span className="text-gray-600 font-normal">
+                        Driver Name
                       </span>
-                    )}
+                      {singleOrderFromSalesManager?.dispatchInfo?.driverName}
+                    </div>
+                    <div className="flex items-center justify-between font-semibold">
+                      <span className="text-gray-600 font-normal">
+                        Driver Contact
+                      </span>
+                      {singleOrderFromSalesManager?.dispatchInfo?.driverContact}
+                    </div>
+                    <div className="flex items-center justify-between font-semibold">
+                      <span className="text-gray-600 font-normal">
+                        Transport Company:
+                      </span>{" "}
+                      {
+                        singleOrderFromSalesManager?.dispatchInfo
+                          ?.transportCompany
+                      }
+                    </div>
+                    <div className="flex items-center justify-between font-semibold">
+                      <span className="text-gray-600 font-normal">
+                        Vehicle Number:
+                      </span>{" "}
+                      {singleOrderFromSalesManager?.dispatchInfo?.vehicleNumber}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2 text-sm">
+                    <div className="flex items-center justify-between font-semibold">
+                      <span className="text-gray-600 font-normal">
+                        Dispatched By:
+                      </span>{" "}
+                      {
+                        singleOrderFromSalesManager?.dispatchInfo?.dispatchedBy
+                          ?.name
+                      }
+                    </div>
+                    <div className="flex items-center justify-between font-semibold">
+                      <span className="text-gray-600 font-normal">
+                        Plant Head Contact:
+                      </span>{" "}
+                      {
+                        singleOrderFromSalesManager?.dispatchInfo?.dispatchedBy
+                          ?.phone
+                      }
+                    </div>
+                    <div className="flex items-center justify-between font-semibold">
+                      <span className="text-gray-600 font-normal">
+                        Dispatched Date:
+                      </span>{" "}
+                      {format(
+                        singleOrderFromSalesManager?.dispatchInfo?.dispatchDate,
+                        "dd MMM yyyy"
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       )}

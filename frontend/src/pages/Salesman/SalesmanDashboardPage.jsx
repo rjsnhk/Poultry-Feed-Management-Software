@@ -9,7 +9,7 @@ import {
   TextField,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { useProduct } from "../../hooks/useProduct";
 import { CircularProgress } from "@mui/material";
 import { formatRupee } from "../../utils/formatRupee";
@@ -19,13 +19,17 @@ import { useSalesmanOrder } from "../../hooks/useSalesmanOrder";
 import DueOrdersForSalesman from "../../components/Salesman/OrderManagement/DueOrdersForSalesman";
 import { format } from "date-fns";
 import { useUser } from "../../hooks/useUser";
+import { CircleX } from "lucide-react";
 
 const SalesmanDashboardPage = () => {
-  const [price, setPrice] = useState(0);
+  const [discount, setDiscount] = useState(0);
+  const [discountError, setDiscountError] = useState("");
   const [totalAmount, setTotalAmount] = useState(0);
   const [error, setError] = useState("");
   const [dueDateError, setDueDateError] = useState("");
+  const [duplicateError, setDuplicateError] = useState("");
   const [selectedParty, setSelectedParty] = useState({});
+  console.log(discount);
 
   const { user } = useUser();
 
@@ -43,35 +47,36 @@ const SalesmanDashboardPage = () => {
     formState: { errors },
     control,
     watch,
-  } = useForm();
+  } = useForm({
+    defaultValues: {
+      items: [{ product: "", quantity: 1 }],
+    },
+  });
 
+  const { fields, append, remove } = useFieldArray({
+    control,
+    name: "items",
+  });
+
+  //advance amount docs
   const advanceAmountDocs = watch("advanceAmountDocs");
   const advanceAmountFile = advanceAmountDocs ? advanceAmountDocs[0] : null;
 
-  const selectedProductId = watch("item");
+  //items
+  const items = watch("items");
   useEffect(() => {
-    const selectedProduct = allProducts?.find(
-      (product) => product._id === selectedProductId
-    );
-    setPrice(selectedProduct?.price);
-  }, [selectedProductId]);
+    if (!items || !allProducts) return;
 
-  const quantity = watch("quantity");
-  useEffect(() => {
-    const total = price * quantity;
+    const total = items.reduce((sum, item) => {
+      const product = allProducts.find((p) => p._id === item.product);
+      if (!product) return sum;
+      return sum + product.price * (Number(item.quantity) || 0);
+    }, 0);
+
     setTotalAmount(total);
-  }, [quantity]);
+  }, [items, allProducts]);
 
-  const advanceAmount = watch("advanceAmount");
-  const dueAmount = totalAmount - advanceAmount;
-  useEffect(() => {
-    if (advanceAmount > totalAmount) {
-      setError("Advance cannot be greater than total amount");
-    } else {
-      setError("");
-    }
-  }, [totalAmount, advanceAmount]);
-
+  //selected party
   const selectedPartyId = watch("party");
   useEffect(() => {
     const Party = approvedParties?.find(
@@ -80,8 +85,8 @@ const SalesmanDashboardPage = () => {
     setSelectedParty(Party);
   }, [selectedPartyId]);
 
+  //due date
   const dueDate = watch("dueDate");
-
   useEffect(() => {
     if (dueDate < format(new Date(), "yyyy-MM-dd")) {
       setDueDateError("Due Date cannot be in past");
@@ -92,6 +97,35 @@ const SalesmanDashboardPage = () => {
     }
   }, [dueDate]);
 
+  //discount
+  let enteredDiscount = watch("discount");
+  useEffect(() => {
+    if (enteredDiscount < 0 || enteredDiscount > 100) {
+      setDiscountError("Discount must be between 0 and 100");
+    } else {
+      setDiscount(Number(enteredDiscount));
+    }
+    if (enteredDiscount >= 0 && enteredDiscount <= 100) {
+      setDiscountError("");
+    }
+  }, [enteredDiscount]);
+
+  let finalTotalAmount = totalAmount - (totalAmount * discount) / 100;
+
+  //advance amount
+  const advanceAmount = watch("advanceAmount");
+  const dueAmount = finalTotalAmount - advanceAmount;
+  useEffect(() => {
+    if (advanceAmount > finalTotalAmount) {
+      setError("Advance cannot be greater than total amount");
+    } else {
+      setError("");
+    }
+    // if (advanceAmount >= 0 && advanceAmount <= finalTotalAmount) {
+    //   setError("");
+    // }
+  }, [finalTotalAmount, advanceAmount]);
+
   const [openForm, setOpenForm] = useState(false);
 
   const orderTypes = ["All Orders", "Due Orders"];
@@ -99,19 +133,15 @@ const SalesmanDashboardPage = () => {
 
   const onSubmit = (data) => {
     const formData = new FormData();
-    formData.append("item", data.item);
     formData.append("party", JSON.stringify(selectedParty));
     formData.append("quantity", data.quantity);
     formData.append("advanceAmount", data.advanceAmount);
     formData.append("dueDate", data.dueDate);
+    formData.append("discount", data.discount);
     formData.append("paymentMode", data.paymentMode);
     formData.append("notes", data.notes);
     formData.append("advanceAmountDocs", advanceAmountFile);
-
-    for (let [key, value] of formData.entries()) {
-      console.log(key, value);
-    }
-
+    formData.append("items", JSON.stringify(data.items));
     createOrder(formData, { onSuccess: () => setOpenForm(false) });
   };
 
@@ -180,26 +210,26 @@ const SalesmanDashboardPage = () => {
                       Party Information
                     </h1>
 
-                    {!isNaN(selectedParty?.balance) && (
+                    {!isNaN(selectedParty?.limit) && (
                       <div>
-                        {selectedParty?.balance > 666666 && (
+                        {selectedParty?.limit > 666666 && (
                           <span className="text-green-600 text-sm font-semibold">
-                            Max Loan: {formatRupee(selectedParty?.balance)}
+                            Limit: {formatRupee(selectedParty?.limit)}
                           </span>
                         )}
-                        {selectedParty?.balance < 666666 && (
+                        {selectedParty?.limit < 666666 && (
                           <span className="text-yellow-600 text-sm font-semibold">
-                            Max Loan: {formatRupee(selectedParty?.balance)}
+                            Limit: {formatRupee(selectedParty?.limit)}
                           </span>
                         )}
-                        {selectedParty?.balance < 333333 && (
+                        {selectedParty?.limit < 333333 && (
                           <span className="text-orange-600 text-sm font-semibold">
-                            Max Loan: {formatRupee(selectedParty?.balance)}
+                            Limit: {formatRupee(selectedParty?.limit)}
                           </span>
                         )}
-                        {selectedParty?.balance < 100000 && (
+                        {selectedParty?.limit < 100000 && (
                           <span className="text-red-600 text-sm font-semibold">
-                            Max Loan: {formatRupee(selectedParty?.balance)}
+                            Limit: {formatRupee(selectedParty?.limit)}
                           </span>
                         )}
                       </div>
@@ -243,66 +273,129 @@ const SalesmanDashboardPage = () => {
                     <h1 className="font-semibold text-gray-800 mb-3">
                       Product Information
                     </h1>
-                    {!isNaN(totalAmount) && (
+                    {!isNaN(finalTotalAmount) && (
                       <span className="text-blue-600 text-sm font-semibold">
-                        Total: {formatRupee(totalAmount)}
+                        Total: {formatRupee(finalTotalAmount)}
                       </span>
                     )}
                   </div>
-                  <div className="space-y-5">
-                    <FormControl
-                      fullWidth
-                      size="small"
-                      error={!!errors.item}
-                      className="mb-4"
-                    >
-                      <InputLabel id="item-label">Product</InputLabel>
-                      <Controller
-                        name="item"
-                        control={control}
-                        rules={{ required: "Product is required" }}
-                        render={({ field }) => (
-                          <Select
-                            {...field}
-                            labelId="item-label"
-                            id="item"
-                            label="Product"
-                          >
-                            <MenuItem>Select Product</MenuItem>
-                            {allProducts?.map((product) => (
-                              <MenuItem key={product._id} value={product._id}>
-                                {product.name} ({formatRupee(product.price)}{" "}
-                                M.R.P / bag)
-                              </MenuItem>
-                            ))}
-                          </Select>
+                  <div>
+                    {fields.map((field, index) => (
+                      <div
+                        key={field.id}
+                        className="flex gap-3 items-center mb-3"
+                      >
+                        {/* Product Select */}
+                        <Controller
+                          name={`items.${index}.product`}
+                          control={control}
+                          rules={{ required: "Product is required" }}
+                          render={({ field }) => (
+                            <FormControl size="small" fullWidth>
+                              <InputLabel>Product</InputLabel>
+                              <Select
+                                {...field}
+                                label="Product"
+                                onChange={(e) => {
+                                  const selectedProduct = e.target.value;
+                                  const product = allProducts.filter(
+                                    (item) => item._id === selectedProduct
+                                  );
+                                  console.log(product);
+                                  const isDuplicate = fields.some(
+                                    (item, i) =>
+                                      item.product === selectedProduct &&
+                                      i !== index
+                                  );
+                                  if (isDuplicate) {
+                                    setDuplicateError(
+                                      `${product[0].name} is already added`
+                                    );
+                                    return;
+                                  }
+                                  field.onChange(e);
+                                  setDuplicateError("");
+                                }}
+                              >
+                                <MenuItem value="">Select Product</MenuItem>
+                                {allProducts?.map((product) => (
+                                  <MenuItem
+                                    key={product?._id}
+                                    value={product?._id}
+                                  >
+                                    {product?.name} (
+                                    {formatRupee(product?.price)})
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          )}
+                        />
+
+                        {/* Quantity Input */}
+                        <TextField
+                          size="small"
+                          type="number"
+                          label="Quantity"
+                          {...register(`items.${index}.quantity`, {
+                            required: "Quantity required",
+                            min: 1,
+                          })}
+                        />
+
+                        {/* Remove Button */}
+                        {fields.length > 1 && (
+                          <CircleX
+                            onClick={() => remove(index)}
+                            size={35}
+                            className="cursor-pointer text-red-600 active:scale-95 transition-all"
+                          />
                         )}
-                      />
-                      {errors?.item && (
-                        <span className="text-red-600 text-xs mt-1">
-                          {errors.item.message}
-                        </span>
-                      )}
-                    </FormControl>
-                    <div>
+                      </div>
+                    ))}
+                    {duplicateError && (
+                      <p className="mb-1 text-sm text-red-600">
+                        {duplicateError}
+                      </p>
+                    )}
+                    {/* Add More Product Button */}
+                    <Button
+                      fullWidth
+                      color="success"
+                      size="small"
+                      variant="contained"
+                      disableElevation
+                      onClick={() => append({ product: "", quantity: 1 })}
+                    >
+                      Add Product
+                    </Button>
+
+                    <div className="mt-5">
                       <TextField
-                        error={!!errors.quantity}
+                        error={!!errors.discount}
                         size="small"
                         fullWidth
+                        helperText={
+                          errors.discount && (
+                            <p className="text-red-600 text-xs mt-1">
+                              {errors.discount.message}
+                            </p>
+                          )
+                        }
                         type="number"
                         id="outlined-basic"
-                        label="Quantity in bags"
+                        label="Discount (%)"
                         variant="outlined"
-                        {...register("quantity", {
+                        {...register("discount", {
                           required: {
                             value: true,
-                            message: "Quantity is required",
+                            message: "Discount is required, enter 0 if null",
                           },
                         })}
                       />
-                      {errors.quantity && (
-                        <p className="text-red-600 text-xs mt-1">
-                          {errors.quantity.message}
+                      {discountError && (
+                        <p className="mb-1 text-sm text-red-600">
+                          {discountError}
                         </p>
                       )}
                     </div>

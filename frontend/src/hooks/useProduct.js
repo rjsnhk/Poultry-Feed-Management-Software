@@ -81,6 +81,9 @@ export const useProduct = (warehouseId) => {
       queryClient.invalidateQueries({
         queryKey: ["allProducts"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["warehouses"],
+      });
       toast.success("Product added successfully");
     },
     onError: (error) => {
@@ -108,6 +111,9 @@ export const useProduct = (warehouseId) => {
       });
       queryClient.invalidateQueries({
         queryKey: ["allProducts"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["warehouses"],
       });
       toast.success("Product deleted successfully");
     },
@@ -142,6 +148,9 @@ export const useProduct = (warehouseId) => {
       });
       queryClient.invalidateQueries({
         queryKey: ["product", warehouseId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["warehouses"],
       });
       toast.success("Product added successfully");
     },

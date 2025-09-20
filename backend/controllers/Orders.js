@@ -3,24 +3,26 @@ const imagekit = require("../config/imagekit.js");
 const Product = require("../models/Product");
 const Party = require("../models/Party.js");
 const WareHouse = require("../models/WareHouse.js");
+const getNextOrderId = require("../helper/getNextOrderId");
 
 const createOrder = async (req, res) => {
   try {
     const {
-      item, // product ID
-      quantity,
+      items,
       advanceAmount,
       dueDate,
       paymentMode,
       notes,
-      party, // { companyName, contactPersonNumber, address }
+      party,
+      discount,
     } = req.body;
 
+    const orderId = await getNextOrderId();
     const parsedParty = JSON.parse(party);
+    const parsedItems = JSON.parse(items);
+    const placedBy = req.user.id;
 
-    const placedBy = req.user.id; // from auth middleware
-
-    // Validate party fields
+    // ✅ Validate party fields
     if (
       !parsedParty?.companyName ||
       !parsedParty?.contactPersonNumber ||
@@ -32,77 +34,92 @@ const createOrder = async (req, res) => {
       });
     }
 
+    // ✅ Handle advance payment proof
     let advancePaymentProof;
     if (req.file?.buffer) {
       advancePaymentProof = await imagekit.upload({
-        file: req.file?.buffer,
+        file: req.file.buffer,
         fileName: req.file.originalname,
         folder: "/advanceAmountDocs",
       });
     }
 
-    // Check product existence
-    const product = await Product.findById(item);
-    if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
+    // ✅ Validate products + calculate total
+    let totalAmount = 0;
+    for (const i of parsedItems) {
+      const product = await Product.findById(i.product);
+      if (!product) {
+        return res.status(404).json({
+          success: false,
+          message: `Product with id ${i.product} not found`,
+        });
+      }
+      totalAmount += i.quantity * product.price;
     }
 
-    // Calculate amounts
-    const totalAmount = quantity * product.price;
+    // Apply discount (if any)
+    if (discount > 0) {
+      totalAmount = totalAmount - (totalAmount * discount) / 100;
+    }
+
+    // ✅ Calculate advance + due
     const advance = Number(advanceAmount) || 0;
-    const dueAmount = totalAmount - advance;
+    const dueAmount = Number(totalAmount) - advance;
 
+    // ✅ Determine payment statuses
     let paymentStatus;
-    if (totalAmount === advance) {
-      paymentStatus = "Paid";
-    } else if (
-      advance > 0 &&
-      advance < totalAmount &&
-      dueAmount > 0 &&
-      dueAmount < totalAmount
-    ) {
-      paymentStatus = "Partial";
-    } else {
-      paymentStatus = "Unpaid";
-    }
-
+    let advancePaymentStatus;
     let duePaymentStatus;
-    if (dueAmount > 0) {
+
+    if (advance === totalAmount && dueAmount === 0) {
+      paymentStatus = "ConfirmationPending";
+      advancePaymentStatus = "Pending";
+    } else if (advance > 0 && advance < totalAmount && dueAmount > 0) {
+      paymentStatus = "PendingDues";
+      advancePaymentStatus = "Pending";
+      duePaymentStatus = "Pending";
+    } else if (advance === 0 && dueAmount > 0) {
+      paymentStatus = "PendingDues";
+      advancePaymentStatus = "Pending";
       duePaymentStatus = "Pending";
     }
 
-    let advancePaymentStatus;
-    if (advance > 0 && advancePaymentProof) {
-      advancePaymentStatus = "Pending";
-    }
+    let duePaymentMode = dueAmount > 0 ? "Not Paid" : null;
 
-    //update party max loan amount
+    // ✅ Update Party balance (loan/credit limit)
     await Party.findByIdAndUpdate(parsedParty._id, {
-      balance: parsedParty.balance - dueAmount,
+      limit: Number(parsedParty.limit) - Number(dueAmount),
     });
 
+    console.log(paymentMode);
+
+    // ✅ Build Order object
     const orderItems = {
-      item,
-      quantity,
+      orderId,
+      items: parsedItems.map((i) => ({
+        product: i.product,
+        quantity: i.quantity,
+      })),
       totalAmount,
       advanceAmount: advance,
       dueAmount,
       dueDate,
       paymentMode,
-      advancePaymentStatus,
-      duePaymentStatus,
+      duePaymentMode,
       notes,
       paymentStatus,
+      advancePaymentStatus,
+      duePaymentStatus,
       placedBy,
+      discount,
       party: parsedParty,
     };
 
     if (advancePaymentProof) {
       orderItems.advancePaymentDoc = advancePaymentProof.url;
     }
+
+    console.log(orderItems);
 
     const newOrder = await orderModel.create(orderItems);
 
@@ -112,6 +129,7 @@ const createOrder = async (req, res) => {
       data: newOrder,
     });
   } catch (err) {
+    console.error("Error creating order:", err);
     res.status(500).json({
       success: false,
       message: "Failed to create order",
@@ -140,7 +158,7 @@ const getAllOrder = async (req, res) => {
   try {
     const orders = await orderModel
       .find()
-      .populate("item", "name category price")
+      .populate("items.product", "name category price")
       .populate(orderPopulateFields)
       .sort({ createdAt: -1 });
 
@@ -150,6 +168,7 @@ const getAllOrder = async (req, res) => {
       data: orders,
     });
   } catch (err) {
+    console.log(err.message);
     res.status(500).json({
       success: false,
       message: "Error fetching orders",
@@ -163,7 +182,7 @@ const getOrderDetails = async (req, res) => {
   try {
     const order = await orderModel
       .findById(req.params.id)
-      .populate("item", "name category price")
+      .populate("items.product", "name category price")
       .populate(orderPopulateFields);
 
     if (!order) {
@@ -246,10 +265,10 @@ const getOrdersToApprove = async (req, res) => {
   try {
     const orders = await orderModel
       .find({ orderStatus: "WarehouseAssigned" })
-      .populate("item", "name category price")
-      .populate("placedBy", "name email") // Optional: get salesman info
-      .populate("assignedWarehouse", "name location") // Optional: get warehouse info
-      .populate("party", "name contactPerson") // Optional: party info
+      .populate("items.product", "name category price")
+      .populate("placedBy", "name email")
+      .populate("assignedWarehouse", "name location")
+      .populate("party", "name contactPerson")
       .sort({ createdAt: -1 });
 
     if (!orders.length) {
@@ -288,7 +307,7 @@ const approveOrderToWarehouse = async (req, res) => {
     }
 
     // Find order
-    const order = await orderModel.findById(orderId);
+    const order = await orderModel.findById(orderId).populate("items.product");
     if (!order) {
       return res.status(404).json({
         success: false,
@@ -304,7 +323,10 @@ const approveOrderToWarehouse = async (req, res) => {
       });
     }
 
-    const warehouse = await WareHouse.findById(order.assignedWarehouse);
+    // Get assigned warehouse
+    const warehouse = await WareHouse.findById(
+      order.assignedWarehouse
+    ).populate("stock.product");
     if (!warehouse) {
       return res.status(404).json({
         success: false,
@@ -312,22 +334,51 @@ const approveOrderToWarehouse = async (req, res) => {
       });
     }
 
-    const item = warehouse.stock.find((item) => {
-      return String(item.product._id) === String(order.item);
+    let insufficientStock = [];
+
+    // Step 1: Check all items availability
+    order.items.forEach((orderItem) => {
+      const stockItem = warehouse.stock.find(
+        (s) => String(s.product._id) === String(orderItem.product._id)
+      );
+
+      if (!stockItem || stockItem.quantity < orderItem.quantity) {
+        insufficientStock.push({
+          product: orderItem.product.name,
+          requested: orderItem.quantity,
+          available: stockItem ? stockItem.quantity : 0,
+        });
+      }
     });
 
-    item.quantity = item.quantity - order.quantity;
+    // Agar stock nahi hai toh error
+    if (insufficientStock.length > 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Insufficient stock in warehouse",
+        insufficientStock,
+      });
+    }
 
-    // Approve order
+    // Step 2: Reduce stock quantities
+    order.items.forEach((orderItem) => {
+      const stockItem = warehouse.stock.find(
+        (s) => String(s.product._id) === String(orderItem.product._id)
+      );
+      stockItem.quantity -= orderItem.quantity;
+    });
+
+    // Step 3: Approve order
     order.orderStatus = "Approved";
     order.approvedBy = AuthorizerId;
+
     if (order.advanceAmount > 0 && order.advancePaymentDoc) {
       order.advancePaymentStatus = "SentForApproval";
       order.advancePaymentApprovalSentTo = warehouse.accountant;
     }
-    await order.save();
 
     await warehouse.save();
+    await order.save();
 
     res.status(200).json({
       success: true,

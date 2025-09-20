@@ -95,7 +95,7 @@ const getAllOrders = async (req, res) => {
     })
       .populate("party", "companyName address contactPersonNumber")
       .populate("placedBy", "name email")
-      .populate("item", "name category");
+      .populate("items.product", "name category");
 
     res.status(200).json({ success: true, data: orders });
   } catch (err) {
@@ -114,7 +114,7 @@ const getOrderDetails = async (req, res) => {
       .populate("party", "companyName address contactPersonNumber")
       .populate("placedBy", "name email")
       .populate("assignedWarehouse", "name location")
-      .populate("item", "name category")
+      .populate("items.product", "name category price description")
       .populate("dispatchInfo.dispatchedBy", "name email");
 
     if (!order) {
@@ -285,7 +285,7 @@ const getDispatchedOrders = async (req, res) => {
         "dispatchInfo.dispatchedBy": plantHeadId,
         orderStatus: "Dispatched",
       })
-      .populate("item", "name category description")
+      .populate("items.product", "name category description")
       .populate("party", "companyName address contactPersonNumber")
       .populate("placedBy", "name");
 

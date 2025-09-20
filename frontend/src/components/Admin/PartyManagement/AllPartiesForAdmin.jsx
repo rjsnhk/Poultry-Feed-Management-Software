@@ -25,7 +25,7 @@ const AllPartiesForAdmin = ({ party }) => {
       companyName: party.companyName,
       contactPersonNumber: party.contactPersonNumber,
       address: party.address,
-      discount: party.discount,
+      limit: party.limit,
     },
   });
 
@@ -38,8 +38,6 @@ const AllPartiesForAdmin = ({ party }) => {
       },
     });
   };
-
-  const pendingDue = 1000000 - party.balance;
 
   return (
     <div className="shadow bg-white lg:rounded-lg lg:p-4 lg:flex lg:flex-col justify-between hover:shadow-md transition-all">
@@ -109,23 +107,9 @@ const AllPartiesForAdmin = ({ party }) => {
             </div>
             <div className="flex items-center justify-between font-semibold">
               <span className="text-gray-600 font-normal text-right">
-                Discount:
+                Limit:
               </span>
-              {party?.discount}%
-            </div>
-            <div className="flex items-center justify-between font-semibold">
-              <span className="text-gray-600 font-normal text-right">
-                Balance:
-              </span>
-              {formatRupee(party?.balance)}
-            </div>
-            <div className="flex items-center justify-between font-semibold">
-              <span className="text-gray-600 font-normal text-right">
-                Pending Due:
-              </span>
-              <span className="text-red-600 font-semibold">
-                {formatRupee(pendingDue)}
-              </span>
+              {formatRupee(party?.limit)}
             </div>
           </div>
         </div>
@@ -193,41 +177,42 @@ const AllPartiesForAdmin = ({ party }) => {
                   </span>
                 )}
               </div>
-              <div>
-                <TextField
-                  size="small"
-                  fullWidth
-                  id="outlined-basic"
-                  label="Address"
-                  variant="outlined"
-                  {...register("address", {
-                    required: { value: true, message: "Address is required" },
-                  })}
-                />
-                {errors.address && (
-                  <span className="text-red-500 text-xs mt-1">
-                    {errors.address.message}
-                  </span>
-                )}
-              </div>
-              <div>
-                <TextField
-                  error={!!errors.discount}
-                  size="small"
-                  fullWidth
-                  id="outlined-basic"
-                  label="Discount"
-                  variant="outlined"
-                  {...register("discount", {
-                    required: { value: true, message: "Discount is required" },
-                  })}
-                />
-                {errors.discount && (
-                  <span className="text-red-500 text-xs mt-1">
-                    {errors.discount.message}
-                  </span>
-                )}
-              </div>
+              <TextField
+                size="small"
+                fullWidth
+                id="outlined-basic"
+                label="Address"
+                variant="outlined"
+                helperText={
+                  errors.address && (
+                    <span className="text-red-500 text-xs mt-1">
+                      {errors.address.message}
+                    </span>
+                  )
+                }
+                {...register("address", {
+                  required: { value: true, message: "Address is required" },
+                })}
+              />
+              <TextField
+                error={!!errors.discount}
+                size="small"
+                fullWidth
+                id="outlined-basic"
+                label="Limit"
+                helperText={
+                  errors.limit && (
+                    <span className="text-red-500 text-xs mt-1">
+                      {errors.limit.message}
+                    </span>
+                  )
+                }
+                variant="outlined"
+                {...register("limit", {
+                  required: { value: true, message: "Limit is required" },
+                })}
+              />
+
               <div className="flex items-center justify-end gap-3 mt-5">
                 <Button
                   variant="outlined"

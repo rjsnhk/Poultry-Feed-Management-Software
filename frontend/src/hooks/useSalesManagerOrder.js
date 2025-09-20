@@ -20,7 +20,7 @@ export const useSalesManagerOrder = (id) => {
             },
           }
         );
-        // console.log("sales manager orders", response.data.data);
+        console.log("sales manager orders", response.data.data);
         return response.data.data;
       },
       onError: (error) => {

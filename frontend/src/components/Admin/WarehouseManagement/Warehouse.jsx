@@ -38,6 +38,9 @@ const Warehouse = ({ warehouse }) => {
     warehouse._id
   );
 
+  console.log("dis", singleWarehouse?.dispatchedOrders);
+  console.log("assigned", singleWarehouse?.assignedOrders);
+
   const {
     register,
     handleSubmit,
@@ -464,106 +467,129 @@ const Warehouse = ({ warehouse }) => {
                 </div>
               </div>
 
-              {/* Assigned Orders */}
-              <div className="mt-5">
-                <p className="font-semibold text-base text-black">
-                  Assigned Orders
-                </p>
+              <div className="flex items-center justify-between gap-5">
+                {/* Assigned Orders */}
+                <div className="mt-5 w-full">
+                  <p className="font-semibold text-base text-black">
+                    Assigned Orders
+                  </p>
 
-                <div className="relative max-h-52 overflow-auto rounded mt-2 border">
-                  <table className="w-full text-center border-collapse">
-                    <thead className="sticky top-0 bg-violet-50 text-violet-800 z-10">
-                      <tr className="text-sm">
-                        <th className="p-3 border-b">Product Name</th>
-                        <th className="p-3 border-b">Description</th>
-                        <th className="p-3 border-b">Quantity</th>
-                        <th className="p-3 border-b">Price</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {singleWarehouse?.assignedOrders?.length > 0 ? (
-                        singleWarehouse?.assignedOrders?.map((order, index) => (
-                          <tr key={index} className="hover:bg-gray-50 text-sm">
-                            <td className="p-3 border-b">
-                              {order?.item?.name}
-                            </td>
-                            <td className="p-3 border-b">
-                              {order?.item?.description}
-                            </td>
-                            <td className="p-3 border-b">
-                              {order?.quantity} bags
-                            </td>
-                            <td className="p-3 border-b">
-                              {formatRupee(order?.item?.price)}
+                  <div className="relative max-h-52 overflow-auto rounded mt-2 border">
+                    <table className="w-full text-center border-collapse">
+                      <thead className="sticky top-0 bg-violet-50 text-violet-800 z-10">
+                        <tr className="text-sm">
+                          <th className="p-3 border-b">Product(s) Name</th>
+                          <th className="p-3 border-b">Quantity</th>
+                          <th className="p-3 border-b">Total Amount</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {singleWarehouse?.assignedOrders?.length > 0 ? (
+                          singleWarehouse?.assignedOrders?.map(
+                            (order, index) => (
+                              <tr
+                                key={index}
+                                className="hover:bg-gray-50 text-sm"
+                              >
+                                <td className="p-3 border-b">
+                                  <div className="flex flex-col gap-1 items-center">
+                                    {order.items?.map((item, idx) => (
+                                      <span key={idx}>
+                                        {item?.product?.name}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </td>
+
+                                <td className="p-3 border-b">
+                                  <div className="flex flex-col gap-1">
+                                    {order.items?.map((item, idx) => (
+                                      <span key={idx}>{item?.quantity}</span>
+                                    ))}
+                                  </div>
+                                </td>
+
+                                <td className="p-3 border-b">
+                                  {formatRupee(order?.totalAmount)}
+                                </td>
+                              </tr>
+                            )
+                          )
+                        ) : (
+                          <tr>
+                            <td
+                              colSpan="3"
+                              className="p-4 text-center text-sm text-gray-500"
+                            >
+                              No assigned orders
                             </td>
                           </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td
-                            colSpan="4"
-                            className="p-4 text-center text-sm text-gray-500"
-                          >
-                            No assigned orders
-                          </td>
-                        </tr>
-                      )}
-                    </tbody>
-                  </table>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
-              </div>
 
-              {/* Dispatched Orders */}
-              <div className="mt-5">
-                <p className="font-semibold text-base text-black">
-                  Dispatched Orders
-                </p>
+                {/* Dispatched Orders */}
+                <div className="mt-5 w-full">
+                  <p className="font-semibold text-base text-black">
+                    Dispatched Orders
+                  </p>
 
-                <div className="relative max-h-52 overflow-auto rounded mt-2 border">
-                  <table className="w-full text-center border-collapse">
-                    <thead className="sticky top-0 bg-green-50 text-green-800 z-10">
-                      <tr className="text-sm">
-                        <th className="p-3 border-b">Product Name</th>
-                        <th className="p-3 border-b">Description</th>
-                        <th className="p-3 border-b">Quantity</th>
-                        <th className="p-3 border-b">Price</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {singleWarehouse?.dispatchedOrders?.length > 0 ? (
-                        singleWarehouse?.dispatchedOrders?.map(
-                          (order, index) => (
-                            <tr
-                              key={index}
-                              className="hover:bg-gray-50 text-sm"
-                            >
-                              <td className="p-3 border-b">
-                                {order?.item?.name}
-                              </td>
-                              <td className="p-3 border-b">
-                                {order?.item?.description}
-                              </td>
-                              <td className="p-3 border-b">
-                                {order?.quantity} bags
-                              </td>
-                              <td className="p-3 border-b">
-                                {formatRupee(order?.item?.price)}
-                              </td>
-                            </tr>
-                          )
-                        )
-                      ) : (
-                        <tr>
-                          <td
-                            colSpan="4"
-                            className="p-4 text-center text-sm text-gray-500"
-                          >
-                            No dispatched orders
-                          </td>
+                  <div className="relative max-h-52 overflow-auto rounded mt-2 border">
+                    <table className="w-full text-center border-collapse">
+                      <thead className="sticky top-0 bg-green-50 text-green-800 z-10">
+                        <tr className="text-sm">
+                          <th className="p-3 border-b">Product(s) Name</th>
+                          <th className="p-3 border-b">Quantity</th>
+                          <th className="p-3 border-b">Total Amount</th>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {singleWarehouse?.dispatchedOrders?.length > 0 ? (
+                          singleWarehouse?.dispatchedOrders?.map(
+                            (order, index) => (
+                              <tr
+                                key={index}
+                                className="hover:bg-gray-50 text-sm"
+                              >
+                                <td className="p-3 border-b">
+                                  <div className="flex flex-col gap-1 items-center">
+                                    {order.items?.map((item, idx) => (
+                                      <span key={idx}>
+                                        {item?.product?.name}
+                                      </span>
+                                    ))}
+                                  </div>
+                                </td>
+
+                                <td className="p-3 border-b">
+                                  <div className="flex flex-col gap-1">
+                                    {order.items?.map((item, idx) => (
+                                      <span key={idx}>{item?.quantity}</span>
+                                    ))}
+                                  </div>
+                                </td>
+
+                                <td className="p-3 border-b">
+                                  {formatRupee(order?.totalAmount)}
+                                </td>
+                              </tr>
+                            )
+                          )
+                        ) : (
+                          <tr>
+                            <td
+                              colSpan="4"
+                              className="p-4 text-center text-sm text-gray-500"
+                            >
+                              No dispatched orders
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             </div>

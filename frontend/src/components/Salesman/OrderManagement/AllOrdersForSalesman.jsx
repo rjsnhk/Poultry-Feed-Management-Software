@@ -11,7 +11,6 @@ import {
   Tooltip,
 } from "@mui/material";
 import { DownloadIcon, Eye, File } from "lucide-react";
-import { TbFileInvoice } from "react-icons/tb";
 import { format } from "date-fns";
 import { DataGrid } from "@mui/x-data-grid";
 import CloseIcon from "@mui/icons-material/Close";
@@ -237,7 +236,28 @@ const AllOrdersForSalesman = () => {
   };
 
   const columns = [
-    { field: "product", headerName: "Product", flex: 1 },
+    {
+      field: "orderId",
+      headerName: "Order ID",
+      flex: 1,
+      minWidth: 80,
+      maxWidth: 100,
+    },
+    {
+      field: "product",
+      headerName: "Product",
+      flex: 1,
+      renderCell: (params) => {
+        return (
+          <div className="relative flex items-center">
+            <span>{params.value}</span>
+            <span className="absolute right-0 bg-gray-500 text-xs text-white h-5 w-5 rounded-full flex items-center justify-center">
+              {params.row.numProducts}
+            </span>
+          </div>
+        );
+      },
+    },
     { field: "party", headerName: "Party", flex: 1 },
     { field: "date", headerName: "Date", flex: 1 },
     { field: "quantity", headerName: "Quantity", flex: 1 },
@@ -385,10 +405,11 @@ const AllOrdersForSalesman = () => {
 
   const rows = ordersInSalesman?.map((order) => ({
     id: order._id,
+    orderId: `#${order.orderId}`,
     party: order?.party?.companyName,
     date: format(order?.createdAt, "dd MMM yyyy"),
-    product: order?.item?.name,
-    quantity: `${order.quantity} bags`,
+    product: order?.items?.map((p) => p.product?.name).join(", "),
+    quantity: order?.items?.map((p) => `${p.quantity} bags`).join(", "),
     totalAmount: formatRupee(order.totalAmount),
     advanceAmount: formatRupee(order.advanceAmount),
     dueAmount: formatRupee(order.dueAmount),
@@ -396,6 +417,7 @@ const AllOrdersForSalesman = () => {
     dueInvoiceGenerated: order.dueInvoiceGenerated,
     paymentStatus: order.paymentStatus,
     orderStatus: order.orderStatus,
+    numProducts: order.items.length,
   }));
 
   if (ordersInSalesmanLoading || singleOrderLoading)
@@ -447,7 +469,7 @@ const AllOrdersForSalesman = () => {
       {/* --- View Order Modal --- */}
       {openView && (
         <div className="transition-all bg-black/30 backdrop-blur-sm w-full z-50 h-screen absolute top-0 left-0 flex items-center justify-center">
-          <div className="bg-white relative p-7 rounded-lg w-[50%] overflow-auto">
+          <div className="bg-white relative p-7 rounded-lg max-w-[50%] min-w-[45%] max-h-[95%] overflow-auto">
             <div className="mb-5">
               <div className="flex items-center justify-between">
                 <p className="text-xl font-bold">Order Details</p>
@@ -456,28 +478,52 @@ const AllOrdersForSalesman = () => {
                 </IconButton>
               </div>
             </div>
+
+            {/* products table */}
+            <div className="relative overflow-x-auto mb-5 max-h-52">
+              <table className="w-full text-sm text-left text-gray-500 overflow-auto">
+                <thead className="sticky top-0 bg-gray-100 text-gray-800 z-10">
+                  <tr>
+                    <th scope="col" className="px-6 py-3">
+                      Product Name
+                    </th>
+                    <th scope="col" className="px-6 py-3">
+                      Category
+                    </th>
+                    <th scope="col" className="px-6 py-3">
+                      Price/bag
+                    </th>
+                    <th scope="col" className="px-6 py-3">
+                      Quantity
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="text-sm">
+                  {singleOrderFromSalesman?.items?.map((item) => (
+                    <tr className="bg-white border-b border-gray-200">
+                      <th
+                        scope="row"
+                        className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap"
+                      >
+                        {item?.product?.name}
+                      </th>
+                      <td className="px-6 py-4">{item?.product?.category}</td>
+                      <td className="px-6 py-4">
+                        {formatRupee(item?.product?.price)}
+                      </td>
+                      <td className="px-6 py-4">{item?.quantity} bags</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
             <div className="grid grid-cols-2 gap-7">
               <div className="flex flex-col gap-5">
                 <div className="flex flex-col gap-2 text-sm">
                   <h1 className="font-semibold text-base text-gray-800">
                     Order Information
                   </h1>
-                  <div className="flex items-center justify-between font-semibold">
-                    <span className="text-gray-600 font-normal">
-                      Product Category:
-                    </span>
-                    {singleOrderFromSalesman?.item?.category}
-                  </div>
-                  <div className="flex items-center justify-between font-semibold">
-                    <span className="text-gray-600 font-normal">
-                      Product Name:
-                    </span>
-                    {singleOrderFromSalesman?.item?.name}
-                  </div>
-                  <div className="flex items-center justify-between font-semibold">
-                    <span className="text-gray-600 font-normal">Quantity:</span>
-                    {singleOrderFromSalesman?.quantity} kg
-                  </div>
                   <div className="flex items-center justify-between font-semibold">
                     <span className="text-gray-600 font-normal">
                       Placed By:
@@ -557,19 +603,21 @@ const AllOrdersForSalesman = () => {
                     <span className="text-gray-600 font-normal">
                       Payment Status:
                     </span>
-                    {singleOrderFromSalesman?.paymentStatus === "Partial" && (
-                      <span className="text-yellow-700 bg-yellow-100 p-1 px-3 rounded-full text-xs">
-                        {singleOrderFromSalesman?.paymentStatus}
+                    {singleOrderFromSalesman?.paymentStatus ===
+                      "PendingDues" && (
+                      <span className="text-red-700 bg-red-100 p-1 px-3 rounded-full text-xs">
+                        Pending Dues
                       </span>
                     )}
                     {singleOrderFromSalesman?.paymentStatus === "Paid" && (
                       <span className="text-green-700 bg-green-100 p-1 px-3 rounded-full text-xs">
-                        {singleOrderFromSalesman?.paymentStatus}
+                        Paid
                       </span>
                     )}
-                    {singleOrderFromSalesman?.paymentStatus === "Unpaid" && (
-                      <span className="text-red-700 bg-red-100 p-1 px-3 rounded-full text-xs">
-                        {singleOrderFromSalesman?.paymentStatus}
+                    {singleOrderFromSalesman?.paymentStatus ===
+                      "ConfirmationPending" && (
+                      <span className="text-yellow-700 bg-yellow-100 p-1 px-3 rounded-full text-xs">
+                        Confirmation Pending
                       </span>
                     )}
                   </div>
@@ -597,44 +645,32 @@ const AllOrdersForSalesman = () => {
                     {singleOrderFromSalesman?.notes}
                   </p>
                 </div>
-
-                <div className="flex flex-col gap-2 text-sm">
-                  <h1 className="font-semibold text-base text-gray-800">
-                    Order Timeline
-                  </h1>
-                  <div className="flex items-center justify-between font-semibold">
-                    <span className="text-gray-600 font-normal">
-                      Order Placed On:
-                    </span>{" "}
-                    {format(singleOrderFromSalesman?.createdAt, "dd MMM yyyy")}
-                  </div>
-                </div>
-                <div className="flex flex-col gap-2 text-sm">
-                  <h1 className="font-semibold text-base text-gray-800">
-                    Assigned Warehouse
-                  </h1>
-                  <div className="flex items-center justify-between font-semibold">
-                    <span className="text-gray-600 font-normal">
-                      Warehouse:
-                    </span>
-                    {singleOrderFromSalesman?.assignedWarehouse ? (
-                      <div className="flex flex-col items-center">
-                        {singleOrderFromSalesman?.assignedWarehouse?.name}
-                        <span className="text-xs font-normal text-gray-600">
-                          (
-                          {singleOrderFromSalesman?.assignedWarehouse?.location}
-                          )
-                        </span>
-                      </div>
-                    ) : (
-                      <span className="text-red-700 bg-red-100 p-1 px-3 rounded-full text-xs">
-                        Not Assigned
-                      </span>
-                    )}
-                  </div>
-                </div>
               </div>
             </div>
+            {singleOrderFromSalesman?.assignedWarehouse && (
+              <div className="flex flex-col text-sm my-5">
+                <h1 className="font-semibold text-base text-gray-800">
+                  Assigned Warehouse
+                </h1>
+                <div className="flex items-center justify-between font-semibold">
+                  <span className="text-gray-600 font-normal">Warehouse:</span>
+                  {singleOrderFromSalesman?.assignedWarehouse ? (
+                    <div className="flex items-center">
+                      <p>{singleOrderFromSalesman?.assignedWarehouse?.name}</p>
+                      &nbsp;
+                      <p className="text-xs font-normal text-gray-600">
+                        ({singleOrderFromSalesman?.assignedWarehouse?.location})
+                      </p>
+                    </div>
+                  ) : (
+                    <span className="text-red-700 bg-red-100 p-1 px-3 rounded-full text-xs">
+                      Not Assigned
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
             {singleOrderFromSalesman?.dispatchInfo && (
               <div className="flex flex-col gap-2 text-sm bg-green-50 p-3 rounded-lg mt-5">
                 <h1 className="font-semibold text-base text-gray-800">
