@@ -151,7 +151,7 @@ const AdminNotification = ({ setIsOpenNotification }) => {
       receiverId: selectedEmployee._id,
       receiverName: selectedEmployee.name,
       message: typedMessage.trim(),
-      roomId: selectedEmployee._id,
+      roomId: selectedEmployee._id || selectedDashboard,
       timestamp: new Date(),
       type: "message",
     };
@@ -255,6 +255,21 @@ const AdminNotification = ({ setIsOpenNotification }) => {
       socket.off("receiveMessage", handleMessage);
     };
   }, [user?._id, handleNotification, handleMessage]);
+
+  const generateRoomId = [
+    [...salesman?.map((emp) => emp._id)],
+    [...salesmanager?.map((emp) => emp._id)],
+    [...salesauthorizer?.map((emp) => emp._id)],
+    [...planthead?.map((emp) => emp._id)],
+    [...accountant?.map((emp) => emp._id)],
+  ];
+
+  const allUsers = [...new Set(generateRoomId.flat())];
+  console.log(allUsers);
+
+  useEffect(() => {
+    socket.emit("joinExecutives", user._id);
+  }, [user._id, selectedDashboard]);
 
   // Employee list component
   const EmployeeList = ({ title, employees }) => (
@@ -368,7 +383,7 @@ const AdminNotification = ({ setIsOpenNotification }) => {
         {/* Header - Fixed height */}
         <div className="flex items-center justify-between mb-3 w-full flex-shrink-0 ">
           <p className="text-xl font-bold dark:text-gray-300">
-            Notifications & Messages
+            Notifications & Chats
           </p>
           <IconButton size="small" onClick={() => setIsOpenNotification(false)}>
             <CloseIcon className="text-gray-500" />
@@ -394,9 +409,7 @@ const AdminNotification = ({ setIsOpenNotification }) => {
                     }}
                     onClick={() => setActiveTab(tab)}
                   >
-                    {tab === "notifications"
-                      ? "Notifications"
-                      : "Admin Messages"}
+                    {tab === "notifications" ? "Notifications" : "Chats"}
                   </Button>
                 ))}
               </ButtonGroup>
@@ -524,7 +537,7 @@ const AdminNotification = ({ setIsOpenNotification }) => {
                         },
                       }}
                     >
-                      All employees
+                      Executives
                     </Button>
                     <EmployeeList title="Salesmen" employees={salesman} />
                     <EmployeeList title="Managers" employees={salesmanager} />
@@ -540,7 +553,7 @@ const AdminNotification = ({ setIsOpenNotification }) => {
                 {/* Dashboard Filter */}
                 {selectedTab === "all-dashboards" && (
                   <div className="min-w-[160px] max-w-[160px] border-r transition-all flex-shrink-0 overflow-y-auto px-2 dark:border-r dark:border-gray-700">
-                    <DashboardButton dashboard="All" label="All Employees" />
+                    <DashboardButton dashboard="All" label="All" />
                     <DashboardButton dashboard="Salesman" label="Salesmen" />
                     <DashboardButton dashboard="Managers" label="Managers" />
                     <DashboardButton

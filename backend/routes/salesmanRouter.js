@@ -22,7 +22,7 @@ const {
   updateParty,
   deleteParty,
   getRejectedParties,
-} = require("../controllers/party");
+} = require("../controllers/Party");
 
 // Login
 salesmanRouter.post("/login", loginSalesman);
