@@ -60,7 +60,7 @@ const {
   getApprovedParties,
   rejectPartyApproval,
   updateParty,
-} = require("../controllers/party");
+} = require("../controllers/Party");
 
 //ok
 adminRouter.post("/register", registerAdmin);
