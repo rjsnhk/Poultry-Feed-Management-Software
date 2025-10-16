@@ -64,7 +64,7 @@ if (cluster.isPrimary && process.env.NODE_ENV === "production") {
   // Enable CORS and parse JSON body
   app.use(
     cors({
-      origin: "*",
+      origin: "https://poultry-feed-management-software-4.onrender.com/",
       credentials: true,
     })
   );
