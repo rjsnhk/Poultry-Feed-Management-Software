@@ -100,7 +100,7 @@ export const useSalesmanOrder = (id) => {
   const { mutate: deliverOrder, isPending: isDeliveringOrder } = useMutation({
     mutationFn: async (orderId) => {
       const response = await axios.patch(
-        "http://localhost:5000/api/salesman/deliver-order",
+        "https://poultry-feed-management-software-3.onrender.com/api/salesman/deliver-order",
         { orderId },
         {
           headers: {

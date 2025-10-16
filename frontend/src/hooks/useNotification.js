@@ -9,7 +9,7 @@ const useNotification = () => {
     useMutation({
       mutationFn: async () => {
         const response = await axios.delete(
-          `http://localhost:5000/api/notifications/clearNotifications`,
+          `https://poultry-feed-management-software-3.onrender.com/api/notifications/clearNotifications`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

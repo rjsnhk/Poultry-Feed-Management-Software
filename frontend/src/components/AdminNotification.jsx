@@ -168,7 +168,7 @@ const AdminNotification = ({ setIsOpenNotification }) => {
       try {
         setLoading(true);
         const res = await axios.get(
-          `http://localhost:5000/api/notifications/${user._id}`,
+          `https://poultry-feed-management-software-3.onrender.com/api/notifications/${user._id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -204,7 +204,7 @@ const AdminNotification = ({ setIsOpenNotification }) => {
       try {
         setLoadingMessages(true);
         const res = await axios.get(
-          `http://localhost:5000/api/messages/${user._id}/${selectedEmployee._id}`,
+          `https://poultry-feed-management-software-3.onrender.com/api/messages/${user._id}/${selectedEmployee._id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
