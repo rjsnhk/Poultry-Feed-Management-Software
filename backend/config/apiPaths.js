@@ -1,5 +1,5 @@
 // BASE URL
-export const BASE_URL = "http://localhost:5000";
+export const BASE_URL = "https://poultry-feed-management-software-3.onrender.com";
 
 export const API_PATHS = {
   AUTH: {

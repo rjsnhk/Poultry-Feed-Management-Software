@@ -14,12 +14,15 @@ export const unsubscribeUser = async () => {
   await subscription.unsubscribe();
 
   // ✅ Remove from backend
-  await fetch("http://localhost:5000/api/notifications/remove-subscription", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
-    },
-    body: JSON.stringify({ endpoint }),
-  });
+  await fetch(
+    "https://poultry-feed-management-software-3.onrender.com/api/notifications/remove-subscription",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({ endpoint }),
+    }
+  );
 };

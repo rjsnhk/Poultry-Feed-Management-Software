@@ -31,17 +31,20 @@ export const subscribeUser = async (
   }
 
   // Save subscription in backend
-  await fetch("http://localhost:5000/api/notifications/save-subscription", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${localStorage.getItem("token")}`,
-    },
-    body: JSON.stringify({
-      employeeId,
-      role,
-      subscription,
-      browserId,
-    }),
-  });
+  await fetch(
+    "https://poultry-feed-management-software-3.onrender.com/api/notifications/save-subscription",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${localStorage.getItem("token")}`,
+      },
+      body: JSON.stringify({
+        employeeId,
+        role,
+        subscription,
+        browserId,
+      }),
+    }
+  );
 };
