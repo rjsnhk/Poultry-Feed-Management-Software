@@ -16,62 +16,12 @@ import AccoutantDashboardPage from "./pages/Accountant/AccoutantDashboardPage";
 import ProductsManagementPage from "./pages/Planthead/ProductsManagementPage";
 import PartyManagementPage from "./pages/Salesman/PartyManagementPage";
 import PartyManagementPageAdmin from "./pages/Admin/PartyManagementPage";
-import { useNotificationContext } from "./context/NotificationContext";
-import { useUser } from "./hooks/useUser";
-import { useEffect, useMemo } from "react";
-import socket from "./utils/socket";
+import { useMemo } from "react";
 import { ThemeProvider, createTheme } from "@mui/material";
 import { useTheme } from "./context/ThemeContext";
 
 const App = () => {
-  const { user } = useUser();
-
   const { resolvedTheme } = useTheme();
-  const { sendNotification } = useNotificationContext();
-
-  useEffect(() => {
-    socket.connect();
-
-    const handleMessage = (data) => {
-      if (data.senderId !== user?._id) {
-        sendNotification({
-          senderName: data.senderName,
-          message: data.message,
-        });
-      }
-    };
-
-    socket.emit("join", user?._id);
-
-    const notificationEvents = [
-      "orderCreated",
-      "orderForwardedToAuthorizer",
-      "plantAssigned",
-      "plantApproved",
-      "dispatched",
-      "invoiceGenerated",
-      "orderCancelled",
-      "dueInvoiceGenerated",
-      "delivered",
-    ];
-
-    notificationEvents.forEach((event) => {
-      socket.on(event, handleMessage);
-    });
-
-    socket.on("receiveMessage", handleMessage);
-
-    return () => {
-      notificationEvents.forEach((event) => {
-        socket.off(event, handleMessage);
-      });
-      socket.off("receiveMessage", handleMessage);
-      socket.disconnect();
-    };
-  }, [sendNotification, user]);
-
-  // const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
-
   const theme = useMemo(
     () =>
       createTheme({

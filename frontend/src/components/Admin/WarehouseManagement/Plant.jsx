@@ -262,6 +262,7 @@ const Plant = ({ warehouse }) => {
 
               <div className="flex items-center justify-end gap-3 mt-5">
                 <Button
+                size="small"
                   variant="outlined"
                   disableElevation
                   sx={{ textTransform: "none" }}
@@ -270,6 +271,7 @@ const Plant = ({ warehouse }) => {
                   Cancel
                 </Button>
                 <Button
+                size="small"
                   loading={isLoading}
                   loadingPosition="start"
                   variant="contained"
@@ -298,6 +300,7 @@ const Plant = ({ warehouse }) => {
             </p>
             <div className="flex items-center justify-end gap-3 mt-5">
               <Button
+              size="small"
                 variant="outlined"
                 disableElevation
                 color="error"
@@ -307,6 +310,7 @@ const Plant = ({ warehouse }) => {
                 Cancel
               </Button>
               <Button
+              size="small"
                 variant="contained"
                 disableElevation
                 color="error"
@@ -838,6 +842,7 @@ const Plant = ({ warehouse }) => {
                         )}
                       </FormControl>
                       <Button
+                      size="small"
                         fullWidth
                         color="success"
                         variant="contained"

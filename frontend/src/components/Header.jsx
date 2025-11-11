@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import NotificationsIcon from "@mui/icons-material/Notifications";
-import { Button, IconButton, Tooltip, useTheme } from "@mui/material";
+import { Badge, Button, IconButton, useTheme } from "@mui/material";
 import { useUser } from "../hooks/useUser";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -29,6 +29,8 @@ import { MdOutlineWarehouse, MdWarehouse } from "react-icons/md";
 import { HiMiniUsers, HiOutlineUsers } from "react-icons/hi2";
 import { GiGrain } from "react-icons/gi";
 import { useMediaQuery } from "@mui/material";
+import { unsubscribeUser } from "../unsubscribeUser";
+import useNotification from "../hooks/useNotification.js";
 
 const Header = ({ isCollapsed, setIsCollapsed }) => {
   const theme = useTheme();
@@ -39,12 +41,35 @@ const Header = ({ isCollapsed, setIsCollapsed }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isOpenNotification, setIsOpenNotification] = useState(false);
   const navigate = useNavigate();
+  const [unReadNotificationsCount, setUnReadNotificationsCount] = useState(0);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await unsubscribeUser();
     localStorage.removeItem("token");
     navigate("/login");
     toast.error("You are logged out!");
   };
+
+  //fetch notifications
+  const { notifications, markRead } = useNotification(user._id);
+
+  //count unread notifications
+  useEffect(() => {
+    if (notifications?.length > 0) {
+      const unReadNotifications = notifications.filter(
+        (notification) => !notification.read
+      ).length;
+      setUnReadNotificationsCount(unReadNotifications);
+    }
+  }, [notifications]);
+
+  //mark notification as read
+  useEffect(() => {
+    if (isOpenNotification) {
+      markRead();
+      setUnReadNotificationsCount(0);
+    }
+  }, [isOpenNotification]);
 
   return (
     <div className="dark:border-gray-700 dark:bg-gray-900 transition-all ease-in-out border-b border-neutral-100 h-full z-50">
@@ -54,7 +79,7 @@ const Header = ({ isCollapsed, setIsCollapsed }) => {
             <div className="flex items-center gap-5">
               <Menu
                 onClick={() => setIsCollapsed(false)}
-                className="text-blue-600"
+                className="text-blue-600 cursor-pointer"
                 size={20}
               />
               <div className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent line-clamp-1 truncate font-bold">
@@ -64,7 +89,7 @@ const Header = ({ isCollapsed, setIsCollapsed }) => {
           )}
 
           {!isCollapsed && (
-            <div className="lg:hidden md:block absolute top-0 left-0 h-full p-2 border border-gray-100 bg-white shadow-lg backdrop-blur-sm z-50 flex flex-col items-start justify-between pb-5">
+            <div className="lg:hidden md:block absolute top-0 left-0 h-lvh p-2 border border-gray-100 bg-white shadow-lg backdrop-blur-sm z-50 flex flex-col items-start justify-between pb-5">
               <div>
                 <div className="flex items-center justify-between p-4 w-full">
                   <div className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-violet-600 bg-clip-text text-transparent line-clamp-1 truncate font-bold">
@@ -75,7 +100,7 @@ const Header = ({ isCollapsed, setIsCollapsed }) => {
                   </div>
                   <X
                     onClick={() => setIsCollapsed(true)}
-                    className="text-blue-600"
+                    className="text-blue-600 cursor-pointer"
                     size={20}
                   />
                 </div>
@@ -599,7 +624,9 @@ const Header = ({ isCollapsed, setIsCollapsed }) => {
           <IconButton
             onClick={() => setIsOpenNotification(!isOpenNotification)}
           >
-            <NotificationsIcon className="dark:text-gray-300" />
+            <Badge badgeContent={unReadNotificationsCount} color="primary">
+              <NotificationsIcon className="dark:text-gray-300" />
+            </Badge>
           </IconButton>
 
           {isOpenNotification && (

@@ -11,6 +11,8 @@ import {
   TextField,
 } from "@mui/material";
 import { GiGrain } from "react-icons/gi";
+import { subscribeUser } from "../../subscribeUser";
+import { useUser } from "../../hooks/useUser";
 const LoginPage = () => {
   const {
     register,
@@ -19,13 +21,27 @@ const LoginPage = () => {
     control,
   } = useForm();
 
+  const { user, isPending: userLoading } = useUser();
+
   const { login, isPending } = useLogin();
 
+  const browserId =
+    navigator.userAgent + "-" + Math.random().toString(36).slice(2);
+
   const onSubmit = (data) => {
-    login(data);
+    login(data, {
+      onSuccess: (data) => {
+        subscribeUser(
+          data.data?._id,
+          data.data?.role,
+          browserId,
+          "BNcMT8wY9rjGtM_SBQGFyLbrL-Q9r6TVknSCjLWcJYl5Yj3TlERQDjIYbTuAKTolgHw4tAinWVLCzcZyOZG5iS8"
+        );
+      },
+    });
   };
 
-  if (isPending)
+  if (isPending || userLoading)
     return (
       <div className="flex items-center justify-center h-full w-full">
         <CircularProgress />

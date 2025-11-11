@@ -1,9 +1,11 @@
 const Party = require("../models/Party");
+const sendNotificationToRole = require("../sendNotification");
+const Admin = require("../models/Admin");
+const Salesman = require("../models/Salesman");
 
 const addParty = async (req, res) => {
   try {
     const salesmanId = req.user.id;
-    console.log("salesmanId", salesmanId);
     const { companyName, contactPersonNumber, address, limit, subAgents } =
       req.body;
 
@@ -16,7 +18,27 @@ const addParty = async (req, res) => {
       addedBy: salesmanId,
     });
 
+    const salesman = await Salesman.findById(salesmanId);
+
+    const admins = await Admin.find().select("_id");
+    const adminIds = admins.map((u) => u._id.toString());
+
     await party.save();
+
+    const payload = {
+      title: "New party added",
+      message: `New party ${party.companyName} added by ${salesman?.name}, Check and approve it`,
+      type: "partyAdded",
+      senderId: salesmanId,
+      receiverId: adminIds,
+      read: false,
+      orderId: party._id,
+    };
+
+    const sendToRoles = ["Admin"];
+
+    await sendNotificationToRole(sendToRoles, payload);
+
     res.status(201).json({
       success: true,
       message: "Party added successfully",
@@ -145,6 +167,26 @@ const approveParty = async (req, res) => {
     }
 
     await party.save();
+
+    const admin = await Admin.findById(adminId);
+    const salesman = await Salesman.findById(party.addedBy).select("_id");
+
+    console.log(salesman._id.toString());
+    console.log(adminId.toString());
+
+    const payload = {
+      title: "Party Approved",
+      message: `Party ${party.companyName} has been approved by ${admin?.name}`,
+      type: "partyApproved",
+      senderId: admin._id.toString(),
+      receiverId: salesman._id.toString(),
+      read: false,
+      orderId: party._id,
+    };
+
+    const sendToRoles = ["Salesman"];
+
+    await sendNotificationToRole(sendToRoles, payload);
 
     res.status(200).json({
       success: true,

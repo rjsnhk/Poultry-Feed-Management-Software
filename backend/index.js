@@ -26,7 +26,7 @@ connectDatabase();
 // Middlewares
 app.use(
   cors({
-    origin: "https://poultry-feed-management-software-4.onrender.com",
+    origin: "http://localhost:5173",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   })

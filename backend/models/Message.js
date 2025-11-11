@@ -9,6 +9,7 @@ const messageSchema = new mongoose.Schema({
   roomId: { type: String, required: true },
   timestamp: { type: Date, required: true },
   type: { type: String, required: true },
+  read: { type: Boolean, required: true, default: false },
 });
 
 const Message = mongoose.model("Message", messageSchema);

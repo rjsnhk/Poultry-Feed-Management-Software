@@ -11,6 +11,7 @@ const SalesManager = require("../models/SalesManager");
 const Notification = require("../models/Notification.js");
 const Salesman = require("../models/Salesman.js");
 const SalesAuthorizer = require("../models/SalesAuthorizer.js");
+const sendNotificationToRole = require("../sendNotification.js");
 
 const createOrder = async (req, res) => {
   try {
@@ -143,34 +144,19 @@ const createOrder = async (req, res) => {
 
     const adminIds = admins.map((u) => u._id.toString());
 
-    const message = `New order #${newOrder.orderId} created by ${currentUser.name}`;
-    const notifications = [...filteredManagers, ...adminIds].map((r_id) => ({
+    const payload = {
+      title: `New Order #${newOrder.orderId}`,
+      message: `New order #${newOrder.orderId} created by ${currentUser.name}`,
       orderId: newOrder.orderId,
-      message,
       type: "orderCreated",
       senderId: placedBy,
-      receiverId: r_id,
+      receiverId: [...filteredManagers, ...adminIds],
       read: false,
-    }));
+    };
 
-    await Notification.insertMany(notifications);
+    const roles = ["Admin", "SalesManager"];
 
-    const io = getIO();
-
-    [...filteredManagers, ...adminIds].forEach((r_id) => {
-      io.to(r_id).emit("orderCreated", {
-        orderId: newOrder.orderId,
-        message,
-        type: "orderCreated",
-        senderId: placedBy,
-      });
-    });
-
-    // const order = {
-    //   id: Date.now(),
-    //   items: req.body.items || [],
-    //   total: req.body.total || 0,
-    // };
+    await sendNotificationToRole(roles, payload);
 
     res.status(201).json({
       success: true,
@@ -187,7 +173,6 @@ const createOrder = async (req, res) => {
   }
 };
 
-// Get all orders
 // Common populate configuration
 const orderPopulateFields = [
   { path: "placedBy", select: "name email" },
@@ -472,23 +457,37 @@ const approveOrderToWarehouse = async (req, res) => {
       order.paymentStatus = "ConfirmationPending";
       order.advancePaymentApprovalSentTo = warehouse.accountant;
 
-      const message = `Check and Confirm advance payment of order #${order.orderId}`;
-      await Notification.insertOne({
+      // const message = `Check and Confirm advance payment of order #${order.orderId}`;
+      // await Notification.insertOne({
+      //   orderId: order.orderId,
+      //   message,
+      //   type: "advancePaymentSentForApproval",
+      //   senderId: AuthorizerId,
+      //   receiverId: accountantId,
+      // });
+
+      // const io = getIO();
+
+      // io.to(accountantId).emit("advancePaymentSentForApproval", {
+      //   orderId,
+      //   message,
+      //   type: "advancePaymentSentForApproval",
+      //   senderId: AuthorizerId,
+      // });
+
+      const payload = {
+        title: "Check advance payment",
+        message: `Check and Confirm advance payment of order #${order.orderId}`,
         orderId: order.orderId,
-        message,
         type: "advancePaymentSentForApproval",
         senderId: AuthorizerId,
         receiverId: accountantId,
-      });
+        read: false,
+      };
 
-      const io = getIO();
+      const sendToRoles = ["Accountant"];
 
-      io.to(accountantId).emit("advancePaymentSentForApproval", {
-        orderId,
-        message,
-        type: "advancePaymentSentForApproval",
-        senderId: AuthorizerId,
-      });
+      await sendNotificationToRole(sendToRoles, payload);
     }
 
     await warehouse.save();
@@ -500,43 +499,57 @@ const approveOrderToWarehouse = async (req, res) => {
     const adminIds = admins.map((u) => u._id.toString());
     const plantheadId = warehouse.plantHead.toString();
 
-    const message = `${warehouse?.name} has been approved by ${salesAuthorizer?.name} for order #${order.orderId}`;
-    await Notification.insertOne({
-      orderId: order.orderId,
-      message,
-      type: "plantApproved",
-      senderId: AuthorizerId,
-      receiverId: plantheadId,
-    });
+    // const message = `${warehouse?.name} has been approved by ${salesAuthorizer?.name} for order #${order.orderId}`;
+    // await Notification.insertOne({
+    //   orderId: order.orderId,
+    //   message,
+    //   type: "plantApproved",
+    //   senderId: AuthorizerId,
+    //   receiverId: plantheadId,
+    // });
 
-    const notifications = adminIds.map((r_id) => ({
-      orderId: order.orderId,
-      message,
+    // const notifications = adminIds.map((r_id) => ({
+    //   orderId: order.orderId,
+    //   message,
+    //   type: "plantApproved",
+    //   senderId: AuthorizerId,
+    //   receiverId: r_id,
+    //   read: false,
+    // }));
+
+    // await Notification.insertMany(notifications);
+
+    // const io = getIO();
+
+    // adminIds.forEach((r_id) => {
+    //   io.to(r_id).emit("plantApproved", {
+    //     orderId: order?.orderId,
+    //     message,
+    //     type: "plantApproved",
+    //     senderId: AuthorizerId,
+    //   });
+    // });
+
+    // io.to(plantheadId).emit("plantApproved", {
+    //   orderId: order?.orderId,
+    //   message,
+    //   type: "plantApproved",
+    //   senderId: AuthorizerId,
+    // });
+
+    const payload = {
+      title: `Plant approved for order #${order?.orderId}`,
+      message: `${warehouse?.name} has been approved by ${salesAuthorizer?.name} for order #${order?.orderId}`,
+      orderId: order?.orderId,
       type: "plantApproved",
       senderId: AuthorizerId,
-      receiverId: r_id,
+      receiverId: [...adminIds, plantheadId],
       read: false,
-    }));
+    };
 
-    await Notification.insertMany(notifications);
+    const sendToRoles = ["Admin", "PlantHead"];
 
-    const io = getIO();
-
-    adminIds.forEach((r_id) => {
-      io.to(r_id).emit("plantApproved", {
-        orderId: order.orderId,
-        message,
-        type: "plantApproved",
-        senderId: AuthorizerId,
-      });
-    });
-
-    io.to(plantheadId).emit("plantApproved", {
-      orderId,
-      message,
-      type: "plantApproved",
-      senderId: AuthorizerId,
-    });
+    await sendNotificationToRole(sendToRoles, payload);
 
     res.status(200).json({
       success: true,

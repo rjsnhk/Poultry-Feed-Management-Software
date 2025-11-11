@@ -8,7 +8,7 @@ const imagekit = require("../config/imagekit");
 const Notification = require("../models/Notification");
 const { getIO } = require("../config/socket.js");
 const Admin = require("../models/Admin.js");
-
+const sendNotificationToRole = require("../sendNotification.js");
 const SECRET_TOKEN = process.env.JWT_SECRET;
 
 // Login Plant Head
@@ -279,49 +279,71 @@ const dispatchOrder = async (req, res) => {
 
     const accountantId = warehouse.accountant.toString();
 
-    const message = `Order #${order.orderId} has been dispatched to ${
-      order?.shippingAddress === "Self"
-        ? order?.placedBy?.name
-        : order?.shippingAddress
-    } by ${currentUser?.name}`;
+    // const message = `Order #${order.orderId} has been dispatched to ${
+    //   order?.shippingAddress === "Self"
+    //     ? order?.placedBy?.name
+    //     : order?.shippingAddress
+    // } by ${currentUser?.name}`;
 
-    await Notification.insertOne({
+    // await Notification.insertOne({
+    //   orderId: order.orderId,
+    //   message,
+    //   type: "dispatched",
+    //   senderId: plantHeadId,
+    //   receiverId: accountantId,
+    //   read: false,
+    // });
+
+    // const notifications = adminIds.map((r_id) => ({
+    //   orderId: order.orderId,
+    //   message,
+    //   type: "dispatched",
+    //   senderId: plantHeadId,
+    //   receiverId: r_id,
+    //   read: false,
+    // }));
+
+    // await Notification.insertMany(notifications);
+
+    // const io = getIO();
+
+    // adminIds.forEach((r_id) => {
+    //   io.to(r_id).emit("dispatched", {
+    //     orderId: order.orderId,
+    //     message,
+    //     type: "dispatched",
+    //     senderId: plantHeadId,
+    //   });
+    // });
+
+    // io.to(accountantId).emit("dispatched", {
+    //   orderId: order.orderId,
+    //   message,
+    //   type: "dispatched",
+    //   senderId: plantHeadId,
+    // });
+
+    const payload = {
+      title: `Order #${order.orderId} dispatched to ${
+        order?.shippingAddress === "Self"
+          ? order?.placedBy?.name
+          : order?.shippingAddress
+      }`,
+      message: `Order #${order.orderId} has been dispatched to ${
+        order?.shippingAddress === "Self"
+          ? order?.placedBy?.name
+          : order?.shippingAddress
+      } by ${currentUser?.name}`,
       orderId: order.orderId,
-      message,
       type: "dispatched",
       senderId: plantHeadId,
-      receiverId: accountantId,
+      receiverId: [...adminIds, accountantId],
       read: false,
-    });
+    };
 
-    const notifications = adminIds.map((r_id) => ({
-      orderId: order.orderId,
-      message,
-      type: "dispatched",
-      senderId: plantHeadId,
-      receiverId: r_id,
-      read: false,
-    }));
+    const sendToRoles = ["Admin", "Accountant"];
 
-    await Notification.insertMany(notifications);
-
-    const io = getIO();
-
-    adminIds.forEach((r_id) => {
-      io.to(r_id).emit("dispatched", {
-        orderId: order.orderId,
-        message,
-        type: "dispatched",
-        senderId: plantHeadId,
-      });
-    });
-
-    io.to(accountantId).emit("dispatched", {
-      orderId: order.orderId,
-      message,
-      type: "dispatched",
-      senderId: plantHeadId,
-    });
+    await sendNotificationToRole(sendToRoles, payload);
 
     res.status(200).json({
       success: true,

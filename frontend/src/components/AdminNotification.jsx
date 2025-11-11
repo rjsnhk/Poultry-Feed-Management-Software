@@ -1,12 +1,4 @@
-import {
-  useEffect,
-  useState,
-  useCallback,
-  useMemo,
-  useRef,
-  lazy,
-  Suspense,
-} from "react";
+import { useEffect, useState, useCallback, useMemo, useRef, memo } from "react";
 import axios from "axios";
 import { useUser } from "../hooks/useUser.js";
 import {
@@ -21,6 +13,8 @@ import useEmployees from "../hooks/useEmployees.js";
 import Avatar from "./Avatar.jsx";
 import {
   ArrowLeft,
+  Check,
+  CheckCheck,
   MessageCircleWarning,
   SendHorizontal,
   Smile,
@@ -65,6 +59,18 @@ const AdminNotification = ({ setIsOpenNotification }) => {
   const { clearNotifications, loadingClearNotifications } = useNotification();
   const [activeTab, setActiveTab] = useState("notifications");
   const tabType = ["notifications", "messages"];
+  const [unreadCounts, setUnreadCounts] = useState({});
+  const prevCountsRef = useRef({});
+
+  const shallowEqualCounts = useCallback((a = {}, b = {}) => {
+    const ak = Object.keys(a);
+    const bk = Object.keys(b);
+    if (ak.length !== bk.length) return false;
+    for (let k of ak) {
+      if (a[k] !== b[k]) return false;
+    }
+    return true;
+  }, []);
 
   const messagesEndRef = useRef(null);
   const messagesContainerDesktopRef = useRef(null);
@@ -108,18 +114,21 @@ const AdminNotification = ({ setIsOpenNotification }) => {
     return allEmployees.find((e) => e._id === selectedTab) || null;
   }, [selectedTab, allEmployees]);
 
-  const joinChatRoom = (empId) => {
-    setSelectedTab(empId);
-    setSelectedDashboard("");
-    setMessages([]);
+  const joinChatRoom = useCallback(
+    (empId) => {
+      setSelectedTab(empId);
+      setSelectedDashboard("");
+      setMessages([]);
 
-    if (currentRoomId && currentRoomId !== empId) {
-      socket.emit("leaveRoom", currentRoomId);
-    }
+      if (currentRoomId && currentRoomId !== empId) {
+        socket.emit("leaveRoom", currentRoomId);
+      }
 
-    socket.emit("joinChatRoom", empId);
-    setCurrentRoomId(empId);
-  };
+      socket.emit("joinChatRoom", empId);
+      setCurrentRoomId(empId);
+    },
+    [currentRoomId]
+  );
 
   const leaveChatRoom = () => {
     setSelectedTab(null);
@@ -130,7 +139,6 @@ const AdminNotification = ({ setIsOpenNotification }) => {
 
   // Stable handlers to avoid duplicate bindings
   const handleNotification = useCallback((data) => {
-    // console.log("New notification:", data);
     const normalized = {
       ...data,
       createdAt: data?.createdAt || data?.timestamp || new Date().toISOString(),
@@ -147,7 +155,6 @@ const AdminNotification = ({ setIsOpenNotification }) => {
       );
 
       if (exists) {
-        console.log("Duplicate notification prevented");
         return prev;
       }
 
@@ -156,7 +163,7 @@ const AdminNotification = ({ setIsOpenNotification }) => {
   }, []);
 
   const handleMessage = useCallback(
-    (data) => {
+    async (data) => {
       if (!data) return;
 
       const involvesAdmin = [data.senderId, data.receiverId].includes(
@@ -186,9 +193,53 @@ const AdminNotification = ({ setIsOpenNotification }) => {
         if (messageExists) return prev;
         return [...prev, data];
       });
+
+      const isCurrentChat = data?.senderId === selectedEmployee?._id;
+
+      if (isCurrentChat) {
+        markAsRead();
+        socket.emit("read-messages", {
+          readerId: user._id,
+          partnerId: selectedEmployee._id,
+        });
+        socket.emit("count-unread", {
+          readerId: user._id,
+          partnerId: selectedEmployee._id,
+        });
+      }
     },
     [user?._id, selectedEmployee]
   );
+
+  // function to mark the messages as read
+  const markAsRead = async () => {
+    if (!selectedEmployee) return;
+    await axios.put(
+      BASE_URL +
+        API_PATHS.MESSAGES.MARK_AS_READ(
+          user._id,
+          selectedEmployee._id,
+          user._id
+        ),
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  };
+
+  //mark messages as read
+  useEffect(() => {
+    if (selectedEmployee) {
+      markAsRead();
+      socket.emit("read-messages", {
+        readerId: user._id,
+        partnerId: selectedEmployee._id,
+      });
+    }
+  }, [selectedEmployee]);
 
   const handleSendMessage = (e) => {
     e.preventDefault();
@@ -255,10 +306,7 @@ const AdminNotification = ({ setIsOpenNotification }) => {
         setLoadingMessages(true);
         const res = await axios.get(
           BASE_URL +
-            API_PATHS.MESSAGES.GET_MESSAGES(
-              user._id,
-              selectedEmployee._id
-            ),
+            API_PATHS.MESSAGES.GET_MESSAGES(user._id, selectedEmployee._id),
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -274,64 +322,69 @@ const AdminNotification = ({ setIsOpenNotification }) => {
     };
 
     fetchHistory();
-    queryClient.invalidateQueries(["notifications", user._id]);
+    queryClient.invalidateQueries(["notifications", user?._id]);
   }, [selectedEmployee]);
 
-  // handling notifications
+  // handling notifications & messages
   useEffect(() => {
     if (!user?._id) return;
 
     socket.emit("join", user._id);
 
-    const notificationEvents = [
-      "orderCreated",
-      "orderForwardedToAuthorizer",
-      "plantAssigned",
-      "plantApproved",
-      "dispatched",
-      "invoiceGenerated",
-      "orderCancelled",
-      "dueInvoiceGenerated",
-      "delivered",
-    ];
+    //attach listeners
+    socket.on("notification", handleNotification);
 
-    //will remove any listener first
-    notificationEvents.forEach((event) => {
-      socket.off(event);
-    });
-    socket.off("receiveMessage");
-
-    // Attach listeners
-    notificationEvents.forEach((event) => {
-      socket.on(event, handleNotification);
-    });
     socket.on("receiveMessage", handleMessage);
+    socket.on("read-update", ({ readerId, partnerId }) => {
+      if (partnerId === user._id) {
+        setMessages((prev) =>
+          prev.map((m) => ({
+            ...m,
+            read: m.senderId === user._id ? true : m.read,
+          }))
+        );
+      }
+    });
 
-    // Cleanup
+    // Request unread counts for all known employees
+    const partnerIds = (allEmployees || []).map((e) => e._id);
+    if (partnerIds.length) {
+      socket.emit("request-unread", { userId: user._id, partners: partnerIds });
+    }
+
+    // unread counts: bulk and per-pair updates
+    socket.on("unread-counts", ({ userId, counts }) => {
+      if (userId === user._id && counts) {
+        if (!shallowEqualCounts(prevCountsRef.current, counts)) {
+          prevCountsRef.current = counts;
+          setUnreadCounts(counts);
+        }
+      }
+    });
+
+    socket.on("unread-count", ({ userId, partnerId, count }) => {
+      if (userId === user._id && partnerId) {
+        setUnreadCounts((prev) => {
+          if (prev[partnerId] === count) return prev;
+          const next = { ...prev, [partnerId]: count };
+          prevCountsRef.current = next;
+          return next;
+        });
+      }
+    });
+
+    // cleanup
     return () => {
-      notificationEvents.forEach((event) => {
-        socket.off(event, handleNotification);
-      });
+      socket.off("notification", handleNotification);
       socket.off("receiveMessage", handleMessage);
+      socket.off("read-update");
+      socket.off("unread-counts");
+      socket.off("unread-count");
     };
-  }, [user?._id, handleNotification, handleMessage]);
-
-  const generateRoomId = [
-    [...salesman?.map((emp) => emp._id)],
-    [...salesmanager?.map((emp) => emp._id)],
-    [...salesauthorizer?.map((emp) => emp._id)],
-    [...planthead?.map((emp) => emp._id)],
-    [...accountant?.map((emp) => emp._id)],
-  ];
-
-  const allUsers = [...new Set(generateRoomId.flat())];
-
-  useEffect(() => {
-    socket.emit("joinExecutives", user._id);
-  }, [user._id, selectedDashboard]);
+  }, [user?._id, handleNotification, handleMessage, allEmployees]);
 
   // Employee list component
-  const EmployeeList = ({ title, employees }) => (
+  const EmployeeList = memo(({ title, employees }) => (
     <div className="flex flex-col items-start w-full px-2 transition-all">
       <p className="text-gray-500 lg:text-sm sm:text-xs text-[10px] mb-1 dark:text-gray-400 md:text-[11px]">
         {title}
@@ -361,16 +414,23 @@ const AdminNotification = ({ setIsOpenNotification }) => {
               color: "white",
             },
           }}
-          onClick={() => joinChatRoom(emp._id)}
+          onClick={joinChatRoom.bind(null, emp._id)}
         >
-          {emp.name}
+          <div className="flex items-center justify-between w-full">
+            <span>{emp.name}</span>
+            {unreadCounts?.[emp._id] > 0 && (
+              <span className="ml-2 text-[10px] rounded-full bg-[#1976D2] text-white px-2 py-[1px]">
+                {unreadCounts[emp._id]}
+              </span>
+            )}
+          </div>
         </Button>
       ))}
     </div>
-  );
+  ));
 
   // Employee list component for mobile
-  const EmployeeListForMobile = ({ title, employees }) => (
+  const EmployeeListForMobile = memo(({ title, employees }) => (
     <div className="flex flex-col items-start w-full px-2 transition-all">
       <p className="text-gray-500 lg:text-sm sm:text-xs text-[10px] mb-1 dark:text-gray-400 md:text-[11px]">
         {title}
@@ -401,65 +461,44 @@ const AdminNotification = ({ setIsOpenNotification }) => {
               color: "white",
             },
           }}
-          onClick={() => joinChatRoom(emp._id)}
+          onClick={joinChatRoom.bind(null, emp._id)}
         >
-          <div className="flex items-center gap-2">
-            <Avatar size={35} name={emp?.name} />
-            <p>{emp?.name}</p>
+          <div className="flex items-center justify-between w-full gap-2">
+            <div className="flex items-center gap-2">
+              <Avatar size={35} name={emp?.name} />
+              <p>{emp?.name}</p>
+            </div>
+            {unreadCounts?.[emp._id] > 0 && (
+              <span className="ml-2 text-[10px] rounded-full bg-[#1976D2] text-white px-2 py-[1px]">
+                {unreadCounts[emp._id]}
+              </span>
+            )}
           </div>
         </Button>
       ))}
     </div>
-  );
-
-  // Dashboard button component
-  const DashboardButton = ({ dashboard, label }) => (
-    <Button
-      key={dashboard}
-      disableElevation
-      disableRipple={selectedDashboard === dashboard}
-      disabled={selectedDashboard === dashboard}
-      variant={selectedDashboard === dashboard ? "contained" : "text"}
-      sx={{
-        textTransform: "none",
-        color:
-          selectedDashboard === dashboard
-            ? "white"
-            : `${resolvedTheme === "dark" ? "white" : "#1f2937"}`,
-        marginBottom: "5px",
-        padding: "4px 15px",
-        justifyContent: "flex-start",
-        fontSize: isMdUp ? "16px" : "13px",
-        fontWeight: "400",
-        width: "100%",
-        fontFamily: "'Inter', sans-serif",
-        "&.Mui-disabled": {
-          backgroundColor: "#1976D2",
-          color: "white",
-        },
-      }}
-      onClick={() => setSelectedDashboard(dashboard)}
-    >
-      {label}
-    </Button>
-  );
+  ));
 
   //sorted messages
-  const sortedMessages = [...messages].sort(
-    (a, b) => new Date(a?.timestamp) - new Date(b?.timestamp)
-  );
+  const sortedMessages = useMemo(() => {
+    return [...messages].sort(
+      (a, b) => new Date(a.timestamp) - new Date(b.timestamp)
+    );
+  }, [messages]);
 
-  const groupedByDate = sortedMessages.reduce((groups, m) => {
-    const msgDate = new Date(m?.timestamp);
-    const key = format(msgDate, "yyyy-MM-dd");
-    const lastGroup = groups[groups.length - 1];
-    if (!lastGroup || lastGroup.key !== key) {
-      groups.push({ key, date: msgDate, items: [m] });
-    } else {
-      lastGroup.items.push(m);
-    }
-    return groups;
-  }, []);
+  const groupedByDate = useMemo(() => {
+    return sortedMessages.reduce((groups, m) => {
+      const msgDate = new Date(m.timestamp);
+      const key = format(msgDate, "yyyy-MM-dd");
+      const lastGroup = groups[groups.length - 1];
+      if (!lastGroup || lastGroup.key !== key) {
+        groups.push({ key, date: msgDate, items: [m] });
+      } else {
+        lastGroup.items.push(m);
+      }
+      return groups;
+    }, []);
+  }, [sortedMessages]);
 
   //sorted notifications (newest first)
   const sortedNotifications = [...notifications].sort(
@@ -633,7 +672,7 @@ const AdminNotification = ({ setIsOpenNotification }) => {
                           />
 
                           <div className="flex flex-col">
-                            <p className="font-semibold lg:te xt-base dark:text-gray-200 md:text-sm sm:text-sm">
+                            <p className="font-semibold lg:text-base dark:text-gray-200 md:text-sm sm:text-sm">
                               {selectedEmployee?.name}
                             </p>
                             <p className="text-xs dark:text-gray-300 md:text-xs">
@@ -676,7 +715,7 @@ const AdminNotification = ({ setIsOpenNotification }) => {
                                       key={`message-${
                                         m?._id || `${group.key}-${i}`
                                       }`}
-                                      className={`p-2 px-3 text-gray-800 shadow md:text-xs lg:text-sm sm:text-xs mb-2 pe-14 rounded-xl relative max-w-[70%] 
+                                      className={`p-2 px-3 text-gray-800 shadow md:text-xs lg:text-sm sm:text-xs mb-2 pe-14 rounded-xl relative max-w-[70%]
                             ${
                               m?.senderId === user._id
                                 ? "bg-[#1976D2] text-white self-end rounded-xl rounded-tr-sm"
@@ -685,9 +724,17 @@ const AdminNotification = ({ setIsOpenNotification }) => {
                                     >
                                       <p
                                         className={
-                                          "w-full break-words whitespace-pre-wrap" +
+                                          `w-full break-words whitespace-pre-wrap ${
+                                            m?.senderId === user._id
+                                              ? "pe-4"
+                                              : ""
+                                          }` +
                                           (emojiRegex.test(m?.message.trim())
-                                            ? " text-center text-2xl"
+                                            ? `text-center lg:text-2xl text-xl ${
+                                                m?.senderId === user._id
+                                                  ? "pe-4"
+                                                  : ""
+                                              }`
                                             : "")
                                         }
                                       >
@@ -695,15 +742,30 @@ const AdminNotification = ({ setIsOpenNotification }) => {
                                       </p>
 
                                       {m?.timestamp && (
-                                        <p
-                                          className={`text-[10px] text-right absolute bottom-1 right-2 ${
+                                        <div
+                                          className={`text-[10px] flex items-center gap-1 text-right absolute bottom-1 right-2 ${
                                             m?.senderId === user._id
-                                              ? "text-gray-300"
+                                              ? "text-gray-200"
                                               : "text-gray-500 dark:text-gray-200"
                                           }`}
                                         >
                                           {format(m.timestamp, "h:mm a")}
-                                        </p>
+                                          {m?.senderId === user._id && (
+                                            <p className="transition-all">
+                                              {m?.read ? (
+                                                <CheckCheck
+                                                  strokeWidth={3}
+                                                  size={12}
+                                                />
+                                              ) : (
+                                                <Check
+                                                  strokeWidth={3}
+                                                  size={12}
+                                                />
+                                              )}
+                                            </p>
+                                          )}
+                                        </div>
                                       )}
                                     </div>
                                   ))}
@@ -728,8 +790,7 @@ const AdminNotification = ({ setIsOpenNotification }) => {
                         </div>
                       )}
 
-                      {/* Input Area - Fixed */}
-
+                      {/* Input Area  */}
                       <div className="w-full bg-gray-100 py-2 relative flex-shrink-0 dark:bg-gray-800 dark:border-t dark:border-gray-700">
                         <Smile
                           color={openEmoji ? "#1976D2" : "gray"}
@@ -890,9 +951,17 @@ const AdminNotification = ({ setIsOpenNotification }) => {
                                     >
                                       <p
                                         className={
-                                          "w-full break-words whitespace-pre-wrap" +
+                                          `w-full break-words whitespace-pre-wrap ${
+                                            m?.senderId === user._id
+                                              ? "pe-4"
+                                              : ""
+                                          }` +
                                           (emojiRegex.test(m?.message.trim())
-                                            ? " text-center text-2xl"
+                                            ? `text-center lg:text-2xl text-xl ${
+                                                m?.senderId === user._id
+                                                  ? "pe-4"
+                                                  : ""
+                                              }`
                                             : "")
                                         }
                                       >
@@ -900,15 +969,30 @@ const AdminNotification = ({ setIsOpenNotification }) => {
                                       </p>
 
                                       {m?.timestamp && (
-                                        <p
-                                          className={`text-[10px] text-right absolute bottom-1 right-2 ${
+                                        <div
+                                          className={`text-[10px] flex items-center gap-1 text-right absolute bottom-1 right-2 ${
                                             m?.senderId === user._id
-                                              ? "text-gray-300"
+                                              ? "text-gray-200"
                                               : "text-gray-500 dark:text-gray-200"
                                           }`}
                                         >
                                           {format(m.timestamp, "h:mm a")}
-                                        </p>
+                                          {m?.senderId === user._id && (
+                                            <p className="transition-all">
+                                              {m?.read ? (
+                                                <CheckCheck
+                                                  strokeWidth={3}
+                                                  size={12}
+                                                />
+                                              ) : (
+                                                <Check
+                                                  strokeWidth={3}
+                                                  size={12}
+                                                />
+                                              )}
+                                            </p>
+                                          )}
+                                        </div>
                                       )}
                                     </div>
                                   ))}

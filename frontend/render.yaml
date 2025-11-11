@@ -1,0 +1,15 @@
+services:
+  - type: static
+    name: poultry-feed-management-frontend
+    buildCommand: cd frontend && npm install && npm run build
+    staticPublishPath: frontend/dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+  - type: web
+    name: poultry-feed-management-backend
+    env: node
+    buildCommand: npm install
+    startCommand: node backend/index.js
+    workingDirectory: backend

@@ -56,6 +56,40 @@ const getAllMessages = async (req, res) => {
   }
 };
 
+const markAsRead = async (req, res) => {
+  try {
+    const { adminId, employeeId, currentUserId } = req.params;
+
+    // Wo user jisne page open kiya hai
+    const readerId = currentUserId;
+
+    const messageFrom = readerId === adminId ? employeeId : adminId;
+
+    const messageTo = readerId;
+
+    const result = await Message.updateMany(
+      {
+        senderId: messageFrom,
+        receiverId: messageTo,
+        read: false,
+      },
+      { read: true }
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: result,
+      message: "Messages marked as read",
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: "Failed to mark messages as read",
+      error: err.message,
+    });
+  }
+};
+
 const getAllAdmins = async (req, res) => {
   const admins = await Admin.find();
   res
@@ -63,4 +97,4 @@ const getAllAdmins = async (req, res) => {
     .json({ data: admins, message: "Fetched all admins", success: true });
 };
 
-module.exports = { getAllMessages, getAllAdmins };
+module.exports = { getAllMessages, getAllAdmins, markAsRead };

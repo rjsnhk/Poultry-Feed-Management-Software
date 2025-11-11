@@ -10,6 +10,7 @@ const Admin = require("../models/Admin");
 const { getIO } = require("../config/socket");
 const { formatRupee } = require("../../frontend/src/utils/formatRupee");
 const Notification = require("../models/Notification");
+const sendNotificationToRole = require("../sendNotification");
 
 const loginSalesman = async (req, res) => {
   try {
@@ -245,23 +246,37 @@ const updatePayment = async (req, res) => {
 
     const accountantId = warehouse?.accountant.toString();
 
-    const message = `Check and confirm due payment of ₹${amount} for Order #${order.orderId} from ${party?.companyName}.`;
-    await Notification.insertOne({
+    // const message = `Check and confirm due payment of ₹${amount} for Order #${order.orderId} from ${party?.companyName}.`;
+    // await Notification.insertOne({
+    //   orderId: order.orderId,
+    //   message,
+    //   type: "dueSentForApproval",
+    //   senderId: salesmanId,
+    //   receiverId: accountantId,
+    // });
+
+    // const io = getIO();
+
+    // io.to(accountantId).emit("dueSentForApproval", {
+    //   orderId,
+    //   message,
+    //   type: "dueSentForApproval",
+    //   senderId: salesmanId,
+    // });
+
+    const payload = {
+      title: `Check and confirm due payment`,
+      message: `Check and confirm due payment of ₹${amount} for Order #${order.orderId} from ${party?.companyName}.`,
       orderId: order.orderId,
-      message,
       type: "dueSentForApproval",
-      senderId: salesmanId,
-      receiverId: accountantId,
-    });
+      senderId: accountantId,
+      receiverId: [accountantId],
+      read: false,
+    };
 
-    const io = getIO();
+    const sendToRoles = ["Accountant"];
 
-    io.to(accountantId).emit("dueSentForApproval", {
-      orderId,
-      message,
-      type: "dueSentForApproval",
-      senderId: salesmanId,
-    });
+    await sendNotificationToRole(sendToRoles, payload);
 
     return res.status(200).json({
       success: true,

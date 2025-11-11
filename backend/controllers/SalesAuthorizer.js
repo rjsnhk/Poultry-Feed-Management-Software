@@ -3,6 +3,7 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const { getIO } = require("../config/socket.js");
 const Order = require("../models/Order");
+const sendNotificationToRole = require("../sendNotification");
 
 const Warehouse = require("../models/WareHouse");
 
@@ -225,48 +226,59 @@ const assignWarehouse = async (req, res) => {
 
     const adminIds = admins.map((u) => u._id.toString());
 
-    console.log("adminIds", adminIds);
-    console.log("plantheadids", plantHeadId);
+    // const message = `Order #${order.orderId} has been assigned to ${warehouse.name} by ${currentUser?.name}`;
 
-    const message = `Order #${order.orderId} has been assigned to ${warehouse.name} by ${currentUser?.name}`;
+    // await Notification.insertOne({
+    //   orderId: order.orderId,
+    //   message,
+    //   type: "plantAssigned",
+    //   senderId: authorizerId,
+    //   receiverId: plantHeadId,
+    //   read: false,
+    // });
 
-    await Notification.insertOne({
+    // const notifications = adminIds.map((r_id) => ({
+    //   orderId: order.orderId,
+    //   message,
+    //   type: "plantAssigned",
+    //   senderId: authorizerId,
+    //   receiverId: r_id,
+    //   read: false,
+    // }));
+
+    // await Notification.insertMany(notifications);
+
+    // const io = getIO();
+
+    // adminIds.forEach((r_id) => {
+    //   io.to(r_id).emit("plantAssigned", {
+    //     orderId: order.orderId,
+    //     message,
+    //     type: "plantAssigned",
+    //     senderId: authorizerId,
+    //   });
+    // });
+
+    // io.to(plantHeadId).emit("plantAssigned", {
+    //   orderId: order.orderId,
+    //   message,
+    //   type: "plantAssigned",
+    //   senderId: authorizerId,
+    // });
+
+    const payload = {
+      title: `Order #${order.orderId} assigned to ${warehouse.name}`,
+      message: `Order #${order.orderId} has been assigned to ${warehouse.name} by ${currentUser?.name}`,
       orderId: order.orderId,
-      message,
       type: "plantAssigned",
       senderId: authorizerId,
-      receiverId: plantHeadId,
+      receiverId: [...adminIds, plantHeadId],
       read: false,
-    });
+    };
 
-    const notifications = adminIds.map((r_id) => ({
-      orderId: order.orderId,
-      message,
-      type: "plantAssigned",
-      senderId: authorizerId,
-      receiverId: r_id,
-      read: false,
-    }));
+    const sendToRoles = ["Admin", "PlantHead"];
 
-    await Notification.insertMany(notifications);
-
-    const io = getIO();
-
-    adminIds.forEach((r_id) => {
-      io.to(r_id).emit("plantAssigned", {
-        orderId: order.orderId,
-        message,
-        type: "plantAssigned",
-        senderId: authorizerId,
-      });
-    });
-
-    io.to(plantHeadId).emit("plantAssigned", {
-      orderId: order.orderId,
-      message,
-      type: "plantAssigned",
-      senderId: authorizerId,
-    });
+    await sendNotificationToRole(sendToRoles, payload);
 
     return res.status(200).json({
       success: true,

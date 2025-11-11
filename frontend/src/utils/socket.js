@@ -1,6 +1,6 @@
 import { io } from "socket.io-client";
 
-const socket = io("https://poultry-feed-management-software-3.onrender.com", {
+const socket = io("http://localhost:5000", {
   transports: ["websocket", "polling"], // Add polling as fallback
   withCredentials: true,
   reconnection: true,

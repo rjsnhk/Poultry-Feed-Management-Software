@@ -7,6 +7,7 @@ const SalesAuthorizer = require("../models/SalesAuthorizer");
 const Notification = require("../models/Notification.js");
 const { getIO } = require("../config/socket.js");
 const Admin = require("../models/Admin.js");
+const sendNotificationToRole = require("../sendNotification.js");
 
 const loginSalesManager = async (req, res) => {
   try {
@@ -170,28 +171,42 @@ const forwardOrderToAuthorizer = async (req, res) => {
 
     const adminIds = admins.map((u) => u._id.toString());
 
-    const message = `Order #${order.orderId} forwarded to Authorizer by ${currentUser?.name}`;
-    const notifications = [...filteredAuthorizers, ...adminIds].map((r_id) => ({
+    // const message = `Order #${order.orderId} forwarded to Authorizer by ${currentUser?.name}`;
+    // const notifications = [...filteredAuthorizers, ...adminIds].map((r_id) => ({
+    //   orderId: order.orderId,
+    //   message,
+    //   type: "orderForwardedToAuthorizer",
+    //   senderId: salesManagerId,
+    //   receiverId: r_id,
+    //   read: false,
+    // }));
+
+    // await Notification.insertMany(notifications);
+
+    // const io = getIO();
+
+    // [...filteredAuthorizers, ...adminIds].forEach((r_id) => {
+    //   io.to(r_id).emit("orderForwardedToAuthorizer", {
+    //     orderId: order.orderId,
+    //     message,
+    //     type: "orderForwardedToAuthorizer",
+    //     senderId: salesManagerId,
+    //   });
+    // });
+
+    const payload = {
+      title: `Order #${order.orderId} Forwarded to Authorizer`,
+      message: `Order #${order.orderId} has been forwarded to Authorizer by ${currentUser.name}`,
       orderId: order.orderId,
-      message,
       type: "orderForwardedToAuthorizer",
       senderId: salesManagerId,
-      receiverId: r_id,
+      receiverId: [...filteredAuthorizers, ...adminIds],
       read: false,
-    }));
+    };
 
-    await Notification.insertMany(notifications);
+    const sendToRoles = ["Admin", "SalesAuthorizer"];
 
-    const io = getIO();
-
-    [...filteredAuthorizers, ...adminIds].forEach((r_id) => {
-      io.to(r_id).emit("orderForwardedToAuthorizer", {
-        orderId: order.orderId,
-        message,
-        type: "orderForwardedToAuthorizer",
-        senderId: salesManagerId,
-      });
-    });
+    await sendNotificationToRole(sendToRoles, payload);
 
     res.status(200).json({
       success: true,

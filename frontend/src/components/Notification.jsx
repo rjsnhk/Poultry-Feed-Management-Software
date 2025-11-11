@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, memo, useMemo } from "react";
 import axios from "axios";
 import { useUser } from "../hooks/useUser.js";
 import { format, isToday, isYesterday } from "date-fns";
@@ -7,6 +7,8 @@ import Avatar from "./Avatar.jsx";
 
 import {
   ArrowLeft,
+  Check,
+  CheckCheck,
   MessageCircleWarning,
   SendHorizontal,
   Smile,
@@ -50,6 +52,8 @@ const Notification = ({ setIsOpenNotification }) => {
   const [openEmoji, setOpenEmoji] = useState(false);
   const tabType = ["notifications", "messages"];
   const { clearNotifications, loadingClearNotifications } = useNotification();
+  const [unreadCounts, setUnreadCounts] = useState({});
+  const prevCountsRef = useRef({});
 
   const handleClearNotifications = () => {
     clearNotifications();
@@ -154,8 +158,55 @@ const Notification = ({ setIsOpenNotification }) => {
     setNotifications((prev) => [normalized, ...prev]);
   }, []);
 
+  // Memoized admin list nodes to reduce re-render while typing
+  // const adminItems = useMemo(() => admins || [], [admins]);
+
+  // const AdminList = memo(
+  //   ({ list, selectedId, onSelect, isMdUp, resolvedTheme, unreadCounts }) => (
+  //     <div className="flex flex-col items-start w-36 flex-shrink-0 overflow-y-auto custom-scrollbar px-2">
+  //       {list?.map((admin) => (
+  //         <Button
+  //           key={admin._id}
+  //           disableElevation
+  //           disableRipple={selectedId === admin._id}
+  //           disabled={selectedId === admin._id}
+  //           variant={selectedId === admin._id ? "contained" : "text"}
+  //           sx={{
+  //             textTransform: "none",
+  //             color:
+  //               selectedId === admin._id
+  //                 ? "white"
+  //                 : `${resolvedTheme === "dark" ? "white" : "#1f2937"}`,
+  //             marginBottom: "5px",
+  //             padding: "4px 15px",
+  //             justifyContent: "flex-start",
+  //             fontSize: isMdUp ? "16px" : "13px",
+  //             fontWeight: "400",
+  //             width: "100%",
+  //             fontFamily: "'Inter', sans-serif",
+  //             "&.Mui-disabled": {
+  //               backgroundColor: "#1976D2",
+  //               color: "white",
+  //             },
+  //           }}
+  //           onClick={() => onSelect(admin)}
+  //         >
+  //           <div className="flex items-center justify-between w-full">
+  //             <span>{admin?.name}</span>
+  //             {unreadCounts?.[admin._id] > 0 && (
+  //               <span className="ml-2 text-[10px] rounded-full bg-red-600 text-white px-2 py-[1px]">
+  //                 {unreadCounts[admin._id]}
+  //               </span>
+  //             )}
+  //           </div>
+  //         </Button>
+  //       ))}
+  //     </div>
+  //   )
+  // );
+
   const handleIncomingMessage = useCallback(
-    (data) => {
+    async (data) => {
       if (!data) return;
       // Only accept messages for the active conversation
       if (!selectedAdmin?._id) return;
@@ -181,6 +232,15 @@ const Notification = ({ setIsOpenNotification }) => {
         if (exists) return prev;
         return [...prev, data];
       });
+      const isCurrentChat = data.senderId === selectedAdmin._id;
+
+      if (isCurrentChat) {
+        markAsRead();
+        socket.emit("read-messages", {
+          readerId: user._id,
+          partnerId: selectedAdmin._id,
+        });
+      }
     },
     [selectedAdmin?._id, user?._id]
   );
@@ -195,28 +255,87 @@ const Notification = ({ setIsOpenNotification }) => {
     // join own room to receive replies
     socket.emit("join", user._id);
 
-    const notificationEvents = [
-      "orderCreated",
-      "forwardedToAuthorizer",
-      "plantAssigned",
-      "plantApproved",
-      "dispatched",
-      "advancePaymentSentForApproval",
-      "invoiceGenerated",
-      "dueInvoiceGenerated",
-      "dueSentForApproval",
-    ];
-
-    notificationEvents.forEach((event) => socket.on(event, handleNotification));
+    socket.on("notification", handleNotification);
     socket.on("receiveMessage", handleIncomingMessage);
+    socket.on("read-update", ({ readerId, partnerId }) => {
+      if (partnerId === user._id) {
+        setMessages((prev) =>
+          prev.map((m) => ({
+            ...m,
+            read: m.senderId === user._id ? true : m.read,
+          }))
+        );
+      }
+    });
+
+    // Request unread counts for all admins
+    const partnerIds = (admins || []).map((a) => a._id);
+    if (partnerIds.length) {
+      socket.emit("request-unread", { userId: user._id, partners: partnerIds });
+    }
+
+    const shallowEqualCounts = (a = {}, b = {}) => {
+      const ak = Object.keys(a);
+      const bk = Object.keys(b);
+      if (ak.length !== bk.length) return false;
+      for (let k of ak) if (a[k] !== b[k]) return false;
+      return true;
+    };
+
+    socket.on("unread-counts", ({ userId, counts }) => {
+      if (userId === user._id && counts) {
+        if (!shallowEqualCounts(prevCountsRef.current, counts)) {
+          prevCountsRef.current = counts;
+          setUnreadCounts(counts);
+        }
+      }
+    });
+
+    socket.on("unread-count", ({ userId, partnerId, count }) => {
+      if (userId === user._id && partnerId) {
+        setUnreadCounts((prev) => {
+          if (prev[partnerId] === count) return prev;
+          const next = { ...prev, [partnerId]: count };
+          prevCountsRef.current = next;
+          return next;
+        });
+      }
+    });
 
     return () => {
-      notificationEvents.forEach((event) =>
-        socket.off(event, handleNotification)
-      );
+      socket.off("notification", handleNotification);
       socket.off("receiveMessage", handleIncomingMessage);
+      socket.off("read-update");
+      socket.off("unread-counts");
+      socket.off("unread-count");
     };
-  }, [user?._id, handleNotification, handleIncomingMessage]);
+  }, [user?._id, handleNotification, handleIncomingMessage, admins]);
+
+  // function to mark the messages as read
+  const markAsRead = async () => {
+    if (!selectedAdmin) return;
+    const res = await axios.put(
+      BASE_URL +
+        API_PATHS.MESSAGES.MARK_AS_READ(selectedAdmin._id, user._id, user._id),
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  };
+
+  //mark messages as read
+  useEffect(() => {
+    if (selectedAdmin) {
+      markAsRead();
+      socket.emit("read-messages", {
+        readerId: user._id,
+        partnerId: selectedAdmin._id,
+      });
+    }
+  }, [selectedAdmin]);
 
   const handleSendMessage = (e) => {
     e.preventDefault();
@@ -370,25 +489,25 @@ const Notification = ({ setIsOpenNotification }) => {
                     No notifications
                   </div>
                 )}
-                {sortedNotifications.length > 0 && (
-                  <div className="flex items-center justify-end mt-2 flex-shrink-0">
-                    <Button
-                      startIcon={<X strokeWidth="1.8" size={17} />}
-                      variant="text"
-                      color="error"
-                      sx={{
-                        textTransform: "none",
-                        padding: "4px 10px",
-                        fontSize: "14px",
-                        borderRadius: "999px",
-                      }}
-                      loading={loadingClearNotifications}
-                      onClick={handleClearNotifications}
-                    >
-                      Clear notifications
-                    </Button>
-                  </div>
-                )}
+              </div>
+            )}
+            {sortedNotifications.length > 0 && (
+              <div className="flex items-center justify-end mt-2 flex-shrink-0">
+                <Button
+                  startIcon={<X strokeWidth="1.8" size={17} />}
+                  variant="text"
+                  color="error"
+                  sx={{
+                    textTransform: "none",
+                    padding: "4px 10px",
+                    fontSize: "14px",
+                    borderRadius: "999px",
+                  }}
+                  loading={loadingClearNotifications}
+                  onClick={handleClearNotifications}
+                >
+                  Clear notifications
+                </Button>
               </div>
             )}
           </div>
@@ -424,7 +543,7 @@ const Notification = ({ setIsOpenNotification }) => {
                         marginBottom: "5px",
                         padding: "4px 15px",
                         justifyContent: "flex-start",
-                        fontSize: "16px",
+                        fontSize: isMdUp ? "16px" : "13px",
                         fontWeight: "400",
                         width: "100%",
                         fontFamily: "'Inter', sans-serif",
@@ -436,6 +555,11 @@ const Notification = ({ setIsOpenNotification }) => {
                       onClick={() => setSelectedAdmin(admin)}
                     >
                       {admin?.name}
+                      {unreadCounts?.[admin._id] > 0 && (
+                        <span className="ml-2 text-[10px] rounded-full bg-[#1976D2] text-white px-2 py-[1px]">
+                          {unreadCounts[admin._id]}
+                        </span>
+                      )}
                     </Button>
                   ))}
                 </div>
@@ -447,16 +571,16 @@ const Notification = ({ setIsOpenNotification }) => {
                 {selectedAdmin?._id && (
                   <div className="flex-shrink-0 border-b dark:border-b dark:border-gray-700">
                     <div className="p-2 bg-gray-50 dark:bg-gray-800 w-full flex items-center gap-2">
-                      <ArrowLeft
+                      {/* <ArrowLeft
                         onClick={leaveChatRoom}
                         className="active:bg-gray-300 dark:active:bg-gray-700 dark:text-gray-400 rounded-full p-1 transition-all"
-                      />
+                      /> */}
                       <Avatar size={40} name={selectedAdmin?.name} />
                       <div className="flex flex-col">
-                        <p className="font-semibold dark:text-gray-200">
+                        <p className="font-semibold lg:text-base dark:text-gray-200 md:text-sm sm:text-sm">
                           {selectedAdmin.name}
                         </p>
-                        <p className="text-xs dark:text-gray-300">
+                        <p className="text-xs dark:text-gray-300 md:text-xs">
                           {selectedAdmin.role}
                         </p>
                       </div>
@@ -481,8 +605,8 @@ const Notification = ({ setIsOpenNotification }) => {
                       <div className="flex flex-col">
                         {groupedByDate?.map((group) => (
                           <div key={group.key} className="flex flex-col">
-                            <div className="text-center sticky top-0 z-10 py-2 text-sm dark:text-gray-300 text-gray-600 bg-transparent">
-                              <span className="bg-gray-200 dark:bg-gray-800 px-3 font-semibold text-xs py-1 rounded-full">
+                            <div className="text-center sticky top-0 z-10 py-2 md:text-xs lg:text-sm  dark:text-gray-300 text-gray-600 bg-transparent">
+                              <span className="bg-gray-200 dark:bg-gray-800 px-3 font-semibold md:text-xs sm:text-[10px] lg:text-xs py-1 rounded-full">
                                 {isToday(group.date)
                                   ? "Today"
                                   : isYesterday(group.date)
@@ -493,7 +617,7 @@ const Notification = ({ setIsOpenNotification }) => {
                             {group?.items?.map((m, i) => (
                               <div
                                 key={`message-${m?._id || `${group.key}-${i}`}`}
-                                className={`p-2 px-3 relative shadow text-sm mb-2 pe-14 max-w-[70%] 
+                                className={`p-2 px-3 relative shadow md:text-xs lg:text-sm sm:text-xs mb-2 pe-14 max-w-[70%] 
                                             ${
                                               m?.senderId === user._id
                                                 ? "bg-[#1976D2] text-white self-end rounded-xl rounded-tr-sm"
@@ -502,9 +626,13 @@ const Notification = ({ setIsOpenNotification }) => {
                               >
                                 <p
                                   className={
-                                    "w-full break-words whitespace-pre-wrap" +
+                                    `w-full break-words whitespace-pre-wrap ${
+                                      m?.senderId === user._id ? "pe-4" : ""
+                                    }` +
                                     (emojiRegex.test(m?.message.trim())
-                                      ? "text-center text-2xl"
+                                      ? `text-center lg:text-2xl text-xl ${
+                                          m?.senderId === user._id ? "pe-4" : ""
+                                        }`
                                       : "")
                                   }
                                 >
@@ -512,15 +640,27 @@ const Notification = ({ setIsOpenNotification }) => {
                                 </p>
 
                                 {m?.timestamp && (
-                                  <p
-                                    className={`text-[10px] text-right absolute bottom-1 right-2 ${
+                                  <div
+                                    className={`text-[10px] flex items-center gap-1 text-right absolute bottom-1 right-2 ${
                                       m?.senderId === user._id
                                         ? "text-gray-200"
                                         : "text-gray-500 dark:text-gray-200"
                                     }`}
                                   >
                                     {format(m.timestamp, "h:mm a")}
-                                  </p>
+                                    {m?.senderId === user._id && (
+                                      <p className="transition-all">
+                                        {m?.read ? (
+                                          <CheckCheck
+                                            strokeWidth={3}
+                                            size={12}
+                                          />
+                                        ) : (
+                                          <Check strokeWidth={3} size={12} />
+                                        )}
+                                      </p>
+                                    )}
+                                  </div>
                                 )}
                               </div>
                             ))}
@@ -533,7 +673,7 @@ const Notification = ({ setIsOpenNotification }) => {
                         {selectedAdmin?._id ? (
                           <div className="flex flex-col items-center text-gray-500 p-8  rounded-lg">
                             <MessageCircleWarning size={30} />
-                            <h1 className="text-md font-semibold mt-2">
+                            <h1 className="lg:text-md text-sm font-semibold mt-2">
                               Chat seems empty
                             </h1>
                             <p className="text-xs mt-1">
@@ -543,10 +683,10 @@ const Notification = ({ setIsOpenNotification }) => {
                         ) : (
                           <div className="flex flex-col items-center text-gray-500 p-8  rounded-lg">
                             <UserStar size={30} />
-                            <h1 className="text-md font-semibold mt-2">
+                            <h1 className="lg:text-md text-sm font-semibold mt-2">
                               No Admin Selected
                             </h1>
-                            <p className="text-xs mt-1">
+                            <p className="lg:text-xs text-[10px] mt-1">
                               Select an admin to start a conversation
                             </p>
                           </div>
@@ -557,14 +697,19 @@ const Notification = ({ setIsOpenNotification }) => {
                 )}
 
                 {/* Input Form */}
-
                 {selectedAdmin?._id && (
-                  <div className="w-full bg-gray-100 dark:bg-gray-800 dark:border-t dark:border-gray-700 py-2 relative flex-shrink-0">
+                  <div className="w-full bg-gray-100 py-2 relative flex-shrink-0 dark:bg-gray-800 dark:border-t dark:border-gray-700">
                     <Smile
                       color={openEmoji ? "#1976D2" : "gray"}
                       size={32}
                       onClick={() => setOpenEmoji(!openEmoji)}
-                      className={`absolute top-3 left-2 cursor-pointer active:scale-95 transition-all rounded-full p-1 `}
+                      className={`hidden md:block lg:block absolute top-3 left-2 cursor-pointer active:scale-95 transition-all rounded-full p-1 `}
+                    />
+                    <Smile
+                      color={openEmoji ? "#1976D2" : "gray"}
+                      size={28}
+                      onClick={() => setOpenEmoji(!openEmoji)}
+                      className={`md:hidden lg:hidden absolute top-2.5 left-2 cursor-pointer active:scale-95 transition-all rounded-full p-1 `}
                     />
                     <form
                       className="flex items-center gap-1 px-1"
@@ -573,15 +718,21 @@ const Notification = ({ setIsOpenNotification }) => {
                       <input
                         type="text"
                         placeholder="Message"
-                        className="w-full p-2 px-4 rounded-full focus:outline-none ps-10 dark:bg-gray-900 dark:text-gray-200"
+                        className="w-full p-2 md:text-sm lg:text-base sm:text-xs px-4 rounded-full focus:outline-none ps-10 dark:bg-gray-900 dark:text-gray-200"
                         value={typedMessage}
                         onChange={(e) => setTypedMessage(e.target.value)}
                       />
                       <button
                         type="submit"
-                        className="bg-[#1976D2] hover:bg-[#1976D2]/90 transition-all active:scale-95 rounded-full text-white p-2.5"
+                        className="hidden md:block lg:block bg-[#1976D2] hover:bg-[#1976D2]/90 transition-all active:scale-95 rounded-full text-white p-2.5"
                       >
                         <SendHorizontal size={20} />
+                      </button>
+                      <button
+                        type="submit"
+                        className="md:hidden lg:hidden bg-[#1976D2] hover:bg-[#1976D2]/90 transition-all active:scale-95 rounded-full text-white p-2"
+                      >
+                        <SendHorizontal size={15} />
                       </button>
                     </form>
                     {openEmoji && (
@@ -717,9 +868,13 @@ const Notification = ({ setIsOpenNotification }) => {
                               >
                                 <p
                                   className={
-                                    "w-full break-words whitespace-pre-wrap" +
+                                    `w-full break-words whitespace-pre-wrap ${
+                                      m?.senderId === user._id ? "pe-4" : ""
+                                    }` +
                                     (emojiRegex.test(m?.message.trim())
-                                      ? "text-center text-2xl"
+                                      ? `text-center lg:text-2xl text-xl ${
+                                          m?.senderId === user._id ? "pe-4" : ""
+                                        }`
                                       : "")
                                   }
                                 >
@@ -727,15 +882,27 @@ const Notification = ({ setIsOpenNotification }) => {
                                 </p>
 
                                 {m?.timestamp && (
-                                  <p
-                                    className={`text-[10px] text-right absolute bottom-1 right-2 ${
+                                  <div
+                                    className={`text-[10px] flex items-center gap-1 text-right absolute bottom-1 right-2 ${
                                       m?.senderId === user._id
                                         ? "text-gray-200"
                                         : "text-gray-500 dark:text-gray-200"
                                     }`}
                                   >
                                     {format(m.timestamp, "h:mm a")}
-                                  </p>
+                                    {m?.senderId === user._id && (
+                                      <p className="transition-all">
+                                        {m?.read ? (
+                                          <CheckCheck
+                                            strokeWidth={3}
+                                            size={12}
+                                          />
+                                        ) : (
+                                          <Check strokeWidth={3} size={12} />
+                                        )}
+                                      </p>
+                                    )}
+                                  </div>
                                 )}
                               </div>
                             ))}
