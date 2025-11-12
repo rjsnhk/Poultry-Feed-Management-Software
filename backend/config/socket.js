@@ -13,6 +13,7 @@ const initSocket = (server) => {
         "https://poultry-feed-management-software-4.onrender.com",
         "https://tubular-speculoos-d65a14.netlify.app",
         "https://feedmanager.netlify.app",
+        "http://localhost:5000",
       ],
       // origin: "http://localhost:5173",
       methods: ["GET", "POST"],

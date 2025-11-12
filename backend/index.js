@@ -30,6 +30,7 @@ app.use(
       "https://poultry-feed-management-software-4.onrender.com",
       "https://tubular-speculoos-d65a14.netlify.app",
       "https://feedmanager.netlify.app",
+      "http://localhost:5173",
     ],
     // origin: "http://localhost:5173",
     credentials: true,

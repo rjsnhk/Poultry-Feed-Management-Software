@@ -24,9 +24,26 @@ const AdminDashboardPage = () => {
     isLoading,
   } = useEmployees();
 
-  const total = orders?.reduce((sum, order) => sum + order?.totalAmount, 0);
-  const advance = orders?.reduce((sum, order) => sum + order?.advanceAmount, 0);
-  const due = orders?.reduce((sum, order) => sum + order?.dueAmount, 0);
+  const total = orders?.reduce((sum, order) => {
+    if (order?.orderStatus !== "Cancelled") {
+      return sum + order?.totalAmount;
+    }
+    return sum;
+  }, 0);
+
+  const advance = orders?.reduce((sum, order) => {
+    if (order?.orderStatus !== "Cancelled") {
+      return sum + order?.advanceAmount;
+    }
+    return sum;
+  }, 0);
+
+  const due = orders?.reduce((sum, order) => {
+    if (order?.orderStatus !== "Cancelled") {
+      return sum + order?.dueAmount;
+    }
+    return sum;
+  }, 0);
   const totalOrders = orders?.length;
   const totalEmployees =
     salesman?.length +
