@@ -9,7 +9,10 @@ let io;
 const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      origin: "https://poultry-feed-management-software-4.onrender.com",
+      origin: [
+        "https://poultry-feed-management-software-4.onrender.com",
+        "https://tubular-speculoos-d65a14.netlify.app",
+      ],
       // origin: "http://localhost:5173",
       methods: ["GET", "POST"],
       credentials: true,
