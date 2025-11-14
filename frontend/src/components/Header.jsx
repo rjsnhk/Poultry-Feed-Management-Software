@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import NotificationsIcon from "@mui/icons-material/Notifications";
-import { Badge, Button, IconButton, useTheme } from "@mui/material";
+import { Badge, Button, Dialog, IconButton, useTheme } from "@mui/material";
 import { useUser } from "../hooks/useUser";
 import KeyboardArrowUpIcon from "@mui/icons-material/KeyboardArrowUp";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
@@ -16,6 +16,9 @@ import {
   Monitor,
   Menu,
   X,
+  Bell,
+  MessageCircleMore,
+  MessageCircle,
 } from "lucide-react";
 import { useTheme as myTheme } from "../context/ThemeContext.jsx";
 import Notification from "./Notification.jsx";
@@ -31,10 +34,16 @@ import { GiGrain } from "react-icons/gi";
 import { useMediaQuery } from "@mui/material";
 import { unsubscribeUser } from "../unsubscribeUser";
 import useNotification from "../hooks/useNotification.js";
+import logo from "../assets/logo4.png";
+import { useUnreadChatsContext } from "../context/UnreadChatsContext";
+import socket from "../utils/socket";
 
 const Header = ({ isCollapsed, setIsCollapsed }) => {
   const theme = useTheme();
   const isSmDown = useMediaQuery(theme.breakpoints.down("sm"));
+  const { unread } = useUnreadChatsContext();
+  const totalUnread = Object.values(unread || {}).reduce((a, b) => a + b, 0);
+  console.log(totalUnread);
 
   const { theme: themeContext, setTheme } = myTheme();
   const { changeStatus, user } = useUser();
@@ -71,9 +80,32 @@ const Header = ({ isCollapsed, setIsCollapsed }) => {
     }
   }, [isOpenNotification]);
 
+  useEffect(() => {
+    if (!user?._id) return;
+
+    socket.emit("join", user._id);
+
+    const onNotification = () => {
+      if (isOpenNotification) return;
+      setUnReadNotificationsCount((prev) => prev + 1);
+    };
+
+    socket.on("notification", onNotification);
+
+    return () => {
+      socket.off("notification", onNotification);
+    };
+  }, [user?._id, isOpenNotification]);
+
   return (
-    <div className="dark:border-gray-700 dark:bg-gray-900 transition-all ease-in-out border-b border-neutral-100 h-full z-50">
+    <div className="dark:border-gray-700 h-14 dark:bg-gray-900 transition-all ease-in-out border-b border-neutral-100 z-50">
       <div className="flex lg:justify-end justify-between items-center gap-8 h-full px-10">
+        <div className="hidden lg:block w-full">
+          <div className="flex items-center justify-start gap-2 bg-[#1976D2] bg-clip-text text-transparent text-xl line-clamp-1 truncate font-bold">
+            <img src={logo} alt="" className="w-7 h-7 dark:invert-[100%]" />
+            <span className="text-[#1976D2] logo">Feed manager</span>
+          </div>
+        </div>
         <div className="md:block lg:hidden">
           {isCollapsed && (
             <div className="flex items-center gap-5">
@@ -616,17 +648,30 @@ const Header = ({ isCollapsed, setIsCollapsed }) => {
           )}
         </div>
 
-        <div className="flex items-center gap-10">
+        <div className="flex items-center gap-12">
           <div className="hidden lg:block md:block">
-            <p className="dark:text-gray-300">{user?.role}</p>
+            <p className="dark:text-gray-300 text-sm">{user?.role}</p>
           </div>
 
           <IconButton
             onClick={() => setIsOpenNotification(!isOpenNotification)}
           >
-            <Badge badgeContent={unReadNotificationsCount} color="primary">
-              <NotificationsIcon className="dark:text-gray-300" />
-            </Badge>
+            {unReadNotificationsCount > 0 && (
+              <div className="flex transition-all items-center gap-1 bg-red-600/20 absolute bottom-6 right-8 backdrop-blur-sm p-0.5 text-xs text-red-600 font-semibold px-1.5 rounded-full">
+                <Bell size={12} strokeWidth={3} />
+                {unReadNotificationsCount > 20
+                  ? "20+"
+                  : unReadNotificationsCount}
+              </div>
+            )}
+            {totalUnread > 0 && (
+              <div className="flex transition-all items-center gap-1 bg-blue-600/20 absolute bottom-6 left-8 backdrop-blur-sm p-0.5 text-xs text-blue-600 font-semibold px-1.5 rounded-full">
+                <MessageCircle size={12} strokeWidth={3} />
+                {totalUnread > 20 ? "20+" : totalUnread}
+              </div>
+            )}
+
+            <NotificationsIcon className="dark:text-gray-300" />
           </IconButton>
 
           {isOpenNotification && (

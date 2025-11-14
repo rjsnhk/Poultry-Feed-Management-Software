@@ -19,6 +19,7 @@ import PartyManagementPageAdmin from "./pages/Admin/PartyManagementPage";
 import { useMemo } from "react";
 import { ThemeProvider, createTheme } from "@mui/material";
 import { useTheme } from "./context/ThemeContext";
+import { UnreadChatsProvider } from "./context/UnreadChatsContext";
 
 const App = () => {
   const { resolvedTheme } = useTheme();
@@ -46,79 +47,90 @@ const App = () => {
   );
 
   return (
-    <ThemeProvider theme={theme}>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <ProtectedRoutes>
-              <MainLayout />
-            </ProtectedRoutes>
-          }
-        >
-          {/* Admin routes*/}
-          <Route path="admin">
-            <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<AdminDashboardPage />} />
-            <Route
-              path="product-management"
-              element={<ProductManagementPage />}
-            />
-            <Route
-              path="employee-management"
-              element={<EmployeeManagementPage />}
-            />
-            <Route path="order-management" element={<OrderManagementPage />} />
-            <Route path="plant-management" element={<PlantManagementPage />} />
-            <Route
-              path="party-management"
-              element={<PartyManagementPageAdmin />}
-            />
+    <UnreadChatsProvider>
+      <ThemeProvider theme={theme}>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <ProtectedRoutes>
+                <MainLayout />
+              </ProtectedRoutes>
+            }
+          >
+            {/* Admin routes*/}
+            <Route path="admin">
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<AdminDashboardPage />} />
+              <Route
+                path="product-management"
+                element={<ProductManagementPage />}
+              />
+              <Route
+                path="employee-management"
+                element={<EmployeeManagementPage />}
+              />
+              <Route
+                path="order-management"
+                element={<OrderManagementPage />}
+              />
+              <Route
+                path="plant-management"
+                element={<PlantManagementPage />}
+              />
+              <Route
+                path="party-management"
+                element={<PartyManagementPageAdmin />}
+              />
+            </Route>
+
+            {/* Salesman routes */}
+            <Route path="salesman">
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<SalesmanDashboardPage />} />
+              <Route
+                path="party-management"
+                element={<PartyManagementPage />}
+              />
+            </Route>
+
+            {/* Sales Manager routes */}
+            <Route path="salesmanager">
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<SalesManagerDashboardPage />} />
+            </Route>
+
+            {/* Sales Authorizer routes */}
+            <Route path="salesauthorizer">
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route
+                path="dashboard"
+                element={<SalesAuthorizerDashboardPage />}
+              />
+            </Route>
+
+            {/* Plant Head routes */}
+            <Route path="planthead">
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<PlantheadDashboardPage />} />
+              <Route
+                path="product-management"
+                element={<ProductsManagementPage />}
+              />
+            </Route>
+
+            {/* Accountant routes */}
+            <Route path="accountant">
+              <Route index element={<Navigate to="dashboard" replace />} />
+              <Route path="dashboard" element={<AccoutantDashboardPage />} />
+            </Route>
           </Route>
 
-          {/* Salesman routes */}
-          <Route path="salesman">
-            <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<SalesmanDashboardPage />} />
-            <Route path="party-management" element={<PartyManagementPage />} />
-          </Route>
-
-          {/* Sales Manager routes */}
-          <Route path="salesmanager">
-            <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<SalesManagerDashboardPage />} />
-          </Route>
-
-          {/* Sales Authorizer routes */}
-          <Route path="salesauthorizer">
-            <Route index element={<Navigate to="dashboard" replace />} />
-            <Route
-              path="dashboard"
-              element={<SalesAuthorizerDashboardPage />}
-            />
-          </Route>
-
-          {/* Plant Head routes */}
-          <Route path="planthead">
-            <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<PlantheadDashboardPage />} />
-            <Route
-              path="product-management"
-              element={<ProductsManagementPage />}
-            />
-          </Route>
-
-          {/* Accountant routes */}
-          <Route path="accountant">
-            <Route index element={<Navigate to="dashboard" replace />} />
-            <Route path="dashboard" element={<AccoutantDashboardPage />} />
-          </Route>
-        </Route>
-
-        {/* Login route */}
-        <Route path="/login" element={<LoginPage />} />
-      </Routes>
-    </ThemeProvider>
+          {/* Login route */}
+          <Route path="/login" element={<LoginPage />} />
+        </Routes>
+      </ThemeProvider>
+    </UnreadChatsProvider>
   );
 };
 

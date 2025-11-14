@@ -1,7 +1,14 @@
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Mulish:ital,wght@0,200..1000;1,200..1000&family=Orbitron:wght@400..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Agbalumo&display=swap');
 
 body {
     font-family: 'Inter', sans-serif;
+}
+
+.logo {
+    font-family: "Agbalumo", system-ui;
+    font-weight: 400;
+    font-style: normal;
 }
 
 /* Hide scrollbar buttons (for Webkit browsers like Chrome, Edge, Safari) */

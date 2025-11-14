@@ -15,8 +15,8 @@ export const unsubscribeUser = async () => {
 
   // ✅ Remove from backend
   await fetch(
-    "https://poultry-feed-management-software-3.onrender.com/api/notifications/remove-subscription",
-    // "http://localhost:5000/api/notifications/remove-subscription",
+    // "https://poultry-feed-management-software-3.onrender.com/api/notifications/remove-subscription",
+    "http://localhost:5000/api/notifications/remove-subscription",
     {
       method: "POST",
       headers: {

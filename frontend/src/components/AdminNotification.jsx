@@ -29,6 +29,7 @@ import useNotification from "../hooks/useNotification.js";
 import CloseIcon from "@mui/icons-material/Close";
 import { useTheme as MyTheme } from "../context/ThemeContext.jsx";
 import { API_PATHS, BASE_URL } from "../utils/apiPaths.js";
+import { useUnreadChatsContext } from "../context/UnreadChatsContext.jsx";
 
 const AdminNotification = ({ setIsOpenNotification }) => {
   const theme = useTheme();
@@ -59,18 +60,7 @@ const AdminNotification = ({ setIsOpenNotification }) => {
   const { clearNotifications, loadingClearNotifications } = useNotification();
   const [activeTab, setActiveTab] = useState("notifications");
   const tabType = ["notifications", "messages"];
-  const [unreadCounts, setUnreadCounts] = useState({});
-  const prevCountsRef = useRef({});
-
-  const shallowEqualCounts = useCallback((a = {}, b = {}) => {
-    const ak = Object.keys(a);
-    const bk = Object.keys(b);
-    if (ak.length !== bk.length) return false;
-    for (let k of ak) {
-      if (a[k] !== b[k]) return false;
-    }
-    return true;
-  }, []);
+  const { unread } = useUnreadChatsContext();
 
   const messagesEndRef = useRef(null);
   const messagesContainerDesktopRef = useRef(null);
@@ -346,40 +336,10 @@ const AdminNotification = ({ setIsOpenNotification }) => {
       }
     });
 
-    // Request unread counts for all known employees
-    const partnerIds = (allEmployees || []).map((e) => e._id);
-    if (partnerIds.length) {
-      socket.emit("request-unread", { userId: user._id, partners: partnerIds });
-    }
-
-    // unread counts: bulk and per-pair updates
-    socket.on("unread-counts", ({ userId, counts }) => {
-      if (userId === user._id && counts) {
-        if (!shallowEqualCounts(prevCountsRef.current, counts)) {
-          prevCountsRef.current = counts;
-          setUnreadCounts(counts);
-        }
-      }
-    });
-
-    socket.on("unread-count", ({ userId, partnerId, count }) => {
-      if (userId === user._id && partnerId) {
-        setUnreadCounts((prev) => {
-          if (prev[partnerId] === count) return prev;
-          const next = { ...prev, [partnerId]: count };
-          prevCountsRef.current = next;
-          return next;
-        });
-      }
-    });
-
-    // cleanup
     return () => {
       socket.off("notification", handleNotification);
       socket.off("receiveMessage", handleMessage);
       socket.off("read-update");
-      socket.off("unread-counts");
-      socket.off("unread-count");
     };
   }, [user?._id, handleNotification, handleMessage, allEmployees]);
 
@@ -418,9 +378,9 @@ const AdminNotification = ({ setIsOpenNotification }) => {
         >
           <div className="flex items-center justify-between w-full">
             <span>{emp.name}</span>
-            {unreadCounts?.[emp._id] > 0 && (
+            {unread?.[emp._id] > 0 && (
               <span className="ml-2 text-[10px] rounded-full bg-[#1976D2] text-white px-2 py-[1px]">
-                {unreadCounts[emp._id]}
+                {unread[emp._id]}
               </span>
             )}
           </div>
@@ -468,9 +428,9 @@ const AdminNotification = ({ setIsOpenNotification }) => {
               <Avatar size={35} name={emp?.name} />
               <p>{emp?.name}</p>
             </div>
-            {unreadCounts?.[emp._id] > 0 && (
+            {unread?.[emp._id] > 0 && (
               <span className="ml-2 text-[10px] rounded-full bg-[#1976D2] text-white px-2 py-[1px]">
-                {unreadCounts[emp._id]}
+                {unread[emp._id]}
               </span>
             )}
           </div>
@@ -503,7 +463,7 @@ const AdminNotification = ({ setIsOpenNotification }) => {
   //sorted notifications (newest first)
   const sortedNotifications = [...notifications].sort(
     (a, b) => new Date(b?.createdAt) - new Date(a?.createdAt)
-  );
+  ); 
 
   const groupedByDateNotifications = sortedNotifications.reduce((groups, m) => {
     const msgDate = new Date(m?.createdAt);

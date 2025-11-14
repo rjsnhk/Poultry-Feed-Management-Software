@@ -11,7 +11,6 @@ const initSocket = (server) => {
     cors: {
       origin: [
         "https://poultry-feed-management-software-4.onrender.com",
-        "https://tubular-speculoos-d65a14.netlify.app",
         "https://feedmanager.netlify.app",
       ],
       // origin: "http://localhost:5173",

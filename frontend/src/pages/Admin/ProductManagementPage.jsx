@@ -2,6 +2,11 @@ import React, { useState } from "react";
 import {
   Button,
   CircularProgress,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   FormControl,
   InputLabel,
   MenuItem,
@@ -33,8 +38,6 @@ const ProductManagementPage = () => {
     addProduct(data);
     setOpenForm(false);
   };
-
-  if (isLoading) return <CircularProgress />;
 
   return (
     <div>
@@ -167,6 +170,7 @@ const ProductManagementPage = () => {
               />
               <div className="flex items-center justify-end gap-3 mt-5">
                 <Button
+                  size="small"
                   variant="outlined"
                   disableElevation
                   sx={{ textTransform: "none" }}
@@ -175,7 +179,8 @@ const ProductManagementPage = () => {
                   Cancel
                 </Button>
                 <Button
-                  // loading={isLoading}
+                  size="small"
+                  loading={isLoading}
                   variant="contained"
                   disableElevation
                   sx={{ textTransform: "none" }}
