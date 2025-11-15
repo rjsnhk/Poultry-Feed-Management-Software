@@ -500,113 +500,108 @@ const Header = ({ isCollapsed, setIsCollapsed }) => {
             </div>
           </div>
 
-          {/* <div className="items-center gap-2 hidden lg:flex md:flex">
-            <Avatar
-              alt={user?.name}
-              src="/static/images/avatar/1.jpg"
-              size={40}
-              name={user?.name}
-              online={user?.isActive}
-            />
-            {isOpen ? (
-              <div
-                onClick={() => setIsOpen(false)}
-                className="hover:bg-gray-100 transition-all rounded-full dark:hover:bg-gray-600 dark:text-gray-300"
-              >
-                <KeyboardArrowUpIcon />
-              </div>
-            ) : (
-              <div
-                onClick={() => setIsOpen(true)}
-                className="hover:bg-gray-100 transition-all rounded-full dark:hover:bg-gray-600 dark:text-gray-300"
-              >
-                <KeyboardArrowDownIcon />
-              </div>
-            )}
-          </div> */}
-        </div>
+          <div className="lg:flex md:flex hidden">
+            {/* <Tooltip title="Account settings"> */}
+            <IconButton
+              onClick={handleClick}
+              size="small"
+              sx={{ ml: 2 }}
+              aria-controls={open ? "account-menu" : undefined}
+              aria-haspopup="true"
+              aria-expanded={open ? "true" : undefined}
+            >
+              <Avatar
+                alt={user?.name}
+                src="/static/images/avatar/1.jpg"
+                size={40}
+                name={user?.name}
+                online={user?.isActive}
+              />
+            </IconButton>
+            {/* </Tooltip> */}
 
-        <div className="lg:flex md:flex hidden">
-          {/* <Tooltip title="Account settings"> */}
-          <IconButton
-            onClick={handleClick}
-            size="small"
-            sx={{ ml: 2 }}
-            aria-controls={open ? "account-menu" : undefined}
-            aria-haspopup="true"
-            aria-expanded={open ? "true" : undefined}
-          >
-            <Avatar
-              alt={user?.name}
-              src="/static/images/avatar/1.jpg"
-              size={40}
-              name={user?.name}
-              online={user?.isActive}
-            />
-          </IconButton>
-          {/* </Tooltip> */}
-
-          <Menu
-            anchorEl={anchorEl}
-            id="account-menu"
-            open={open}
-            onClose={handleClose}
-            onClick={handleClose}
-            slotProps={{
-              paper: {
-                elevation: 0,
-                sx: {
-                  overflow: "visible",
-                  filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
-                  mt: 1.5,
-                  "& .MuiAvatar-root": {
-                    width: 32,
-                    height: 32,
-                    ml: -0.5,
-                    mr: 1,
-                  },
-                  "&::before": {
-                    content: '""',
-                    display: "block",
-                    position: "absolute",
-                    top: 0,
-                    right: 14,
-                    width: 10,
-                    height: 10,
-                    bgcolor: "background.paper",
-                    transform: "translateY(-50%) rotate(45deg)",
-                    zIndex: 0,
+            <Menu
+              anchorEl={anchorEl}
+              id="account-menu"
+              open={open}
+              onClose={handleClose}
+              onClick={handleClose}
+              slotProps={{
+                paper: {
+                  elevation: 0,
+                  sx: {
+                    overflow: "visible",
+                    filter: "drop-shadow(0px 2px 8px rgba(0,0,0,0.32))",
+                    mt: 1.5,
+                    "& .MuiAvatar-root": {
+                      width: 32,
+                      height: 32,
+                      ml: -0.5,
+                      mr: 1,
+                    },
+                    "&::before": {
+                      content: '""',
+                      display: "block",
+                      position: "absolute",
+                      top: 0,
+                      right: 14,
+                      width: 10,
+                      height: 10,
+                      bgcolor: "background.paper",
+                      transform: "translateY(-50%) rotate(45deg)",
+                      zIndex: 0,
+                    },
                   },
                 },
-              },
-            }}
-            transformOrigin={{ horizontal: "right", vertical: "top" }}
-            anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
-          >
-            <MenuItem>
-              <div className="flex items-center gap-2">
-                <Avatar
-                  alt={user?.name}
-                  src="/static/images/avatar/1.jpg"
-                  size={40}
-                  name={user?.name}
-                  online={user?.isActive}
-                />
-                <div className="flex flex-col">
-                  <p className="text-sm">{user?.name}</p>
-                  <p className="text-xs">{user?.email}</p>
+              }}
+              transformOrigin={{ horizontal: "right", vertical: "top" }}
+              anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
+            >
+              <MenuItem>
+                <div className="flex items-center gap-2">
+                  <Avatar
+                    alt={user?.name}
+                    src="/static/images/avatar/1.jpg"
+                    size={40}
+                    name={user?.name}
+                    online={user?.isActive}
+                  />
+                  <div className="flex flex-col">
+                    <p className="text-sm">{user?.name}</p>
+                    <p className="text-xs">{user?.email}</p>
+                  </div>
                 </div>
-              </div>
-            </MenuItem>
-            <Divider />
-            <MenuItem onClick={handleLogout}>
-              <ListItemIcon>
-                <Logout fontSize="small" />
-              </ListItemIcon>
-              Logout
-            </MenuItem>
-          </Menu>
+              </MenuItem>
+              <Divider />
+              {user?.role !== "Admin" && (
+                <div>
+                  {user?.isActive ? (
+                    <MenuItem onClick={() => changeStatus(user.role)}>
+                      <ListItemIcon>
+                        <PowerOff size={18} />
+                      </ListItemIcon>
+                      Deactivate Account
+                    </MenuItem>
+                  ) : (
+                    <MenuItem onClick={() => changeStatus(user.role)}>
+                      <ListItemIcon>
+                        <Power size={18} />
+                      </ListItemIcon>
+                      Activate Account
+                    </MenuItem>
+                  )}
+                </div>
+              )}
+              <MenuItem onClick={handleLogout}>
+                <ListItemIcon>
+                  <Logout fontSize="small" />
+                </ListItemIcon>
+                Logout
+              </MenuItem>
+            </Menu>
+          </div>
         </div>
+
         {/* {isOpen && (
           <div onClick={() => setIsOpen(false)} className="fixed inset-0 z-40">
             <div
