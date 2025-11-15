@@ -4,11 +4,18 @@ import { BASE_URL, API_PATHS } from "../utils/apiPaths";
 import { toast } from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 export const useUser = () => {
   const token = localStorage.getItem("token");
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (token) {
+      navigate("/login");
+    }
+  });
 
   //Current Logged in user data
   const {
