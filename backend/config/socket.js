@@ -3,18 +3,17 @@ const { Server } = require("socket.io");
 const Message = require("../models/Message");
 const Notification = require("../models/Notification");
 const sendPushNotification = require("../sendPushNotification");
-const { client } = require("./redis");
 
 let io;
 
 const initSocket = (server) => {
   io = new Server(server, {
     cors: {
-      // origin: [
-      //   "https://poultry-feed-management-software-4.onrender.com",
-      //   "https://feedmanager.netlify.app",
-      // ],
-      origin: "http://localhost:5173",
+      origin: [
+        "https://poultry-feed-management-software-4.onrender.com",
+        "https://feedmanager.netlify.app",
+      ],
+      // origin: "http://localhost:5173",
       methods: ["GET", "POST"],
       credentials: true,
     },

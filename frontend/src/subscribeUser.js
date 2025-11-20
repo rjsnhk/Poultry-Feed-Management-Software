@@ -32,8 +32,8 @@ export const subscribeUser = async (
 
   // Save subscription in backend
   await fetch(
-    // "https://poultry-feed-management-software-3.onrender.com/api/notifications/save-subscription",
-    "http://localhost:5000/api/notifications/save-subscription",
+    "https://poultry-feed-management-software-3.onrender.com/api/notifications/save-subscription",
+    // "http://localhost:5000/api/notifications/save-subscription",
     {
       method: "POST",
       headers: {
