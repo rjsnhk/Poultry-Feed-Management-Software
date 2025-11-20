@@ -5,7 +5,6 @@ import Sidebar2 from "../components/Sidebar2";
 import { useUser } from "../hooks/useUser";
 import AdminSocketManager from "../components/AdminSocketManager";
 import SocketManager from "../components/SocketManager";
-import Sample from "../components/Sample";
 
 const MainLayout = () => {
   const [isCollapsed, setIsCollapsed] = useState(true);
@@ -29,7 +28,6 @@ const MainLayout = () => {
         <div className="lg:ps-20 lg:py-5 md:p-5 sm:p-5 p-2 overflow-y-auto flex-1 md:w-full bg-gray-50 dark:bg-gray-950">
           <Sidebar2 isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
           <Outlet />
-          
         </div>
       </div>
     </div>
