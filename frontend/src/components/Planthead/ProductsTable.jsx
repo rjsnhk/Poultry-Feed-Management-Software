@@ -65,7 +65,7 @@ const ProductsTable = () => {
           <Tooltip title="Update Quantity" placement="top" enterDelay={500}>
             <SquarePen
               color="green"
-              className="hover:bg-green-100 active:scale-95 transition-all p-1.5 rounded-lg"
+              className="hover:bg-green-100 dark:hover:bg-green-950 active:scale-95 transition-all p-1.5 rounded-lg"
               size={30}
               onClick={() => {
                 setProductId(params.row.id);
@@ -214,8 +214,8 @@ const ProductsTable = () => {
       {/* --- Edit Product Modal --- */}
       {openEdit && (
         <div className="transition-all bg-gradient-to-b from-black/20 to-black/60 backdrop-blur-sm w-full z-50 h-screen absolute top-0 left-0 flex items-center justify-center">
-          <div className="bg-white p-7 rounded-lg w-[29rem]">
-            <p className="lg:text-xl text-base font-semibold mb-7">
+          <div className="bg-white dark:bg-gray-800 p-7 rounded-lg w-[29rem]">
+            <p className="lg:text-xl text-base dark:text-gray-200 font-semibold mb-7">
               Update Product Quantity
             </p>
             <form className="space-y-5" onSubmit={handleSubmit(onUpdate)}>

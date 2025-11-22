@@ -6,7 +6,6 @@ import { DataGrid } from "@mui/x-data-grid";
 import CloseIcon from "@mui/icons-material/Close";
 import { formatRupee } from "../../../utils/formatRupee.js";
 import { useAdminOrder } from "../../../hooks/useAdminOrders.js";
-import { TbFileInvoice } from "react-icons/tb";
 import autoTable from "jspdf-autotable";
 import jsPDF from "jspdf";
 import { useTheme } from "../../../context/ThemeContext.jsx";
@@ -267,21 +266,21 @@ const OrdersTable = () => {
           className={`${
             {
               Placed:
-                "text-blue-800 dark:text-blue-200 bg-blue-100 dark:bg-blue-900",
+                "text-blue-800 dark:text-blue-200 bg-blue-100 dark:bg-blue-800",
               ForwardedToAuthorizer:
-                "text-violet-800 dark:text-violet-200 bg-violet-100 dark:bg-violet-900",
+                "text-violet-800 dark:text-violet-200 bg-violet-100 dark:bg-violet-800",
               WarehouseAssigned:
-                "text-amber-800 dark:text-amber-200 bg-amber-100 dark:bg-amber-900",
+                "text-amber-800 dark:text-amber-200 bg-amber-100 dark:bg-amber-800",
               Approved:
-                "text-emerald-800 dark:text-emerald-200 bg-emerald-100 dark:bg-emerald-900",
+                "text-emerald-800 dark:text-emerald-200 bg-emerald-100 dark:bg-emerald-800",
               ForwardedToPlantHead:
-                "text-violet-900 dark:text-violet-200 bg-violet-100 dark:bg-violet-900",
+                "text-violet-900 dark:text-violet-200 bg-violet-100 dark:bg-violet-800",
               Dispatched:
-                "text-yellow-800 dark:text-yellow-200 bg-yellow-100 dark:bg-yellow-900",
+                "text-yellow-800 dark:text-yellow-200 bg-yellow-100 dark:bg-yellow-800",
               Delivered:
-                "text-green-800 dark:text-green-200 bg-green-100 dark:bg-green-900",
+                "text-green-800 dark:text-green-200 bg-green-100 dark:bg-green-800",
               Cancelled:
-                "text-red-800 dark:text-red-200 bg-red-100 dark:bg-red-900",
+                "text-red-800 dark:text-red-200 bg-red-100 dark:bg-red-800",
             }[params.value] ||
             "text-gray-800 dark:text-gray-300 bg-gray-200 dark:bg-gray-700"
           } p-1 px-3 rounded-full text-xs font-semibold`}
@@ -667,19 +666,31 @@ const OrdersTable = () => {
                   </h1>
                   <div className="flex items-center justify-between font-semibold text-gray-600 dark:text-gray-300">
                     <span className="font-normal">Order Status:</span>
-                    {singleOrder?.orderStatus === "Delivered" ? (
-                      <span className="text-green-700 dark:text-green-200 dark:bg-green-800 font-semibold bg-green-100 p-0.5 px-2 rounded-full lg:text-xs text-[10px]">
-                        {singleOrder?.orderStatus}
-                      </span>
-                    ) : singleOrder?.orderStatus === "Cancelled" ? (
-                      <span className="text-red-700 dark:text-red-200 dark:bg-red-800 font-semibold bg-red-100 p-0.5 px-2 rounded-full lg:text-xs text-[10px]">
-                        {singleOrder?.orderStatus}
-                      </span>
-                    ) : (
-                      <span className="text-gray-700 dark:text-gray-200 dark:bg-gray-800 font-semibold bg-gray-200 p-0.5 px-2 rounded-full lg:text-xs text-[10px]">
-                        {singleOrder?.orderStatus}
-                      </span>
-                    )}
+                    <span
+                      className={`${
+                        {
+                          Placed:
+                            "text-blue-800 dark:text-blue-200 bg-blue-100 dark:bg-blue-800",
+                          ForwardedToAuthorizer:
+                            "text-violet-800 dark:text-violet-200 bg-violet-100 dark:bg-violet-800",
+                          WarehouseAssigned:
+                            "text-amber-800 dark:text-amber-200 bg-amber-100 dark:bg-amber-800",
+                          Approved:
+                            "text-emerald-800 dark:text-emerald-200 bg-emerald-100 dark:bg-emerald-800",
+                          ForwardedToPlantHead:
+                            "text-violet-900 dark:text-violet-200 bg-violet-100 dark:bg-violet-800",
+                          Dispatched:
+                            "text-yellow-800 dark:text-yellow-200 bg-yellow-100 dark:bg-yellow-800",
+                          Delivered:
+                            "text-green-800 dark:text-green-200 bg-green-100 dark:bg-green-800",
+                          Cancelled:
+                            "text-red-800 dark:text-red-200 bg-red-100 dark:bg-red-800",
+                        }[singleOrder?.orderStatus] ||
+                        "text-gray-800 dark:text-gray-300 bg-gray-200 dark:bg-gray-700"
+                      }  p-0.5 px-2 rounded-full lg:text-xs text-[10px] font-semibold`}
+                    >
+                      {singleOrder?.orderStatus}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between font-semibold text-gray-600 dark:text-gray-300">
                     <span className="font-normal">Payment Status:</span>
@@ -776,6 +787,7 @@ const OrdersTable = () => {
                 </div>
               </div>
             </div>
+
             {/* notes */}
             <div className="flex flex-col gap-2 lg:text-sm text-xs my-5">
               <h1 className="font-semibold lg:text-base text-sm text-gray-800 dark:text-gray-200">
@@ -785,6 +797,7 @@ const OrdersTable = () => {
                 {singleOrder?.notes}
               </p>
             </div>
+
             {/* dispatch info */}
             {singleOrder?.dispatchInfo && (
               <div className="flex flex-col gap-2 lg:text-sm text-xs bg-green-50 dark:bg-green-800 p-3 rounded-lg mt-5">

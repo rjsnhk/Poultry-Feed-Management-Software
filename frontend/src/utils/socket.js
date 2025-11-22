@@ -2,14 +2,13 @@ import { io } from "socket.io-client";
 
 const socket = io("https://poultry-feed-management-software-3.onrender.com", {
 // const socket = io("http://localhost:5000", {
-  transports: ["websocket", "polling"], // Add polling as fallback
+  transports: ["websocket", "polling"],
   withCredentials: true,
   reconnection: true,
   reconnectionAttempts: 5,
   reconnectionDelay: 1000,
 });
 
-// Add connection listeners for debugging
 socket.on("connect", () => {
   console.log("✅ Connected to socket server:", socket.id);
 });

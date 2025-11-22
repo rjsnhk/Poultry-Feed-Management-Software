@@ -155,7 +155,11 @@ const OrdersForManager = () => {
       flex: 1,
       minWidth: 100,
       renderCell: (params) => (
-        <span className={`${params.value !== "₹0" && "text-green-700"}`}>
+        <span
+          className={`${
+            params.value !== "₹0" && "text-green-700 dark:text-green-500"
+          }`}
+        >
           {params.value}
         </span>
       ),
@@ -166,7 +170,11 @@ const OrdersForManager = () => {
       flex: 1,
       minWidth: 100,
       renderCell: (params) => (
-        <span className={`${params.value !== "₹0" && "text-red-600"}`}>
+        <span
+          className={`${
+            params.value !== "₹0" && "text-red-600 dark:text-red-500"
+          }`}
+        >
           {params.value}
         </span>
       ),
@@ -181,21 +189,21 @@ const OrdersForManager = () => {
           className={`${
             {
               Placed:
-                "text-blue-800 dark:text-blue-200 bg-blue-100 dark:bg-blue-900",
+                "text-blue-800 dark:text-blue-200 bg-blue-100 dark:bg-blue-800",
               ForwardedToAuthorizer:
-                "text-violet-800 dark:text-violet-200 bg-violet-100 dark:bg-violet-900",
+                "text-violet-800 dark:text-violet-200 bg-violet-100 dark:bg-violet-800",
               WarehouseAssigned:
-                "text-amber-800 dark:text-amber-200 bg-amber-100 dark:bg-amber-900",
+                "text-amber-800 dark:text-amber-200 bg-amber-100 dark:bg-amber-800",
               Approved:
-                "text-emerald-800 dark:text-emerald-200 bg-emerald-100 dark:bg-emerald-900",
+                "text-emerald-800 dark:text-emerald-200 bg-emerald-100 dark:bg-emerald-800",
               ForwardedToPlantHead:
-                "text-violet-900 dark:text-violet-200 bg-violet-100 dark:bg-violet-900",
+                "text-violet-900 dark:text-violet-200 bg-violet-100 dark:bg-violet-800",
               Dispatched:
-                "text-yellow-800 dark:text-yellow-200 bg-yellow-100 dark:bg-yellow-900",
+                "text-yellow-800 dark:text-yellow-200 bg-yellow-100 dark:bg-yellow-800",
               Delivered:
-                "text-green-800 dark:text-green-200 bg-green-100 dark:bg-green-900",
+                "text-green-800 dark:text-green-200 bg-green-100 dark:bg-green-800",
               Cancelled:
-                "text-red-800 dark:text-red-200 bg-red-100 dark:bg-red-900",
+                "text-red-800 dark:text-red-200 bg-red-100 dark:bg-red-800",
             }[params.value] ||
             "text-gray-800 dark:text-gray-300 bg-gray-200 dark:bg-gray-700"
           } p-1 px-3 rounded-full text-xs font-semibold`}
@@ -215,14 +223,14 @@ const OrdersForManager = () => {
         <div className="flex items-center h-full gap-1">
           <Eye
             color="blue"
-            className="hover:bg-blue-100 active:scale-95 transition-all p-1.5 rounded-lg"
+            className="hover:bg-blue-100 dark:hover:bg-blue-950 text-blue-600 active:scale-95 transition-all p-1.5 rounded-lg"
             size={30}
             onClick={() => handleView(params.row.id)}
           />
           {user.isActive ? (
             <MdOutlineCancel
               color="red"
-              className="hover:bg-red-100 active:scale-95 transition-all p-1.5 rounded-lg"
+              className="hover:bg-red-100 dark:hover:bg-red-950 text-red-600 active:scale-95 transition-all p-1.5 rounded-lg"
               size={30}
               onClick={() => {
                 setSingleOrderId(params.row.id);
@@ -618,21 +626,31 @@ const OrdersForManager = () => {
                     <span className="text-gray-600 dark:text-gray-300 font-normal">
                       Order Status:
                     </span>
-                    {singleOrderFromSalesManager?.orderStatus ===
-                    "Delivered" ? (
-                      <span className="text-green-700 dark:text-green-200 dark:bg-green-800 bg-green-100 p-0.5 px-2 rounded-full lg:text-xs text-[10px]">
-                        Delivered
-                      </span>
-                    ) : singleOrderFromSalesManager?.orderStatus ===
-                      "Cancelled" ? (
-                      <span className="text-red-700 dark:text-red-200 dark:bg-red-800 bg-red-100 p-0.5 px-2 rounded-full lg:text-xs text-[10px]">
-                        Cancelled
-                      </span>
-                    ) : (
-                      <span className="text-gray-700 dark:text-gray-300 dark:bg-gray-900 bg-gray-200 p-0.5 px-2 rounded-full lg:text-xs text-[10px]">
-                        {singleOrderFromSalesManager?.orderStatus}
-                      </span>
-                    )}
+                    <span
+                      className={`${
+                        {
+                          Placed:
+                            "text-blue-800 dark:text-blue-200 bg-blue-100 dark:bg-blue-800",
+                          ForwardedToAuthorizer:
+                            "text-violet-800 dark:text-violet-200 bg-violet-100 dark:bg-violet-800",
+                          WarehouseAssigned:
+                            "text-amber-800 dark:text-amber-200 bg-amber-100 dark:bg-amber-800",
+                          Approved:
+                            "text-emerald-800 dark:text-emerald-200 bg-emerald-100 dark:bg-emerald-800",
+                          ForwardedToPlantHead:
+                            "text-violet-900 dark:text-violet-200 bg-violet-100 dark:bg-violet-800",
+                          Dispatched:
+                            "text-yellow-800 dark:text-yellow-200 bg-yellow-100 dark:bg-yellow-800",
+                          Delivered:
+                            "text-green-800 dark:text-green-200 bg-green-100 dark:bg-green-800",
+                          Cancelled:
+                            "text-red-800 dark:text-red-200 bg-red-100 dark:bg-red-800",
+                        }[singleOrderFromSalesManager?.orderStatus] ||
+                        "text-gray-800 dark:text-gray-300 bg-gray-200 dark:bg-gray-700"
+                      }  p-0.5 px-2 rounded-full lg:text-xs text-[10px] font-semibold`}
+                    >
+                      {singleOrderFromSalesManager?.orderStatus}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between font-semibold dark:text-gray-300">
                     <span className="text-gray-600 dark:text-gray-300 font-normal">

@@ -349,21 +349,21 @@ const AllOrdersForSalesman = () => {
           className={`${
             {
               Placed:
-                "text-blue-800 dark:text-blue-200 bg-blue-100 dark:bg-blue-900",
+                "text-blue-800 dark:text-blue-200 bg-blue-100 dark:bg-blue-800",
               ForwardedToAuthorizer:
-                "text-violet-800 dark:text-violet-200 bg-violet-100 dark:bg-violet-900",
+                "text-violet-800 dark:text-violet-200 bg-violet-100 dark:bg-violet-800",
               WarehouseAssigned:
-                "text-amber-800 dark:text-amber-200 bg-amber-100 dark:bg-amber-900",
+                "text-amber-800 dark:text-amber-200 bg-amber-100 dark:bg-amber-800",
               Approved:
-                "text-emerald-800 dark:text-emerald-200 bg-emerald-100 dark:bg-emerald-900",
+                "text-emerald-800 dark:text-emerald-200 bg-emerald-100 dark:bg-emerald-800",
               ForwardedToPlantHead:
-                "text-violet-900 dark:text-violet-200 bg-violet-100 dark:bg-violet-900",
+                "text-violet-900 dark:text-violet-200 bg-violet-100 dark:bg-violet-800",
               Dispatched:
-                "text-yellow-800 dark:text-yellow-200 bg-yellow-100 dark:bg-yellow-900",
+                "text-yellow-800 dark:text-yellow-200 bg-yellow-100 dark:bg-yellow-800",
               Delivered:
-                "text-green-800 dark:text-green-200 bg-green-100 dark:bg-green-900",
+                "text-green-800 dark:text-green-200 bg-green-100 dark:bg-green-800",
               Cancelled:
-                "text-red-800 dark:text-red-200 bg-red-100 dark:bg-red-900",
+                "text-red-800 dark:text-red-200 bg-red-100 dark:bg-red-800",
             }[params.value] ||
             "text-gray-800 dark:text-gray-300 bg-gray-200 dark:bg-gray-700"
           } p-1 px-3 rounded-full text-xs font-semibold`}
@@ -829,19 +829,31 @@ const AllOrdersForSalesman = () => {
                   </h1>
                   <div className="flex items-center justify-between font-semibold text-gray-600 dark:text-gray-300">
                     <span className="font-normal">Order Status:</span>
-                    {singleOrderFromSalesman?.orderStatus === "Delivered" ? (
-                      <span className="text-green-700 dark:text-green-200 dark:bg-green-800 font-semibold bg-green-100 p-0.5 px-2 rounded-full lg:text-xs text-[10px]">
-                        {singleOrderFromSalesman?.orderStatus}
-                      </span>
-                    ) : singleOrderFromSalesman?.orderStatus === "Cancelled" ? (
-                      <span className="text-red-700 dark:text-red-200 dark:bg-red-800 font-semibold bg-red-100 p-0.5 px-2 rounded-full lg:text-xs text-[10px]">
-                        {singleOrderFromSalesman?.orderStatus}
-                      </span>
-                    ) : (
-                      <span className="text-gray-700 dark:text-gray-300 dark:bg-gray-900 font-semibold bg-gray-200 p-0.5 px-2 rounded-full lg:text-xs text-[10px]">
-                        {singleOrderFromSalesman?.orderStatus}
-                      </span>
-                    )}
+                    <span
+                      className={`${
+                        {
+                          Placed:
+                            "text-blue-800 dark:text-blue-200 bg-blue-100 dark:bg-blue-800",
+                          ForwardedToAuthorizer:
+                            "text-violet-800 dark:text-violet-200 bg-violet-100 dark:bg-violet-800",
+                          WarehouseAssigned:
+                            "text-amber-800 dark:text-amber-200 bg-amber-100 dark:bg-amber-800",
+                          Approved:
+                            "text-emerald-800 dark:text-emerald-200 bg-emerald-100 dark:bg-emerald-800",
+                          ForwardedToPlantHead:
+                            "text-violet-900 dark:text-violet-200 bg-violet-100 dark:bg-violet-800",
+                          Dispatched:
+                            "text-yellow-800 dark:text-yellow-200 bg-yellow-100 dark:bg-yellow-800",
+                          Delivered:
+                            "text-green-800 dark:text-green-200 bg-green-100 dark:bg-green-800",
+                          Cancelled:
+                            "text-red-800 dark:text-red-200 bg-red-100 dark:bg-red-800",
+                        }[singleOrderFromSalesman?.orderStatus] ||
+                        "text-gray-800 dark:text-gray-300 bg-gray-200 dark:bg-gray-700"
+                      }  p-0.5 px-2 rounded-full lg:text-xs text-[10px] font-semibold`}
+                    >
+                      {singleOrderFromSalesman?.orderStatus}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between font-semibold text-gray-600 dark:text-gray-300">
                     <span className="font-normal">Payment Status:</span>
@@ -1272,8 +1284,8 @@ const AllOrdersForSalesman = () => {
       {/* Deliver Order Modal */}
       {openDeliver && (
         <div className="transition-all bg-gradient-to-b from-black/20 to-black/60 backdrop-blur-sm w-full z-50 h-screen absolute top-0 left-0 flex items-center justify-center">
-          <div className="bg-white lg:p-7 p-5 rounded-lg lg:w-[35rem] md:w-[60%] sm:w-[60%] w-[95%]">
-            <p className="lg:text-lg dark:text-gray-200 text-base font-semibold">
+          <div className="bg-white dark:bg-gray-800 lg:p-7 p-5 rounded-lg lg:w-[35rem] md:w-[60%] sm:w-[60%] w-[95%]">
+            <p className="text-base dark:text-gray-200 font-semibold">
               Are you sure you want to mark #{singleOrderFromSalesman?.orderId}{" "}
               order Delivered?
             </p>
@@ -1286,7 +1298,7 @@ const AllOrdersForSalesman = () => {
                 variant="outlined"
                 disableElevation
                 size="small"
-                color="error"
+                color="success"
                 sx={{ textTransform: "none" }}
                 onClick={() => setOpenDeliver(false)}
               >
@@ -1376,7 +1388,7 @@ const AllOrdersForSalesman = () => {
                   )}
                 </div>
                 <div>
-                  <span className="text-sm mb-1 ms-3 text-gray-600">
+                  <span className="text-sm mb-1 dark:text-gray-300 text-gray-600">
                     Upload Due Payment Proof
                   </span>
                   <input

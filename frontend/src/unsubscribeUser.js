@@ -4,16 +4,16 @@ export const unsubscribeUser = async () => {
   const registration = await navigator.serviceWorker.getRegistration();
   if (!registration) return;
 
-  // ✅ Get existing subscription
+  // Get existing subscription
   const subscription = await registration.pushManager.getSubscription();
   if (!subscription) return;
 
   const endpoint = subscription.endpoint;
 
-  // ✅ Unsubscribe from browser
+  //  Unsubscribe from browser
   await subscription.unsubscribe();
 
-  // ✅ Remove from backend
+  //  Remove from backend
   await fetch(
     "https://poultry-feed-management-software-3.onrender.com/api/notifications/remove-subscription",
     // "http://localhost:5000/api/notifications/remove-subscription",

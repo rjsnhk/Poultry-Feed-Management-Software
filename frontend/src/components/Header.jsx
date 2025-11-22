@@ -147,7 +147,6 @@ const Header = ({ isCollapsed, setIsCollapsed }) => {
         },
       ];
       break;
-
     case "Salesman":
       items = [
         {
@@ -162,7 +161,6 @@ const Header = ({ isCollapsed, setIsCollapsed }) => {
         },
       ];
       break;
-
     case "SalesManager":
       items = [
         {
@@ -172,7 +170,6 @@ const Header = ({ isCollapsed, setIsCollapsed }) => {
         },
       ];
       break;
-
     case "SalesAuthorizer":
       items = [
         {
@@ -182,7 +179,6 @@ const Header = ({ isCollapsed, setIsCollapsed }) => {
         },
       ];
       break;
-
     case "PlantHead":
       items = [
         {
@@ -197,7 +193,6 @@ const Header = ({ isCollapsed, setIsCollapsed }) => {
         },
       ];
       break;
-
     case "Accountant":
       items = [
         {
@@ -222,6 +217,7 @@ const Header = ({ isCollapsed, setIsCollapsed }) => {
             <span className="logo">Feed manager</span>
           </div>
         </div>
+
         <div className="lg:hidden">
           {isCollapsed && (
             <div className="flex items-center gap-5">
@@ -237,160 +233,163 @@ const Header = ({ isCollapsed, setIsCollapsed }) => {
             </div>
           )}
 
-          {!isCollapsed && (
-            <div className="lg:hidden md:block absolute top-0 left-0 min-h-full max-h-lvh w-60 p-2 border-r dark:border-gray-700 border-gray-100 bg-white dark:bg-gray-900 transition-all ease-out overflow-hidden shadow-lg backdrop-blur-sm z-50 flex flex-col items-start justify-between pb-5">
-              <div className="w-full">
-                <div className="flex items-center justify-between p-4 w-full">
-                  <span className="logo text-[#1976D2]">Menu</span>
+          {/* Overlay Background */}
+          <div
+            onClick={() => setIsCollapsed(true)}
+            className={`lg:hidden fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 ${
+              !isCollapsed ? "opacity-100 visible" : "opacity-0 invisible"
+            }`}
+          />
 
-                  <X
-                    onClick={() => setIsCollapsed(true)}
-                    className="text-[#1976D2] cursor-pointer active:bg-[#1976D2]/20 rounded-full transition-all p-1.5"
-                    size={30}
-                  />
-                </div>
-
-                <nav className="flex-1 overflow-y-auto px-2 space-y-2 w-full">
-                  {items.map((item, index) => (
-                    <NavLink
-                      key={index}
-                      to={item.href}
-                      className={({ isActive }) =>
-                        isActive
-                          ? "group flex items-center w-full text-sm gap-4 p-2 rounded-lg font-semibold text-black dark:text-gray-100 bg-[#1976D2]/20 dark:bg-[#1976D2] transition-colors duration-200 cursor-pointer"
-                          : "group flex items-center w-full text-sm gap-4 p-2 rounded-lg font-medium text-gray-500 dark:text-gray-400 hover:bg-[#1976D2]/20 dark:hover:bg-[#1976D2] hover:text-black dark:hover:text-gray-100 transition-colors duration-200 cursor-pointer"
-                      }
-                    >
-                      {({ isActive }) => (
-                        <>
-                          <div
-                            className={`flex-shrink-0 ${
-                              isActive
-                                ? "text-[#1976D2] dark:text-gray-100"
-                                : "group-hover:text-[#1976D2] dark:group-hover:text-gray-100 text-gray-500 dark:text-gray-400"
-                            } transition-colors`}
-                          >
-                            {item.icon}
-                          </div>
-                          <span
-                            className={`whitespace-nowrap transition-all duration-200 ${
-                              !isCollapsed
-                                ? "opacity-100 w-auto"
-                                : "opacity-0 w-0"
-                            }`}
-                          >
-                            {item.label}
-                          </span>
-                        </>
-                      )}
-                    </NavLink>
-                  ))}
-                </nav>
+          {/* Animated Sidebar */}
+          <div
+            className={`lg:hidden md:block fixed top-0 left-0 min-h-full max-h-lvh w-60 p-2 border-r dark:border-gray-700 border-gray-100 bg-white dark:bg-gray-900 overflow-hidden shadow-lg backdrop-blur-sm z-50 flex flex-col items-start justify-between pb-5 transition-transform duration-300 ease-out ${
+              !isCollapsed ? "translate-x-0" : "-translate-x-full"
+            }`}
+          >
+            <div className="w-full">
+              <div className="flex items-center justify-between p-4 w-full">
+                <span className="logo text-[#1976D2]">Menu</span>
+                <X
+                  onClick={() => setIsCollapsed(true)}
+                  className="text-[#1976D2] cursor-pointer active:bg-[#1976D2]/20 rounded-full transition-all p-1.5"
+                  size={30}
+                />
               </div>
 
-              <div className="lg:hidden md:hidden w-full">
-                <div className="w-full mb-4 flex gap-2 flex-col items-center justify-center">
-                  {user?.role !== "Admin" && (
-                    <Button
-                      fullWidth
-                      startIcon={
-                        user.isActive ? (
-                          <PowerOff size={15} />
-                        ) : (
-                          <Power size={15} />
-                        )
-                      }
-                      onClick={() => changeStatus(user?.role)}
-                      color="black"
-                      sx={{
-                        textTransform: "none",
-                        fontSize: isSmDown ? "12px" : "14px",
-                        borderRadius: "0px",
-                        textAlign: "left",
-                        justifyContent: "flex-start",
-                        paddingLeft: "1.5rem",
-                      }}
-                    >
-                      {user.isActive
-                        ? "Deactivate account"
-                        : "Activate account"}
-                    </Button>
-                  )}
+              <nav className="flex-1 overflow-y-auto px-2 space-y-2 w-full">
+                {items.map((item, index) => (
+                  <NavLink
+                    key={index}
+                    to={item.href}
+                    onClick={() => setIsCollapsed(true)}
+                    className={({ isActive }) =>
+                      isActive
+                        ? "group flex items-center w-full text-sm gap-4 p-2 rounded-lg font-semibold text-black dark:text-gray-100 bg-[#1976D2]/20 dark:bg-[#1976D2] transition-colors duration-200 cursor-pointer"
+                        : "group flex items-center w-full text-sm gap-4 p-2 rounded-lg font-medium text-gray-500 dark:text-gray-400 hover:bg-[#1976D2]/20 dark:hover:bg-[#1976D2] hover:text-black dark:hover:text-gray-100 transition-colors duration-200 cursor-pointer"
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <div
+                          className={`flex-shrink-0 ${
+                            isActive
+                              ? "text-[#1976D2] dark:text-gray-100"
+                              : "group-hover:text-[#1976D2] dark:group-hover:text-gray-100 text-gray-500 dark:text-gray-400"
+                          } transition-colors`}
+                        >
+                          {item.icon}
+                        </div>
+                        <span className="whitespace-nowrap transition-all duration-200 opacity-100 w-auto">
+                          {item.label}
+                        </span>
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+              </nav>
+            </div>
 
+            <div className="lg:hidden md:hidden w-full">
+              <div className="w-full mb-4 flex gap-2 flex-col items-center justify-center">
+                {user?.role !== "Admin" && (
                   <Button
                     fullWidth
-                    startIcon={<LogOut size={15} />}
-                    onClick={handleLogout}
-                    color="error"
+                    startIcon={
+                      user.isActive ? (
+                        <PowerOff size={15} />
+                      ) : (
+                        <Power size={15} />
+                      )
+                    }
+                    onClick={() => changeStatus(user?.role)}
+                    color="black"
                     sx={{
                       textTransform: "none",
+                      fontSize: isSmDown ? "12px" : "14px",
                       borderRadius: "0px",
                       textAlign: "left",
                       justifyContent: "flex-start",
                       paddingLeft: "1.5rem",
-                      fontSize: isSmDown ? "12px" : "14px",
                     }}
                   >
-                    Logout
+                    {user.isActive ? "Deactivate account" : "Activate account"}
                   </Button>
+                )}
 
-                  <div className="rounded-full p-1 dark:bg-gray-500 items-center bg-gray-200 flex w-fit">
-                    <div
-                      onClick={() => setTheme("light")}
-                      className={`${
-                        themeContext === "light"
-                          ? "bg-white text-orange-600 transition-all"
-                          : "cursor-pointer hover:bg-gray-400 transition-all"
-                      } p-1 px-2 rounded-full flex items-center gap-1 `}
-                    >
-                      <Sun size={12} />
-                      <span className="text-[12px]">Light</span>
-                    </div>
-                    <div
-                      onClick={() => setTheme("dark")}
-                      className={`${
-                        themeContext === "dark"
-                          ? "bg-gray-800 text-gray-200 transition-all "
-                          : "cursor-pointer hover:bg-gray-400 transition-all"
-                      } p-1 px-2 rounded-full flex items-center gap-1`}
-                    >
-                      <Moon size={12} />
-                      <span className="text-[12px]">Dark</span>
-                    </div>
-                    <div
-                      onClick={() => setTheme("system")}
-                      className={`${
-                        themeContext === "system"
-                          ? "bg-gray-800 text-gray-200 transition-all "
-                          : "cursor-pointer hover:bg-gray-400 transition-all"
-                      } p-1 px-2 rounded-full flex items-center gap-1`}
-                    >
-                      <Monitor size={12} />
-                      <span className="text-[12px]">System</span>
-                    </div>
+                <Button
+                  fullWidth
+                  startIcon={<LogOut size={15} />}
+                  onClick={handleLogout}
+                  color="error"
+                  sx={{
+                    textTransform: "none",
+                    borderRadius: "0px",
+                    textAlign: "left",
+                    justifyContent: "flex-start",
+                    paddingLeft: "1.5rem",
+                    fontSize: isSmDown ? "12px" : "14px",
+                  }}
+                >
+                  Logout
+                </Button>
+
+                <div className="rounded-full p-1 dark:bg-gray-500 items-center bg-gray-200 flex w-fit">
+                  <div
+                    onClick={() => setTheme("light")}
+                    className={`${
+                      themeContext === "light"
+                        ? "bg-white text-orange-600 transition-all"
+                        : "cursor-pointer hover:bg-gray-400 transition-all"
+                    } p-1 px-2 rounded-full flex items-center gap-1 `}
+                  >
+                    <Sun size={12} />
+                    <span className="text-[12px]">Light</span>
+                  </div>
+                  <div
+                    onClick={() => setTheme("dark")}
+                    className={`${
+                      themeContext === "dark"
+                        ? "bg-gray-800 text-gray-200 transition-all "
+                        : "cursor-pointer hover:bg-gray-400 transition-all"
+                    } p-1 px-2 rounded-full flex items-center gap-1`}
+                  >
+                    <Moon size={12} />
+                    <span className="text-[12px]">Dark</span>
+                  </div>
+                  <div
+                    onClick={() => setTheme("system")}
+                    className={`${
+                      themeContext === "system"
+                        ? "bg-gray-800 text-gray-200 transition-all "
+                        : "cursor-pointer hover:bg-gray-400 transition-all"
+                    } p-1 px-2 rounded-full flex items-center gap-1`}
+                  >
+                    <Monitor size={12} />
+                    <span className="text-[12px]">System</span>
                   </div>
                 </div>
+              </div>
 
-                <div className="flex flex-col">
-                  <div className="px-5 flex items-center gap-3">
-                    <Avatar
-                      alt={user?.name}
-                      src="/static/images/avatar/1.jpg"
-                      size={35}
-                      name={user?.name}
-                      online={user?.isActive}
-                    />
-                    <div className="flex flex-col">
-                      <p className="text-xs dark:text-gray-100">{user?.name}</p>
-                      <p className="text-[10px] dark:text-gray-300">
-                        {user?.email}
-                      </p>
-                    </div>
+              <div className="flex flex-col">
+                <div className="px-5 flex items-center gap-3">
+                  <Avatar
+                    alt={user?.name}
+                    src="/static/images/avatar/1.jpg"
+                    size={35}
+                    name={user?.name}
+                    online={user?.isActive}
+                  />
+                  <div className="flex flex-col">
+                    <p className="text-xs dark:text-gray-100">{user?.name}</p>
+                    <p className="text-[10px] dark:text-gray-300">
+                      {user?.email}
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
-          )}
+          </div>
         </div>
 
         <div className="flex items-center gap-12">
@@ -445,7 +444,6 @@ const Header = ({ isCollapsed, setIsCollapsed }) => {
                 </>
               )}
             </div>
-
             <NotificationsIcon className="dark:text-gray-300" />
           </IconButton>
 
@@ -593,70 +591,6 @@ const Header = ({ isCollapsed, setIsCollapsed }) => {
             </Menu>
           </div>
         </div>
-
-        {/* {isOpen && (
-          <div onClick={() => setIsOpen(false)} className="fixed inset-0 z-40">
-            <div
-              onClick={(e) => e.stopPropagation()}
-              className="absolute lg:top-14 lg:right-3 md:top-14 md:right-3 hidden lg:block md:block bg-white shadow-md rounded-lg z-50"
-            >
-              <div className="flex flex-col py-2 w-64">
-                <div className="mx-2 p-2 border-b border-gray-100 flex items-center gap-3 mb-2">
-                  <Avatar
-                    alt={user?.name}
-                    src="/static/images/avatar/1.jpg"
-                    size={40}
-                    name={user?.name}
-                    online={user?.isActive}
-                  />
-                  <div className="flex flex-col">
-                    <p className="text-sm">{user?.name}</p>
-                    <p className="text-xs">{user?.email}</p>
-                  </div>
-                </div>
-                {user?.role !== "Admin" && (
-                  <Button
-                    startIcon={
-                      user.isActive ? (
-                        <PowerOff size={15} />
-                      ) : (
-                        <Power size={15} />
-                      )
-                    }
-                    onClick={() => changeStatus(user.role)}
-                    color="black"
-                    sx={{
-                      textTransform: "none",
-                      borderRadius: "0px",
-                      textAlign: "left",
-                      justifyContent: "flex-start",
-                      paddingLeft: "1.5rem",
-                      "&:hover": {
-                        backgroundColor: "#f3f4f6",
-                      },
-                    }}
-                  >
-                    {user.isActive ? "Deactivate account" : "Activate account"}
-                  </Button>
-                )}
-                <Button
-                  startIcon={<LogOut size={15} />}
-                  onClick={handleLogout}
-                  color="error"
-                  sx={{
-                    textTransform: "none",
-                    borderRadius: "0px",
-                    textAlign: "left",
-                    justifyContent: "flex-start",
-                    paddingLeft: "1.5rem",
-                  }}
-                >
-                  Logout
-                </Button>
-              </div>
-            </div>
-          </div>
-        )} */}
       </div>
     </div>
   );

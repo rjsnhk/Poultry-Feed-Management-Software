@@ -1,8 +1,8 @@
-// socket.js
 const { Server } = require("socket.io");
 const Message = require("../models/Message");
 const Notification = require("../models/Notification");
 const sendPushNotification = require("../sendPushNotification");
+require("dotenv").config();
 
 let io;
 
