@@ -1,7 +1,8 @@
 import { io } from "socket.io-client";
 
 // const socket = io("https://poultry-feed-management-software-3.onrender.com", {
-const socket = io("http://localhost:5000", {
+// const socket = io("http://localhost:5000", {
+const socket = io("https://anand-erp.onrender.com", {
   transports: ["websocket", "polling"],
   withCredentials: true,
   reconnection: true,
