@@ -12,6 +12,7 @@ const initSocket = (server) => {
       origin: [
         "https://poultry-feed-management-software-4.onrender.com",
         "https://feedmanager.netlify.app",
+        "https://anand-erp.netlify.app",
       ],
       // origin: "http://localhost:5173",
       methods: ["GET", "POST"],
