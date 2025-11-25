@@ -8,6 +8,7 @@ const {
   removeSubscription,
   markRead,
   sendPush,
+  checkSubscription,
 } = require("../controllers/Notification");
 
 notificationRouter.get("/:userId", verifyToken, getNotifications);
@@ -23,7 +24,7 @@ notificationRouter.delete(
   clearNotifications
 );
 notificationRouter.put("/mark-read/:userId", verifyToken, markRead);
-
+notificationRouter.get("/check-subscription", verifyToken, checkSubscription);
 notificationRouter.post("/send-push", verifyToken, sendPush);
 
 module.exports = notificationRouter;

@@ -1,3 +1,5 @@
+import { API_PATHS, BASE_URL } from "./utils/apiPaths";
+
 export const subscribeUser = async (
   employeeId,
   role,
@@ -32,9 +34,7 @@ export const subscribeUser = async (
 
   // Save subscription in backend
   await fetch(
-    // "https://poultry-feed-management-software-3.onrender.com/api/notifications/save-subscription",
-    // "http://localhost:5000/api/notifications/save-subscription",
-    "https://anand-erp.onrender.com/api/notifications/save-subscription",
+    BASE_URL + API_PATHS.SUBSCRIPTION.SAVE,
     {
       method: "POST",
       headers: {

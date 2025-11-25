@@ -1,4 +1,3 @@
-import React from "react";
 import { useUser } from "../hooks/useUser";
 import { Navigate } from "react-router-dom";
 import { CircularProgress } from "@mui/material";

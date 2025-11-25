@@ -1,3 +1,5 @@
+import { API_PATHS, BASE_URL } from "./utils/apiPaths";
+
 export const unsubscribeUser = async () => {
   if (!("serviceWorker" in navigator)) return;
 
@@ -15,9 +17,7 @@ export const unsubscribeUser = async () => {
 
   //  Remove from backend
   await fetch(
-    // "https://poultry-feed-management-software-3.onrender.com/api/notifications/remove-subscription",
-    // "http://localhost:5000/api/notifications/remove-subscription",
-    "https://anand-erp.onrender.com/api/notifications/remove-subscription",
+    BASE_URL + API_PATHS.SUBSCRIPTION.REMOVE,
     {
       method: "POST",
       headers: {

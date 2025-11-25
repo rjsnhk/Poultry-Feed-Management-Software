@@ -187,4 +187,10 @@ export const API_PATHS = {
     GET_NOTIFICATIONS: (userId) => `/api/notifications/${userId}`,
     MARK_READ: (userId) => `/api/notifications/mark-read/${userId}`,
   },
+
+  SUBSCRIPTION: {
+    SAVE: "/api/notifications/save-subscription",
+    REMOVE: "/api/notifications/remove-subscription",
+    CHECK_SUBSCRIPTION: "/api/notifications/check-subscription",
+  },
 };

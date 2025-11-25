@@ -5,6 +5,23 @@ const jwt = require("jsonwebtoken");
 const dotenv = require("dotenv");
 dotenv.config();
 
+const checkSubscription = async (req, res) => {
+  const token = req.header("Authorization")?.replace("Bearer ", "");
+  const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+  const subscription = await Subscription.findOne({ employeeId: decoded.id });
+
+  if (!subscription) {
+    return res.json({
+      success: false,
+      message:
+        "No subscription found, Please login again to subscribe to push notifications!",
+    });
+  }
+
+  return res.json({ success: true, data: subscription });
+};
+
 //  Save subscription
 const saveSubscription = async (req, res) => {
   const token = req.header("Authorization")?.replace("Bearer ", "");
@@ -129,4 +146,5 @@ module.exports = {
   removeSubscription,
   markRead,
   sendPush,
+  checkSubscription,
 };
