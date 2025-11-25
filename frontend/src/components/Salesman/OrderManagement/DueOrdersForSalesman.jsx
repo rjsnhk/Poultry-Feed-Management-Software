@@ -183,21 +183,21 @@ const DueOrdersForSalesman = () => {
           className={`${
             {
               Placed:
-                "text-blue-800 dark:text-blue-200 bg-blue-100 dark:bg-blue-900",
+                "text-blue-800 dark:text-blue-200 bg-blue-100 dark:bg-blue-800",
               ForwardedToAuthorizer:
-                "text-violet-800 dark:text-violet-200 bg-violet-100 dark:bg-violet-900",
+                "text-violet-800 dark:text-violet-200 bg-violet-100 dark:bg-violet-800",
               WarehouseAssigned:
-                "text-amber-800 dark:text-amber-200 bg-amber-100 dark:bg-amber-900",
+                "text-amber-800 dark:text-amber-200 bg-amber-100 dark:bg-amber-800",
               Approved:
-                "text-emerald-800 dark:text-emerald-200 bg-emerald-100 dark:bg-emerald-900",
+                "text-emerald-800 dark:text-emerald-200 bg-emerald-100 dark:bg-emerald-800",
               ForwardedToPlantHead:
-                "text-violet-900 dark:text-violet-200 bg-violet-100 dark:bg-violet-900",
+                "text-violet-900 dark:text-violet-200 bg-violet-100 dark:bg-violet-800",
               Dispatched:
-                "text-yellow-800 dark:text-yellow-200 bg-yellow-100 dark:bg-yellow-900",
+                "text-yellow-800 dark:text-yellow-200 bg-yellow-100 dark:bg-yellow-800",
               Delivered:
-                "text-green-800 dark:text-green-200 bg-green-100 dark:bg-green-900",
+                "text-green-800 dark:text-green-200 bg-green-100 dark:bg-green-800",
               Cancelled:
-                "text-red-800 dark:text-red-200 bg-red-100 dark:bg-red-900",
+                "text-red-800 dark:text-red-200 bg-red-100 dark:bg-red-800",
             }[params.value] ||
             "text-gray-800 dark:text-gray-300 bg-gray-200 dark:bg-gray-700"
           } p-1 px-3 rounded-full text-xs font-semibold`}
@@ -723,6 +723,29 @@ const DueOrdersForSalesman = () => {
                 {singleOrderFromSalesman?.notes}
               </p>
             </div>
+
+            {singleOrderFromSalesman?.canceledBy?.role && (
+              <div className="flex flex-col gap-2 lg:text-sm text-xs my-5 border p-3 bg-red-900/10 rounded-lg border-red-800">
+                <h1 className="font-semibold lg:text-base text-sm text-gray-800 dark:text-gray-200">
+                  Cancellation Information
+                </h1>
+                <div className="flex items-center justify-between font-semibold text-gray-600 dark:text-gray-300">
+                  <span className="font-normal">Cancelled By:</span>
+                  {singleOrderFromSalesman?.canceledBy?.role}
+                </div>
+                <div className="flex items-center justify-between font-semibold text-gray-600 dark:text-gray-300">
+                  <span className="font-normal">Date:</span>
+                  {format(
+                    singleOrderFromSalesman?.canceledBy?.date,
+                    "dd MMM yyyy"
+                  )}
+                </div>
+                <p className="bg-red-50 dark:text-gray-200 dark:bg-red-800 rounded-lg p-3 py-2">
+                  <span className="font-bold">Reason:</span>{" "}
+                  {singleOrderFromSalesman?.canceledBy?.reason}
+                </p>
+              </div>
+            )}
 
             {/* dispatch info */}
             {singleOrderFromSalesman?.dispatchInfo && (

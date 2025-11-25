@@ -103,6 +103,8 @@ const OrdersTable = () => {
   const { orders, singleOrder, ordersLoading, singleOrderLoading } =
     useAdminOrder(singleOrderId);
 
+  console.log(singleOrder);
+
   const [paginationModel, setPaginationModel] = useState(() => {
     const saved = localStorage.getItem("paginationModel");
     return saved ? JSON.parse(saved) : { page: 0, pageSize: 10 };
@@ -797,6 +799,25 @@ const OrdersTable = () => {
                 {singleOrder?.notes}
               </p>
             </div>
+            {singleOrder?.canceledBy?.role && (
+              <div className="flex flex-col gap-2 lg:text-sm text-xs my-5 border p-3 bg-red-900/10 rounded-lg border-red-800">
+                <h1 className="font-semibold lg:text-base text-sm text-gray-800 dark:text-gray-200">
+                  Cancellation Information
+                </h1>
+                <div className="flex items-center justify-between font-semibold text-gray-600 dark:text-gray-300">
+                  <span className="font-normal">Cancelled By:</span>
+                  {singleOrder?.canceledBy?.role}
+                </div>
+                <div className="flex items-center justify-between font-semibold text-gray-600 dark:text-gray-300">
+                  <span className="font-normal">Date:</span>
+                  {format(singleOrder?.canceledBy?.date, "dd MMM yyyy")}
+                </div>
+                <p className="bg-red-50 dark:text-gray-200 dark:bg-red-800 rounded-lg p-3 py-2">
+                  <span className="font-bold">Reason:</span>{" "}
+                  {singleOrder?.canceledBy?.reason}
+                </p>
+              </div>
+            )}
 
             {/* dispatch info */}
             {singleOrder?.dispatchInfo && (
